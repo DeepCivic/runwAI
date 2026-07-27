@@ -1,0 +1,44 @@
+# .runwai — the template's own record
+
+**If you are building a project from this template, nothing in here is yours.** It is
+runwAI's development record: how the template was built, what was decided while building
+it, and what is left to do on it. Your project's decisions, backlog and contribution
+process go in your own files.
+
+Safe to delete. Nothing here is read by any gate, and removing it breaks nothing in your
+project.
+
+**Start with [`MAINTAINERS.md`](MAINTAINERS.md).** This file lists what is here; that one
+explains what runwAI is for and which of its properties are load-bearing. Read it before
+changing anything structural.
+
+## Contents
+
+| File | What it is |
+| :--- | :--- |
+| [`MAINTAINERS.md`](MAINTAINERS.md) | What the template is for, from our side. The argument, not the index |
+| [`backlog.yaml`](backlog.yaml) | runwAI's outstanding work, structured. Stable IDs, referenced from commit messages |
+| [`decisions.yaml`](decisions.yaml) | Decisions made while building the template. Distinct from `docs/setup.md`, which is the adopter's as-built record |
+| [`provenance.md`](provenance.md) | Upstream repo, commit SHA and licence for every derived file |
+| [`pinning.md`](pinning.md) | Verified tool pins, pending pins, how to complete one |
+| [`contributing.md`](contributing.md) | How to contribute **to runwAI** — adding a check, provenance requirements |
+| [`status.md`](status.md) | What is present, and what is honestly known about its limits |
+
+## Why it is a dot-directory
+
+Two reasons, and one cost.
+
+Agents do not read it by default, so an adopter never pays context for runwAI's own
+history. And a project built from this template will not be called runwAI — the licence,
+the README and the project name all change on a template user's first commit — so the
+material that belongs to *the template* has to be identifiable by location rather than by
+name.
+
+The cost: hidden directories rot quietly. `.runwai/tools/validate_helpers.py` checks the links in
+here for that reason.
+
+## Formats
+
+`backlog.yaml` is structured data, not prose, because its readers are a maintainer and an
+agent — neither needs a rendered version, and a second rendering would be one more thing
+to keep in sync. Everything else here is Markdown because it is argument rather than data.

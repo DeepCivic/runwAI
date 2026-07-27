@@ -1,0 +1,717 @@
+# runwAI development backlog.
+#
+# runwAI's own outstanding work. Not the adopting project's backlog, and not the
+# security backlog that TODO-10 will generate from scanner findings.
+#
+# Structured rather than prose so an agent can query it without reading a 300-line
+# README section.
+#
+# An ID is identity, not order. IDs are stable, cited from commit messages across the
+# history, and never reused or renumbered — renumbering them would make those citations
+# point at the wrong work. `rank` carries the order instead, and the file is written in
+# rank order so reading top to bottom is the work order. When priorities change, change
+# rank and re-sort; leave the IDs alone.
+#
+# state:       open | partly-done | shape-decided | closed
+# rank:        1 is next. Absent on closed items.
+# phase:       now | next | later | blocked | closed
+# rank_reason: why this position, so a re-ranking is an argument rather than a reshuffle
+# blocker:     null when actionable now
+# evidence:    only present where a claim was measured by running something
+
+version: 1
+
+# What v1 is, and what it is not.
+#
+# Three things, and the scanners that feed them. Items carrying `v1: true` are in; the rest
+# are ranked below them and are not gated on. Scope set 2026-07-26.
+v1_scope:
+  - Curated and rationalised meta architecture. Done — one canonical command list with thin
+    vendor adapters, recorded as decision 4.
+  - ISM compliance checked in GitHub CI, producing a file that tracks current state.
+    Non-blocking. Done — security-report.md and the `posture` workflow. TODO-10 stays open
+    for the noise control and generated backlog that wait on TODO-8.
+  - A machine-friendly breakdown of ISM requirements with semantic tags per control.
+    Done — controls/ism-tags.yaml and the generated controls/ism-index.json. TODO-13.
+  - semgrep stays, thinned to one or two practical rulesets. Done — two rulesets, 9 rules,
+    down from four and 23. TODO-14. "Standard" is not met and cannot be on the obvious
+    upstream, for the licensing reason in TODO-16.
+v1_excluded:
+  infrastructure: >-
+    Gone rather than deferred. TODO-15 deleted the IaC capability, which closed TODO-1,
+    TODO-2 and TODO-9 with it — all three existed only to make that capability correct or
+    survivable.
+  release_evidence: >-
+    SBOM, CBOM, signing and the release-gate workflow went with the capability that fed
+    them. Real work, and a later version's.
+  everything_else: >-
+    TODO-8, TODO-4, TODO-3, TODO-7 and TODO-5 are real and none of them blocks v1.
+
+# Outstanding before the template is released.
+#
+# Not a second backlog. The ranked items below are the work; this is the shorter list of
+# things a release decision turns on — open decisions, and risks that local verification
+# cannot close. Written 2026-07-26, after v1's four items landed.
+before_release:
+  ci_status: >-
+    `pr-gate` was deleted and its worthwhile jobs — selfcheck, ruleset-tests, bandit and the
+    full-history secret scan — were folded into `posture`, which now carries five jobs and
+    still blocks nothing. All of them ran green as pr-gate jobs immediately before the move,
+    so the parts are known-good and the arrangement is not. The next run is the first real
+    test of the new shape.
+
+    What was deliberately not carried over: pr-gate's `semgrep --error` pass. `posture`
+    already runs the same two rulesets over the same tree in report mode and keeps the
+    findings, and the pre-commit hook still runs them with `--error` locally. A second CI
+    pass differing only in its exit code would have reported the same findings twice and
+    re-created a merge gate under another name.
+  open_decisions:
+    - >-
+      The mapping_fidelity gap, recorded against TODO-4. Controls mapped with no mechanism
+      still read as `partial` coverage to anyone not reading their notes, because the
+      vocabulary has no way to say "mapped, nothing runs". Now cheaper than it was: the enum
+      lives in validate_registry.py rather than a JSON Schema, so adding a value is a code
+      change rather than a schema change.
+    - >-
+      Where report.md belongs. It sits at the root and describes runwAI's own contents,
+      not the adopter's — its generator and freshness gate both live in .runwai/, so an
+      adopter who deletes that tree keeps a root-level report about a repository they no
+      longer have. security-report.md is the adopter-facing one and is correctly placed.
+  known_and_accepted:
+    - >-
+      pre-commit runs seven hooks on save, which used to be described as a gate in the wrong
+      place. Removing the PR gate changed the argument rather than settling it: pre-commit
+      is now the only place in the repository where a check stops anything, so thinning it
+      would move those checks somewhere that merely reports. Whether that trade is worth
+      making is open. The prior framing — "they are re-run at the merge boundary, so nothing
+      would be lost" — is no longer available, because there is no merge boundary.
+    - >-
+      The committed security-report.md will drift from reality between runs. That is the
+      accepted cost of having no staleness gate on it; the generation timestamp is what
+      makes the drift visible. The posture workflow's drift notice now compares with the
+      timestamp line stripped — the first version fired on every run without exception,
+      because the timestamp guarantees a difference.
+    - >-
+      24 of 1101 controls carry no rationale in ism-index.json, because their block could
+      not be located in the published text. Recorded as null rather than approximated.
+    - >-
+      agents/skills/ still reads like a directory a skill runtime loads, and is not one.
+      Argued and accepted in decision 4 — the alternative traded the layer's vendor
+      neutrality for one tool's convenience.
+
+items:
+  - id: TODO-15
+    title: Cut the template back to what v1 does
+    state: closed
+    phase: closed
+    v1: true
+    summary: >-
+      Eighty-one files across twenty-six directories for four things. The capability layer
+      was built for a library of many capabilities and the product ships two rulesets, so
+      the ceremony cost more than it bought.
+    resolution: >-
+      capabilities/ and schemas/ are gone — 12 of 26 directories and 20 of 81 files. The two
+      surviving rulesets live at controls/rules/ with their fixtures at controls/tests/. The
+      three facts a capability manifest carried — which gate runs it, which files carry it,
+      where they came from — moved onto the control itself as an `implementation` block, so
+      a control either has a mechanism in this repository or visibly does not.
+    what_went_and_why:
+      - >-
+        iac-network-exposure. Served none of the four v1 items and its check-ID verifier was
+        the only red job in CI for the life of the branch.
+      - >-
+        sbom-release-gate, and release-gate.yml with it. The workflow existed to run a
+        capability nobody kept; shipping it empty would have been coverage theatre.
+      - >-
+        schemas/. Two JSON Schemas guarding two files. The rules they carried — required
+        fields, enums, identifier patterns — are now thirty lines in validate_registry.py.
+        The determinism invariant was never in the schema: it is Python, and untouched.
+    what_stayed:
+      - >-
+        secret-scanning-precommit became a control record rather than a directory. Its
+        mechanism was always in .pre-commit-config.yaml, so only metadata moved.
+      - >-
+        .steal/ untouched by instruction. Its two rows had to follow the files they point
+        at, which is the manifest check working rather than a change of substance.
+    semgrep_test_needs_two_directories: >-
+      The one place the flattening pushed back. `semgrep --test` pairs a rules directory
+      with a parallel fixture directory by filename and refuses more than one config, so
+      loose rule files in controls/ could not be tested. controls/rules/ and controls/tests/
+      is the shape that works, and it runs both rulesets in one pass — 8 assertions where
+      the per-capability loop ran 4 and 4.
+    evidence:
+      method: measured against the tree, with the pinned scanners installed and run
+      directories_before: 26
+      directories_after: 15
+      files_before: 81
+      files_after: 66
+      top_level_entries_before: 22
+      top_level_entries_after: 20
+      ruleset_assertions: 8
+      semgrep_targets_scanned: 6
+      semgrep_findings: 0
+
+  - id: TODO-16
+    title: '"Standard" semgrep rules are blocked by licensing, not effort'
+    state: closed
+    phase: closed
+    v1: true
+    summary: >-
+      v1 asks for "1-2 standard and practical rules". Practical is met. Standard is not, and
+      the reason is worth recording so nobody spends a day rediscovering it.
+    finding: >-
+      semgrep/semgrep-rules — the obvious upstream, and what "standard" would mean in
+      practice — ships under a bespoke "Semgrep Rules License v1.0" whose terms live behind
+      a URL, not under a recognised permissive licence. Resolved at commit
+      81634cfc9e68dc5f238a8062909a60ba34500648 over the git protocol, using the procedure in
+      agents/skills/vendor-upstream-content.
+    consequence: >-
+      Decision 1 vendors only where the licence is permissive, and the provenance record
+      wants an SPDX identifier, which a bespoke licence does not supply. Vendoring it would
+      pass an unassessed licence obligation to every adopter of the template. So the nine
+      rules stay original, and the honest statement of item 4 is "1-2 practical rulesets of
+      our own", not "standard".
+    notes: >-
+      This is not a permanent no. A permissively licensed ruleset from elsewhere would
+      satisfy it, and TODO-3 is the item that would exercise the path.
+
+  - id: TODO-14
+    title: Thin the semgrep rulesets to what is practical
+    state: closed
+    phase: closed
+    v1: true
+    summary: >-
+      Four rulesets and 23 rules was more surface than a first release should defend. Keep
+      what is practical for someone shipping a product; retire the rest rather than leaving
+      them wired and unexamined.
+    resolution: >-
+      Two rulesets, 9 rules. semgrep-injection-baseline stays (5 rules — SQL, shell and HTML
+      sinks; the classic case and language-agnostic in practice) and unsafe-deserialisation
+      stays (4 rules — pickle, marshal, unsafe YAML, eval, and pickled model loading, which
+      is squarely the audience building AI products). weak-crypto-baseline and
+      web-session-hardening are deleted.
+    why_those_two_went: >-
+      weak-crypto-baseline was 9 rules and its own README documented non-security MD5 —
+      cache keys, ETags — as a known false-positive class, which made it the noisiest thing
+      shipped. web-session-hardening was 5 rules, three of them JavaScript rules with no
+      .js fixture, so they were asserted in neither direction and `semgrep --test` passed
+      over the gap; it also carried the WARNING-versus-ISM-2032 contradiction TODO-4
+      records.
+    deleted_not_unwired: >-
+      Decision 2 forbids inert content, so a ruleset kept in the tree but dropped from the
+      gates was not an option. The files are gone and recoverable from history.
+    consequences_handled:
+      - RWA-0012, RWA-0023 and RWA-0060 now have a null capability and are no longer
+        blocking, with notes saying what was retired and why. The security report renders
+        them in its "mapped, nothing runs" row rather than as coverage.
+      - Removed from the pre-commit hook, the pr-gate SAST job, the posture workflow and
+        the command reference. Two job names that enumerated the retired controls were
+        corrected rather than left over-claiming.
+      - Two rows left .steal/manifest.md. The manifest check would have failed on them,
+        which is the check doing its job.
+      - The missing web-session.js fixture is moot rather than fixed.
+    schema_gap_found: >-
+      `mapping_fidelity: none` was the natural way to record "mapped, nothing runs" and the
+      schema rejects it — the enum is direct, partial, supporting. Changing schemas/ is on
+      AGENTS.md's ask-first list, so the controls use the established convention instead:
+      capability null, blocking false, fidelity partial, and the argument in notes. Worth
+      a decision in TODO-4, because "partial fidelity with no mechanism" reads as coverage
+      to anyone not reading the notes.
+    evidence:
+      rulesets_before: 4
+      rulesets_after: 2
+      rules_before: 23
+      rules_after: 9
+      controls_with_a_capability_before: 11
+      controls_with_a_capability_after: 8
+
+  - id: TODO-8
+    title: Measure real-world false-positive rates
+    state: open
+    rank: 1
+    phase: next
+    rank_reason: >-
+      Dependency of TODO-10's noise control. A first report full of false positives is never
+      opened twice.
+    blocker: a substantial codebase to scan
+    summary: >-
+      The 9 semgrep rules that survive TODO-14 are asserted only against fixtures written
+      alongside them. Fixtures confirm a rule does what its author intended; they say
+      nothing about noise on real code.
+    notes: >-
+      Promoted from nice-to-have by TODO-10. Advisory scanners on a young codebase can
+      produce hundreds of findings, and a first security report that reads as hopeless is
+      never opened twice. Severity ordering and a flat cap of 25 shipped with TODO-10; a
+      cap tuned to reality still depends on knowing the real rates. TODO-14 removed the
+      noisiest ruleset unmeasured, on a documented false-positive class rather than on
+      data, so this is now the measurement that would confirm the judgement was right.
+    blocks: [TODO-10]
+
+  - id: TODO-10
+    title: Plain-language ISM posture readout
+    state: partly-done
+    rank: 2
+    phase: next
+    v1: true
+    rank_reason: >-
+      The v1 artefact ships and is honest. What remains is the part that needs TODO-8's
+      false-positive rates and TODO-14's thinned rulesets underneath it, so it waits on
+      both rather than being finished twice.
+    blocker: null
+    summary: >-
+      A truthful, continuously updated answer to "how does what I have built compare to
+      the ISM?", written for someone who has never read the ISM and will not start now.
+    shipped: >-
+      security-report.md, generated by .github/scripts/security_report.py and run by the
+      `posture` workflow on every push and pull request. Blocks nothing, publishes to the
+      job summary, uploads as an artifact. It reports what ran, what the scanners found
+      severity-ordered and capped at 25, and where the repository sits against all 1101
+      ISM controls in four buckets read from controls/ism-index.json.
+    generator_location: >-
+      .github/scripts/, not .runwai/tools/. Decision 3 sends maintainer Python to
+      .runwai/, but this is not maintainer Python — it produces the thing an adopter
+      adopted runwAI for. Putting it in .runwai/ would mean a setup agent following
+      AGENTS.md prunes the feature along with the record it was told to delete. It is CI
+      machinery, so it sits with the CI.
+    three_honesty_guards: >-
+      Each of these was a wrong first draft, corrected before it shipped. "Checked here"
+      became "has a check behind it", because a capability wired to the release gate has
+      not run on this commit and one whose subject matter is absent did not run either;
+      the per-control table now carries the gate so the claim is checkable per row. An
+      empty findings section now distinguishes "no scanner output was supplied" from "the
+      scanners ran and found nothing" — the first draft rendered both as "No findings".
+      And the unassessed bucket carries an explicit warning that it is not a to-do list:
+      a control whose evidence lives in infrastructure nobody declares is out of reach
+      even though its surface is not organisational.
+    advisory_is_not_a_weakened_gate: >-
+      The workflow header argues this where someone would object to it. The scan uses
+      `|| true`, which agents/rules/ci-never-weaken-a-gate.md exists to prohibit — the
+      difference is that the exit code is replaced by captured JSON rather than discarded,
+      and the report says so when that file is missing or unreadable. A discarded exit
+      code with nothing kept is what makes a silent scanner indistinguishable from a clean
+      one. The pr-gate still runs the same rulesets with --error.
+    no_staleness_gate_by_design: >-
+      The committed copy is not pushed from CI. A bot commit per run would churn history
+      for a timestamp, and the timestamp is what makes a stale copy visible without a
+      gate. The workflow emits a notice when the tree's copy has drifted from the run.
+    remaining:
+      - Noise control beyond the flat cap of 25. Severity ordering is in; a cap tuned to
+        real rates needs TODO-8, and the rates worth measuring are TODO-14's thinned set
+        rather than today's 23 rules.
+      - The generated security backlog — findings plus unimplemented controls, ordered and
+        ready to open as issues. Deliberately outside v1 — a backlog generated from rules
+        that are about to be thinned would be rewritten immediately.
+      - Commit-time regeneration that stages itself. v1 is CI-only, which is what was
+        asked for; the pre-commit half needs the speed budget below settled first.
+      - A speed budget. Whole-tree scans per commit are not viable; changed files at
+        commit, full scan in CI, and the report saying which produced what. The
+        `--scan-scope` argument exists for that and is passed the CI commit today.
+      - Where the convention triggers live — a Dockerfile appears, an auth library is
+        added — mapping a pattern to the decision it raises.
+    evidence:
+      method: generated against the committed tree with synthetic and real scanner input
+      buckets: {has_a_check: 22, mapped_nothing_runs: 30, unassessed: 702, out_of_scope: 347}
+      ism_controls: 1101
+      paths_asserted:
+        - 40 findings render severity-ordered and cap at 25 with the remainder counted
+        - a scanner that ran and found nothing reads differently from no scanner at all
+        - an unreadable findings file is reported as incomplete, not as clean
+        - a missing findings file is reported rather than silently skipped
+        - a missing ism-index.json exits 2 with the command that fixes it
+
+  - id: TODO-4
+    title: Close the four design issues
+    state: open
+    rank: 3
+    phase: later
+    rank_reason: >-
+      Schema and design integrity. Real, but nothing downstream is waiting on it.
+    blocker: null
+    issues:
+      - deterministic_assertion is a loophole; the validator checks the field exists, not
+        that it describes anything reproducible. "we check stuff" currently passes and
+        yields a blocking probabilistic control.
+      - >-
+        RESOLVED by TODO-14. runwai-insecure-http-url was a WARNING contradicting ISM-2032
+        and went with web-session-hardening. Replaced by a new issue in the same family —
+        the schema's mapping_fidelity enum (direct, partial, supporting) has no way to say
+        "mapped, no mechanism", so a retired control reads as partial coverage to anyone
+        who does not read its notes."
+      - RWA IDs were renumbered after the schema declared them never renumbered. Nothing
+        shipped, so either reset the numbering deliberately or soften the guarantee.
+      - No snapshot staleness check. A new ISM release leaves `ism.py verify` passing
+        against old text while implying currency.
+
+  - id: TODO-3
+    title: Prove the vendoring path
+    state: partly-done
+    rank: 4
+    phase: later
+    rank_reason: >-
+      Proves the capability vendoring machinery. TODO-12 closed without needing it:
+      helper-layer vendoring already worked, and promoting the root configs moved files
+      that were already vendored rather than vendoring new ones.
+    blocker: null
+    summary: >-
+      All five capabilities are still `origin: original`, so the capability vendoring
+      path is unproven. The AI helper layer exercised SHA resolution, licence
+      verification and attribution, but not through capability.yaml.
+    remaining: >-
+      Vendor one genuine capability ruleset with origin vendored, a resolved
+      upstream.commit, an SPDX upstream.license and a LICENSE-UPSTREAM file, then
+      confirm the validator's provenance and overlap checks fire.
+    notes: >-
+      The egress blocker is gone. The git protocol reaches any public repository:
+      `git ls-remote` resolves full SHAs and a blob-filtered sparse clone retrieves
+      content and licences. Only api.github.com is restricted, bound to this repository
+      and returning 403 elsewhere. A verification tool written against the REST API will
+      report a blockage that does not exist. The schema question is withdrawn — git SHAs
+      are obtainable, so upstream.commit stays a 40-character git SHA.
+
+  - id: TODO-7
+    title: Map the omitted control families
+    state: open
+    rank: 5
+    phase: later
+    rank_reason: >-
+      Coverage breadth. Valuable once the mechanism underneath is trustworthy, misleading
+      before that.
+    blocker: null
+    families:
+      - Patching timeframes (ISM-1876 48h critical, ISM-1690 two weeks) — referenced only
+        in a note on RWA-0051, never mapped
+      - Event logging (ISM-1911, ISM-2051, ISM-2052)
+      - API authentication and authorisation (ISM-1818, ISM-1817, ISM-2013, ISM-2014)
+      - Vulnerability disclosure and security.txt (ISM-1616, ISM-1717)
+      - Issue-tracking traceability (ISM-2025)
+
+  - id: TODO-2
+    title: Fix the check-ID verifier's regex
+    state: closed
+    phase: closed
+    rank_reason: >-
+      Verified defect, small fix, and the evidence integrity every generated report will
+      rest on. Blocks TODO-1.
+    verified_defect: true
+    blocker: null
+    summary: >-
+      The verifier extracts check IDs with `CKV[A-Z_]*_[0-9]+`, which permits no digits
+      inside the middle segment, so `CKV_K8S_19` never matches. Three Kubernetes checks
+      are invisible to the gate meant to catch bad IDs.
+    fix: use `CKV[A-Z0-9_]*_[0-9]+`
+    occurrences:
+      - .github/workflows/pr-gate.yml:149
+      - .github/workflows/pr-gate.yml:150
+      - capabilities/iac-network-exposure/README.md:46
+      - capabilities/iac-network-exposure/README.md:47
+    evidence:
+      method: measured against checkov 3.3.8 and the live config
+      extraction:
+        claimed_ids_old: 18
+        claimed_ids_new: 21
+        known_ids_old: 1036
+        known_ids_new: 1359
+      invisible_to_gate: [CKV_K8S_19, CKV_K8S_20, CKV_K8S_21]
+      gate_output_old: [CKV_GCP_5]
+      gate_output_new: [CKV_GCP_5]
+      gate_output_if_only_claimed_side_fixed:
+        [CKV_GCP_5, CKV_K8S_19, CKV_K8S_20, CKV_K8S_21]
+      k8s_ids_now_checked:
+        - id: CKV_K8S_19
+          checkov_says: Containers should not share the host network namespace
+          comment_accurate: true
+        - id: CKV_K8S_20
+          checkov_says: Containers should not run with allowPrivilegeEscalation
+          comment_accurate: true
+        - id: CKV_K8S_21
+          checkov_says: The default namespace should not be used
+          comment_accurate: true
+    notes: >-
+      The regex damages both sides of the comparison, not just the claimed side, so
+      fixing one file alone produces three false failures. Fix before TODO-1: closing
+      TODO-1 first turns the build green while the Kubernetes IDs remain unexamined,
+      which is worse than the current red because nothing prompts anyone to look. The
+      gate tests existence, not correctness — CKV_AWS_340 and CKV_AWS_215 are real IDs
+      that pass it while enforcing the wrong thing. A verifier with a blind spot is
+      worse than no verifier: it reports success over the gap.
+    resolution: >-
+      Closed by TODO-15. The verifier lived in the pr-gate IaC job, which went with the capability it checked. The regex defect was real and is recorded here rather than fixed — if checkov ever returns, `CKV[A-Z0-9_]*_[0-9]+` is the correct pattern.
+
+  - id: TODO-1
+    title: Fix the checkov check allowlist
+    state: closed
+    phase: closed
+    rank_reason: >-
+      Verified defect. Fixing it before TODO-2 turns the build green over an unexamined gap.
+    verified_defect: true
+    blocker: null
+    summary: >-
+      Three of eighteen check IDs in the iac-network-exposure allowlist do not mean what
+      their comments claim, and checkov silently ignores unknown IDs, so those controls
+      never run.
+    file: capabilities/iac-network-exposure/files/checkov.yaml
+    evidence:
+      method: audited against `checkov --list` (checkov 3.3.8 ships its registry, so offline)
+      findings:
+        - id: CKV_GCP_5
+          claimed: GKE must not use legacy ABAC
+          actual: does not exist
+          action: remove, or replace with CKV_GCP_18 (GKE control plane not public)
+        - id: CKV_AWS_340
+          claimed: RDS clusters must not be publicly accessible
+          actual: Ensure Elastic Beanstalk managed platform updates are enabled
+          action: wrong check entirely; find the real RDS-cluster public-access ID
+        - id: CKV_AWS_215
+          claimed: CloudFront must not use deprecated TLS
+          actual: Ensure AppSync API Cache is encrypted in transit
+          action: wrong check entirely; find the real CloudFront TLS ID
+        - id: CKV_AZURE_53
+          claimed: PostgreSQL must deny public network access
+          actual: the same, but for mySQL servers
+          action: ID is valid, comment misleading; add the PostgreSQL equivalent
+        - id: CKV_AWS_23
+          claimed: listed under network segregation (ISM-1181)
+          actual: Ensure every security group and rule has a description
+          action: hygiene check, not a segregation control; move or drop
+    fixed_in_passing: >-
+      Two mislabelling defects found alongside the check-ID audit and already corrected,
+      recorded because both were the kind that reads as competent work until checked.
+      checkov.yaml's header and two of its section comments cited RWA-0030, RWA-0031 and
+      RWA-0033 — supply-chain controls in the current registry, covering import
+      restriction and SBOM and CBOM consumption — where the IaC controls are RWA-0040 and
+      RWA-0041; debris from the renumbering TODO-4 records. Separately, the pr-gate job
+      was named for RWA-0042 (backup resilience), which has `capability: null` and no
+      check in this config enforcing it, so the job name claimed a control nothing runs.
+      Neither touches the allowlist itself, which is still wrong in the five ways above.
+    depends_on: [TODO-2]
+    see_also: >-
+      RWA-0042 remains a blocking pr-gate control in the registry with no capability and
+      no mechanism behind it. Removing the claim from the job name made the workflow
+      honest; it did not make the control real. That is a registry-integrity question of
+      the same family as TODO-4's four issues.
+    resolution: >-
+      Closed by TODO-15. capabilities/iac-network-exposure and its checkov allowlist are deleted, so the five wrong check IDs are gone with the file. The audit stands as a record of what an unverified allowlist costs, and CKV_GCP_5 is why CI was red for the life of this branch.
+
+  - id: TODO-9
+    title: Make capabilities opt-in and not-applicable-aware
+    state: closed
+    phase: closed
+    rank_reason: >-
+      IaC is the case that proves why this change is needed, and it is the case we cannot
+      reach yet. Detecting whether a project has infrastructure worth scanning means knowing
+      what the cloud providers and the community actually ship to work with — skills,
+      commands, or a registry of MCP servers for managing cloud — and that list does not
+      exist here. Ranked low because it cannot be started honestly, not because the
+      first-run experience stopped mattering.
+    blocker: >-
+      No sourced list of provider- or community-supplied IaC skills and commands, and no
+      registry of cloud-management MCP servers to derive applicability from.
+    summary: >-
+      The repository assumes every adopter has the subject matter each capability scans.
+      A project with no Terraform still runs the iac job's check-ID verification, and
+      today that job fails — over CKV_GCP_5, for a check that would never have run on
+      their code. Their first experience is a red build about a cloud they do not use.
+    principle: >-
+      Absent subject matter is not a finding, and it is not a pass either. Both are lies
+      to a user who cannot tell the difference.
+    tasks:
+      - Detection per capability — no IaC files present means `not applicable`, and the
+        job passes. Same for containers, releases, anything whose subject can be absent.
+      - "`not applicable` as a first-class result, distinct from `passed` wherever it is
+        reported."
+      - Capability-level opt-out in one obvious file, so a project says "no
+        infrastructure" once rather than suppressing findings repeatedly. Opt-outs appear
+        in the security report as excluded, with the reason — an invisible opt-out is a
+        hole in the artefact.
+      - Rebalance pre-commit. Six blocking hooks fire on every commit today, including
+        full SAST and three repository self-checks. Commit time should hold the secret
+        scan and little else; everything structural belongs in the PR gate, which
+        already re-runs it.
+      - Self-check integrity — a capability reporting `not applicable` on a repository
+        that does contain its subject matter is a defect, and should be caught the way
+        TODO-2 catches an extraction blind spot.
+    direction:
+      nothing_blocks_the_adopter: >-
+        For a project built from this template, no capability blocks. The value is that
+        the right things are seeded in advance — someone building a product does not think
+        to prompt an AI about infrastructure exposure — and that there is a feedback
+        channel on the security and robustness of what they have built, which they consult
+        if and when they want to. A gate that stops them is not that. This retires the
+        advisory/blocking posture field that an earlier shape proposed: with no blocking
+        side, there is nothing to declare and nothing to toggle.
+      applicability_is_not_a_glob_problem: >-
+        An earlier shape put a glob set in capability.yaml as the evidence of subject
+        matter. Withdrawn. Deciding what counts as infrastructure worth scanning means
+        knowing what providers and the community actually ship, and writing globs in place
+        of that list is the fabrication failure AGENTS.md's verification-discipline section
+        describes — fluent output about something nobody checked. This is the blocker
+        above, and it is why the item moved down rather than being reshaped.
+      decay_question_withdrawn: >-
+        Whether `not applicable` should decay was asked of a glob, which cannot tell a
+        project that never had Terraform from one that deleted it last week. Once
+        applicability is derived from a sourced list rather than inferred from file names,
+        it is not the question to answer.
+    open_questions:
+      - Whether a status computation is needed at all, and what it is worth. If nothing
+        blocks, the honest readout may belong entirely to TODO-10's report rather than to a
+        separate mechanism with its own file format and its own failure modes.
+      - What it may be written in. Every self-check here is Python, and an adopter picking
+        up this template may not have Python at all. A status tool that assumes a toolchain
+        the template does not otherwise require pushes a setup step onto the person
+        AGENTS.md promises a one-step start.
+    unresolved_scope: >-
+      "Nothing blocks" is settled for an adopting project. Two boundaries are not, and
+      both need an explicit call before any gate is rewritten. First, the secret scan:
+      README argues it must block on save because a credential that reaches a pull request
+      is already public and must be rotated rather than deleted, which is an argument
+      about irreversibility rather than about strictness. Second, runwAI's own gates on
+      its own repository, which are how the template's self-checks stay honest and are a
+      different question from what an adopter experiences.
+    consequence_of_moving: >-
+      Deferring this keeps the CKV_GCP_5 failure visible, which is the outcome TODO-2's
+      notes want. Closing TODO-9 first would have marked the capability not applicable
+      here — runwAI has no IaC of its own — turning the build green while three
+      Kubernetes IDs remained unexamined, the same hazard TODO-2 describes for closing
+      TODO-1 first, reached through a different door.
+    resolution: >-
+      Closed by TODO-15. The item existed because the repository failed projects that had no IaC. There is no IaC capability now, and the two checks that remain read source files, so absent subject matter reports nothing rather than failing. The principle survives in AGENTS.md; the machinery it needed does not have to be built.
+
+  - id: TODO-5
+    title: Complete the nine pending tool pins
+    state: open
+    rank: 9
+    phase: blocked
+    rank_reason: >-
+      Externally blocked on GitHub release access. Ranked last because it cannot be started,
+      not because it does not matter.
+    blocker: GitHub release access
+    summary: >-
+      gitleaks, grype, cosign, trivy, hadolint plus four unwritten audit scripts.
+      Container and signing legs are non-functional until done.
+    reference: .runwai/pinning.md
+
+  - id: TODO-13
+    title: Semantic tags for every ISM control
+    state: closed
+    phase: closed
+    v1: true
+    summary: >-
+      A machine-friendly breakdown of all 1101 ISM controls, each carrying semantic tags and
+      a code/infrastructure/organisational surface, so everything downstream reads the
+      judgement rather than re-deciding it.
+    resolution: >-
+      Two files and a subcommand. controls/ism-tags.yaml holds runwAI's judgement — a
+      closed 43-tag vocabulary, three surfaces, one entry for each of the 70 guideline+section
+      pairs, and an override list. controls/ism-index.json is generated from it:
+      1101 records, each with the control text, its tags, its surfaces, whether those came
+      from the section or an override, and the rationale prose. `ism.py index` writes it,
+      `ism.py index --check` fails when it is stale, and both gates run the check.
+    kept_separate_from_the_snapshot: >-
+      The open question about where tags live is settled: beside the snapshot, not in it.
+      ism-snapshot.json is (c) Commonwealth of Australia under CC BY 4.0 and ism-tags.yaml
+      is ours under Apache-2.0. Keeping them apart means neither licence has to be argued
+      about when either file is reused, and it makes runwAI's judgement separately
+      reviewable from the ISM's facts.
+    source_text_used: >-
+      controls/ism-source.txt turned out to carry something the snapshot drops entirely: a
+      sub-heading and an explanatory paragraph before each group of controls, saying why
+      they exist. 1077 of 1101 controls now carry that rationale. It is located by
+      subtraction rather than by pattern — everything between the end of the previous
+      control's known text and the next control marker is the next one's preamble — so it
+      needs no guess about where a control's own wording stops. Rationale attaches to a
+      topic, not a control: 450 topics, 444 blocks in the published text.
+    honesty_correction: >-
+      The first generated index carried an `automatable_count` of 754, being every control
+      with a code or infrastructure surface. That was an overclaim and the field is gone.
+      A surface says where a control's evidence lives, never that runwAI can reach it:
+      ISM-0260 requires all web access to go through web proxies, carries `infrastructure`,
+      and no repository declares it. The index now reports counts per surface, which are
+      facts, and says so on its face.
+    evidence:
+      method: measured by running the generator against the committed snapshot and source
+      controls: 1101
+      guidelines: 22
+      guideline_section_pairs: 70
+      topics: 450
+      vocabulary_size: 43
+      overrides: 3
+      per_surface: {code: 239, infrastructure: 646, organisational: 694}
+      rationale_coverage: 1077
+      failure_modes_asserted:
+        - tag outside the vocabulary
+        - surface outside the declared set
+        - a section present in the snapshot with no entry in the tags file
+        - an override with no reason
+        - an override naming a control that does not exist
+        - a stale committed index
+    notes: >-
+      The three overrides — ISM-1876, ISM-1690 and ISM-2032 — were each checked against
+      their text in the snapshot before being written. The list stays short deliberately: a
+      long override file written in one sitting reintroduces the unreviewable problem the
+      section-level design exists to avoid.
+
+  - id: TODO-12
+    title: Ship working files, not templates of files
+    state: closed
+    phase: closed
+    summary: >-
+      templates/ held five files that did nothing until someone knew they existed and knew
+      where to copy them — the same failure this repository names at the top, one directory
+      down. Inert content is indistinguishable from absent content to the person it was
+      written for, and indistinguishable from coverage to everyone else.
+    resolution: >-
+      templates/ is gone. biome.json, playwright.config.ts and promptfooconfig.yaml ship
+      live at the root where each tool already looks; templates/AGENTS.md and
+      templates/llms.txt were deleted as decoy copies of two files that are already live
+      and correct at the root. Recorded in .runwai/decisions/0002, which partially
+      supersedes ADR-0001's live/inert table.
+    consequences_settled:
+      - .semgrepignore no longer excludes them. Measured after promotion — semgrep over all
+        four rulesets scans playwright.config.ts and reports 0 findings. Two of those
+        rulesets were retired by TODO-14; the measurement stands for the tree as it was.
+      - The templates/README.md caveat that these files are unexercised was replaced by an
+        actual check. validate_helpers.py now asserts each root config parses, declares an
+        exact version, and matches the version table in README.md.
+      - "check_templates became check_root_configs; report.py dropped its template count.
+        The distinction the code now encodes: unexercised is acceptable and must be stated,
+        inert is not."
+    notes: >-
+      The task that prompted the item — vendored commands and skills landing as working
+      files — was already satisfied before the item was worked: .claude/commands/ and
+      agents/skills/ were live. What remained was the five files in templates/.
+      TODO-10's artefact inherits the rule: the ISM posture readout ships as a draft with
+      real content, never as a blank template of a system security plan.
+
+  - id: TODO-11
+    title: Decide whether ADR-0001 is inherited
+    state: closed
+    phase: closed
+    summary: >-
+      Decisions made while developing this template are not the adopting project's
+      decisions, and an adopter's decision log should start empty. That argument applied
+      to ADR-0001, which recorded runwAI's own provenance rules and was inherited as the
+      adopter's ADR number one.
+    resolution: >-
+      Moved to .runwai/decisions/. docs/adr/ now ships with _template.md and an empty
+      index, so an adopter numbers their first decision 0001.
+    amended: >-
+      This item originally read "there is no ADR-0002", meaning docs/adr/ would never gain
+      one. TODO-12 added .runwai/decisions/0002 — the template's own log, which that item
+      always said may grow. The rule that survives is about docs/adr/, not about the
+      number: an adopter's log still starts empty and numbers their first decision 0001.
+
+  - id: TODO-6
+    title: Confirm the research inventory
+    state: closed
+    phase: closed
+    summary: >-
+      Closed by retiring the inventory rather than verifying it. Ten checked sources
+      replaced sixty-two unchecked ones, recorded in .runwai/provenance.md.
+    notes: >-
+      One entry was resolved before deletion and is worth keeping —
+      software-mansion/agent-skills does not exist. The organisation and its other
+      repositories resolve, so this was a
+      genuine 404 — the inventory had "corrected" a malformed name into a slug that was
+      never real.
+    reference: .runwai/decisions/0001-what-we-vendor-versus-what-we-build.md
+
