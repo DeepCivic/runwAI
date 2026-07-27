@@ -1,0 +1,632 @@
+# runwAI development decisions.
+#
+# Why the template is shaped the way it is, argued by the people who built it. Not the
+# adopting project's decisions: a project built from runwAI starts its own log at
+# docs/adr/, empty, numbered from 0001. A decision log inherited from someone else's
+# repository describes a debate its reader was never part of, and the numbering makes their
+# own first decision look like a footnote to ours.
+#
+# Structured for the same reason backlog.yaml is: the readers are a maintainer and an agent,
+# and neither needs a document format. Nothing in .runwai/ owes the template's conventions
+# anything — these were Markdown ADRs when ADR-0001 still lived in docs/adr/, and the shape
+# outlived the reason for it. The argument stays prose because the argument is the point;
+# what an agent queries — id, status, date, what a record supersedes — is a field.
+#
+# id:      identity. Stable, cited from commit messages, never reused or renumbered.
+# status:  accepted | superseded | withdrawn
+# amends:  what a later record changed about an earlier one, recorded on the earlier one so
+#          it stays true where it is read. Records describe the repository as built.
+
+version: 1
+
+decisions:
+  - id: 1
+    title: What we vendor versus what we build
+    status: accepted
+    date: "2026-07-25"
+    context: >-
+      runwAI is a template repository. People clone it and build their own product on top,
+      so every file here is either something they inherit or something they replace.
+
+
+      Two kinds of material flow in. Some problems are already solved well elsewhere — how
+      to structure an agent guide, how to format a decision record, what a linter or eval
+      config looks like. Others are specific to what runwAI is: the determinism invariant,
+      the provenance rules, the control library.
+
+
+      Two audiences also exist, and they are easy to conflate. Some files describe *this*
+      repository and are read by agents working here. Others exist for the repository
+      someone builds *from* here, and have no subject matter in this one.
+
+
+      Without a stated rule, both questions get relitigated on every contribution, and the
+      answers drift. That is what this record settles. Where each file then lands is
+      decision 2's question, not this one's.
+    decision:
+      what_we_vendor: >-
+        Copy the content in, with a resolved 40-character commit SHA and the upstream
+        licence read from the upstream tree, when the upstream expression is the valuable
+        part and the licence is permissive. The clearest case is calcom/cal.com (MIT,
+        3894f37e): its AGENTS.md skeleton and agents/ layout are a worked solution to
+        structuring agent instructions modularly. We took the structure and the general
+        shape of the Do/Don't and Boundaries sections.
+      what_we_build: >-
+        Write it ourselves when any of the following holds.
+
+
+        1. It encodes runwAI's own policy. The invariant, the provenance rules, the gate
+        definitions. No upstream has an opinion about these.
+
+
+        2. The upstream licence is share-alike. CC BY-SA and copyleft obligations propagate
+        to everyone adopting the template, which is an unacceptable cost to pass on. The
+        OWASP LLM Top 10 is CC BY-SA 4.0, so agents/knowledge/llm-security-guardrails.md
+        cites its identifiers and links the source, and every sentence is ours.
+
+
+        3. What we need is conformance to a published interface, not a copy of an
+        implementation. llms.txt is a specification; biome.json and promptfooconfig.yaml are
+        written against published schemas. Implementing an interface is not copying
+        expression, so these are our files and carry no obligation.
+
+
+        4. Upstream content is domain-specific. cal.com's 43 rules are Prisma, tRPC and
+        Next.js specific. The skeleton transferred; the content did not, and none of it was
+        carried over.
+      where_each_lives: >-
+        AGENTS.md, agents/ and llms.txt are live — they describe this repository, and an
+        adopter who keeps them keeps a true description. biome.json,
+        playwright.config.ts and promptfooconfig.yaml are live for the adopter's toolchain,
+        each at the path its tool reads. .runwai/ is ours: how the template was built,
+        read by anyone working on runwAI itself. Everything vendored lands in the place it
+        works, never in a directory someone must find and copy from — that rule is decision
+        2.
+      no_submodules: >-
+        Content lives in the tree. This matches the existing rule for capabilities and
+        avoids a `git submodule update --init` failure mode for the users least equipped to
+        diagnose it.
+      provenance_is_mandatory_either_way: >-
+        Every derived file is recorded in .runwai/provenance.md with repo, commit, licence
+        and derivation level (vendored, derived, structure, referenced). The field names
+        match the upstream block in schemas/capability.schema.json so the two records can be
+        merged later without a rewrite.
+    consequences:
+      easier: >-
+        A contributor or agent facing "copy this or write it?" has a rule rather than a
+        debate. The repository is self-contained: clone it and everything is present, with
+        no network at use time. Adopters inherit no licence obligations we did not
+        consciously accept, because share-alike content is never copied in.
+      harder: >-
+        Upstream improvements do not arrive on their own. Adopting a newer commit is
+        deliberate: re-resolve the SHA, re-read the licence, update the record. Vendored
+        content drifts from upstream invisibly. Anything vendored for the adopter's
+        toolchain has no subject matter here, so rot in it is silent —
+        .runwai/tools/validate_helpers.py catches only the structural part: that it parses,
+        pins an exact version, and matches the version documented in README.md.
+      accepted_cost: >-
+        Writing our own version of something upstream already wrote is duplicated effort,
+        taken knowingly in exchange for a clean licence position and files that fit a
+        template repository rather than someone else's product.
+    alternatives_considered:
+      - >-
+        Git submodules, particularly for promptfoo. Rejected. A submodule would pull an
+        entire codebase to obtain a roughly thirty-line config template and contradict the
+        "content lives here" rule. Its one real advantage, pinning by SHA, is available by
+        vendoring at a resolved SHA.
+      - >-
+        Paraphrase everything, vendor nothing. This was the initial plan, formed when
+        api.github.com appeared to block all GitHub access and no commit SHA could be
+        resolved. Once the git protocol was found to work — it reaches any public
+        repository, unlike the REST API — paraphrasing became unnecessary. Avoiding a
+        licensing question we can simply answer correctly discards attribution that costs
+        nothing to record.
+      - >-
+        Vendor upstream content wholesale, including rule sets. Rejected. cal.com's rules
+        are excellent and entirely about their stack. Carrying them would hand every adopter
+        a set of instructions for a codebase they do not have, which is worse than no
+        instructions.
+      - >-
+        Keep the 62-entry research inventory as a vendoring backlog. Rejected, and the file
+        was deleted. No entry had been resolved, several were fabricated, and its verifier
+        was written against the blocked REST endpoint so it could never have run. Ten
+        checked sources replaced sixty-two unchecked ones. A long list of unverified
+        references reads as thoroughness and functions as noise.
+
+  - id: 2
+    title: Ship working files, not templates of files
+    status: accepted
+    date: "2026-07-26"
+    context: >-
+      Decision 1 settles what gets vendored in versus written here. This one settles where
+      it lands, which is a separate question with a worse default: a directory of starter
+      files that a person building on runwAI is expected to find, copy into their own
+      project, and edit.
+
+
+      That default does not survive contact with the audience this repository is written
+      for. README.md opens by stating the design constraint plainly — you should not have to
+      know what to ask for — and a file that only works once someone knows to copy it
+      demands exactly that knowledge. Content nobody knows to copy is indistinguishable from
+      absent content to the person it was written for, while remaining indistinguishable
+      from coverage to everyone else. Both readings are wrong, and neither is visible from
+      inside the repository.
+    decision:
+      rule: >-
+        Everything the adopter receives ships as the working thing it claims to be, at the
+        path its tool already reads. A vendored command is a command in .claude/commands/. A
+        vendored skill is a skill in agents/skills/. A formatter config is biome.json at the
+        root. There is no directory of files awaiting a copy step, and adding one requires
+        overturning this record.
+      placements:
+        - biome.json at the root, where Biome looks for it
+        - playwright.config.ts at the root, where Playwright looks for it
+        - promptfooconfig.yaml at the root, where promptfoo looks for it
+        - >-
+          AGENTS.md and llms.txt at the root, one of each, adapted in place. This is the
+          sharper half of the decision. runwAI is adopted by cloning, so an adopter already
+          has a working AGENTS.md and llms.txt at their root, and a skeleton copy of either
+          — bracketed placeholders, unusable until rewritten — is not a starting point but a
+          decoy: an agent that reads the wrong one follows instructions for a codebase that
+          does not exist. Where that file must speak to both audiences, it does so in a
+          two-modes section rather than a second file.
+      unexercised_is_not_inert: >-
+        runwAI is Python, YAML and Markdown. Nothing here runs Biome, Playwright or
+        promptfoo, and promoting a file to the root does not change that. The distinction
+        that matters: a file is *inert* when it does nothing for anyone until a human
+        performs a manual step nothing prompts them to take — not acceptable, and nothing
+        here ships that way. A file is *unexercised* when it is live and correct at its
+        destination and simply has no subject matter in this repository — acceptable, and it
+        must be stated where the adopter reads rather than buried.
+
+
+        An unexercised file still owes whatever check can be made of it. Being unable to run
+        Playwright is not a licence to ship a config nobody looked at, so
+        .runwai/tools/validate_helpers.py asserts that each root config parses, declares an
+        exact version, and matches the version documented in README.md. Version drift
+        between a config and its documentation was the one defect that could have reached an
+        adopter silently; it now fails the build.
+      our_own_rules_apply_to_what_we_ship: >-
+        Adopter-facing files are not excluded from .semgrepignore. Our rulesets are only
+        worth shipping to the extent that an adopter's agent runs them over an adopter's
+        files, and the root configs are the first such files in the tree, so
+        playwright.config.ts is scanned like any other source file. Measured when the rule
+        was adopted: 0 findings across all four rulesets of the day, two of which TODO-14 later
+        retired. A rule that is noisy on ordinary
+        config is a rule to fix, not a path to hide.
+      it_extends_to_artefacts_that_do_not_exist_yet: >-
+        This is not only about config files. Anything runwAI grows for the adopter is bound
+        by the same rule, most immediately the plain-language ISM posture readout in
+        TODO-10. That artefact ships as a draft with real content in it — the repository's
+        actual posture, generated from what the checks actually found — never as a blank
+        template of a system security plan for someone to fill in. A blank compliance
+        document is the purest form of the failure this record exists to prevent: it looks
+        like coverage, is indistinguishable from absence, and the person who most needs it
+        is the least equipped to notice the difference.
+    consequences:
+      easier: >-
+        There is one answer to "where does this file go", and it is "where it works". An
+        adopter's agent finds the configs without being told they exist, because they are at
+        the paths every relevant tool already reads. The limits of an unexercised config are
+        stated in README.md, where an adopter reads, and enforced by a check rather than a
+        caveat.
+      harder: >-
+        Live files are in scope for our own scanners, so a rule that fires on generic config
+        is our problem rather than something an ignore path absorbs. The root directory
+        carries three files that do nothing here, which reads as clutter to anyone who has
+        not read this record — hence the tree entry in AGENTS.md saying so in place.
+      accepted_cost: >-
+        biome.json, playwright.config.ts and promptfooconfig.yaml are still not executed by
+        any gate in this repository, and no decision about their location changes that. What
+        changed is that they now arrive where they work, and that the part of them which can
+        be checked deterministically is checked.
+    alternatives_considered:
+      - >-
+        A directory of starter files, placed by a setup command. A working mechanism, and it
+        keeps generic config out of our scanners. Rejected because it makes the material
+        conditional on an agent running the right command, which is a subtler version of
+        conditional on a human copying the right file. The invariant permits AI to perform
+        setup work, but a file that is already correct in place needs no setup at all.
+      - >-
+        A directory of starter files, each justifying its inertness in one line. Rejected
+        for the three configs. "A JS toolchain config is inert in a repository with no JS"
+        justifies why it does not run here; it does not justify putting it somewhere the
+        adopter never opens. Those are different questions, and only the second one was ever
+        the problem.
+      - >-
+        One live AGENTS.md, but a skeleton llms.txt. Considered, because an llms.txt
+        skeleton is where the format's sharpest trap shows up: guidance written as `# note`
+        is itself an H1, which silently breaks the file it explains. Rejected — the check
+        that catches it is what has value, not the skeleton, and it runs against the live
+        llms.txt where a break actually matters.
+
+  - id: 3
+    title: The maintainer's tree owes the template nothing
+    status: accepted
+    date: "2026-07-26"
+    context: >-
+      .runwai/ held two decision records as Markdown files named like ADRs, with a Status
+      line, a Date line and an index README, because ADR-0001 was written when it still
+      lived in docs/adr/. Decision 1 of that log was moved here when TODO-11 settled that
+      the template's decisions are not the adopter's; the format came with it and nobody
+      argued for it.
+
+
+      That left "ADR-0002" ambiguous on its face — it reads like a docs/adr/ entry, which is
+      exactly the tree the record says it is not in — and it left the helper-layer self-check
+      imposing the template's conventions on a directory that is not the template's output.
+
+
+      The same confusion reached further than filenames. Four Python self-checks sat in
+      tools/ at the repository root. An agent opening a template repository and finding a
+      root-level tools/ directory of .py files reasonably concludes it is looking at a Python
+      project, which narrows what it offers to build. None of those files has anything to do
+      with what an adopter builds; every one of them checks runwAI's own structure.
+    decision:
+      records_are_structured_data: >-
+        The decision log is .runwai/decisions.yaml, one file, in the shape backlog.yaml
+        already uses. Fields for what is queried — id, status, date, what a record amends —
+        and block scalars for the argument, because the argument is the load-bearing part
+        and JSON carries it as one escaped string that nobody reads better than prose. The
+        ADR framing is gone from the naming: these are decisions 1, 2 and 3, and docs/adr/
+        remains the adopter's log, empty and numbered from 0001.
+      maintainer_python_lives_in_runwai: >-
+        Every maintainer tool moved from tools/ to .runwai/tools/. The template is not a
+        Python project and should not read as one from the root listing. What remains in the
+        tree outside .runwai/ is the adopter's material and the capability rulesets, whose
+        selftest fixtures are deliberately paired .py and .js because the rules target both
+        languages — that pairing reads as rule fixtures rather than as an implementation
+        language.
+      deleting_runwai_now_removes_the_self_checks: >-
+        README.md and AGENTS.md have always said .runwai/ is safe to delete. That is still
+        true and now means more: deleting it removes runwAI's own self-checks, which is
+        correct, because they validate the template's structure and not the adopter's code.
+        It also means the hooks and CI steps that invoke them must go in the same motion.
+        AGENTS.md carries that instruction where the agent performing setup will read it,
+        rather than leaving an adopter with a gate that fails on a missing file.
+    consequences:
+      easier: >-
+        The root listing of a fresh clone now describes what the adopter is getting rather
+        than what the maintainer uses. An agent querying the decision log reads fields
+        instead of parsing headings, and .runwai/ can adopt whatever shape suits its two
+        readers without arguing it against the template's conventions.
+      harder: >-
+        Every path to a self-check moved, so the pre-commit config, the PR gate, the docs
+        and the agent rules all had to change together. A stale invocation of
+        `python3 .runwai/tools/report.py` in someone's notes now fails.
+      accepted_cost: >-
+        Deleting .runwai/ is no longer a single-file-tree deletion with no follow-up: the
+        gates that call into it have to be pruned at the same time. That cost is carried by
+        the setup agent, which is where AGENTS.md already puts onboarding work.
+    alternatives_considered:
+      - >-
+        Rename the records to something that is not ADR-shaped and leave them as Markdown.
+        Solves the ambiguity and nothing else. The helper-layer check would still be
+        enforcing a document format on a tree whose readers are an agent and a maintainer.
+      - >-
+        JSON rather than YAML. Considered seriously, because both readers parse JSON
+        happily. Rejected because these records are mostly argument, and JSON turns a
+        hundred lines of reasoning into one escaped string. YAML gives queryable fields and
+        readable prose in the same file, which is the split backlog.yaml already landed on.
+      - >-
+        Leave the tools at the root and document that runwAI is not a Python project.
+        Rejected on the same grounds as decision 2's rejection of starter directories: it
+        makes the correct reading conditional on someone finding and believing a caveat,
+        when moving the files makes the wrong reading impossible.
+
+  - id: 4
+    title: One canonical agent layer, thin vendor adapters
+    status: accepted
+    date: "2026-07-26"
+    context: >-
+      A reader looking at the tree saw `agents/` and `.claude/commands/` and could not tell
+      why both existed. The relationship was in fact already designed — the adapters hold
+      pointers, not copies — but three things underneath it made the design unreadable.
+
+
+      The same four commands were enumerated in four files: README.md's quick start,
+      AGENTS.md's Commands section, agents/commands.md, and
+      agents/rules/reference-local-dev.md. Moving the tools into .runwai/tools/ meant
+      correcting all four, which is the evidence that four was three too many.
+
+
+      "Commands" also meant two unrelated things one directory apart: agents/commands.md was
+      a reference of shell commands, `.claude/commands/` holds Claude Code slash commands.
+
+
+      And `agents/skills/` is named like a directory a skill runtime loads. Claude Code
+      reads `.claude/skills/`, which this repository does not use, so that content is
+      reachable only through `.claude/commands/vendor.md`.
+    decision:
+      two_layers: >-
+        Everything an agent needs exists once, vendor-neutral, in AGENTS.md and agents/. On
+        top sit thin adapters at the paths a specific tool requires — today only
+        `.claude/commands/*.md`, three files holding pointers and no content. An adapter
+        exists because a slash command only works from that path: decision 2 applied to a
+        vendor convention, not a second copy of the material.
+      one_canonical_list: >-
+        agents/running-the-checks.md is the single enumeration of the self-checks, the
+        gates, exit codes and upstream verification. AGENTS.md, README.md, llms.txt and
+        reference-local-dev.md link to it. README's copy was not moved but deleted: those
+        are maintainer commands, and README is read by an adopter who may have deleted the
+        tree they live in.
+      commands_means_one_thing: >-
+        agents/commands.md was renamed to agents/running-the-checks.md. `.claude/commands/`
+        keeps the word for slash commands; shell commands live in a file that does not claim
+        it.
+      skills_stay_where_they_are: >-
+        agents/skills/ keeps its location and is documented as canonical content reached
+        through its adapter, not as a loader path. Moving it to `.claude/skills/` would make
+        it load in one tool at the cost of making it vendor-specific, which is the wrong
+        trade for the one layer that is meant to be neutral.
+    consequences:
+      easier: >-
+        A path that moves is corrected in one file. A reader arriving at either entry point
+        finds the two layers stated in a table rather than inferring them from a directory
+        listing.
+      harder: >-
+        The rename breaks any external link to agents/commands.md. Nothing in the tree
+        pointed at it that was not updated, and validate_helpers.py caught the one that was
+        missed.
+      accepted_cost: >-
+        `agents/skills/` still reads like a loader path to anyone who does not read the note
+        beside it. The alternative traded neutrality for one tool's convenience, which costs
+        more.
+    alternatives_considered:
+      - >-
+        Fold `.claude/commands/` into agents/ and drop the adapters. Rejected outright: a
+        slash command that is not at `.claude/commands/` is not a slash command, so this
+        deletes working functionality to tidy a directory listing.
+      - >-
+        Keep the name commands.md and explain the distinction in prose. Rejected. The
+        explanation would sit in exactly the two files whose names are the problem, and a
+        reader who is confused by a name is not reliably reading the paragraph under it.
+
+  - id: 5
+    title: A control carries its own implementation; there is no capability layer
+    status: accepted
+    date: "2026-07-26"
+    context: >-
+      The tree held 81 files across 26 directories to do four things. Twelve of those
+      directories and twenty of those files were capabilities/ and schemas/ — a manifest,
+      a README, a files/ directory and a selftest/ directory per capability, plus two JSON
+      Schemas to validate the manifests.
+
+
+      That shape was designed for a library of many capabilities. The product ships two
+      rulesets. At that count the ceremony costs more than it buys: four paths and a
+      manifest to deliver one YAML file and its fixtures, and a schema directory whose
+      entire job is guarding files that a validator already reads.
+
+
+      The three capabilities that were not rulesets — IaC scanning, the SBOM release gate,
+      secret scanning — served none of the four things v1 does. One of them, the checkov
+      check-ID verifier, was the only red job in CI for the life of the branch.
+    decision:
+      implementation_lives_on_the_control: >-
+        A capability manifest carried exactly three facts worth keeping — which gate runs
+        it, which files carry it, where those files came from. Those are now an
+        `implementation` block on the control record in controls/registry.yaml. A control
+        with the block has a mechanism in this repository; a control without one is mapped
+        and nothing runs, which the security report states in those words rather than
+        implying coverage. validate_registry.py checks the gate is one that exists and that
+        every named file is in the tree, so a control cannot reach the report's "has a check
+        behind it" row on an unverified claim.
+      rules_and_fixtures_are_two_directories: >-
+        controls/rules/ and controls/tests/. This is the one place the flattening pushed
+        back and won on the merits: `semgrep --test` pairs a rules directory with a parallel
+        fixture directory by basename and refuses more than one config, so rule files loose
+        in controls/ could not be tested at all. The shape that works also runs both
+        rulesets in one pass — eight assertions where the per-capability loop ran four and
+        four.
+      schemas_become_code: >-
+        The rules schemas/control.schema.json carried — required fields, enums, identifier
+        patterns — are about thirty lines in validate_registry.py. Worth stating precisely
+        because it sounds like a loss of rigour and is not: the determinism invariant, the
+        forbidden LLM tool classes and the floating-version rejection were never in the
+        schema. They were always Python, and they are untouched.
+      credential_scanning_is_a_control_not_a_directory: >-
+        Its mechanism was always .pre-commit-config.yaml — the capability directory held a
+        manifest and a README and no files at all. It is a control record now, which is what
+        it always was.
+      the_adopter_creates_what_they_need: >-
+        An adopting project that wants a capability structure can build one. Shipping the
+        scaffolding for a library nobody has yet is the same error as shipping a directory
+        of files nobody copies, which decision 2 already refused.
+    consequences:
+      easier: >-
+        Half the directory tree is gone and the root listing describes what the template
+        actually does. Adding a check is a rule file, its fixtures and a block on the
+        control record, rather than five paths and a schema to satisfy. CI turns green,
+        because the only failing job went with the capability it tested.
+      harder: >-
+        Provenance discipline is thinner. capability.yaml made an unlicensed vendored file
+        structurally impossible; the implementation block asks for the same fields but there
+        is one fewer place the validator can catch an omission. The overlap rule — two
+        capabilities may not vendor the same upstream path — is now review rather than
+        machinery, because there are no manifests to compare.
+      accepted_cost: >-
+        SBOM, CBOM, signing and the release-gate workflow are gone rather than deferred.
+        They are real work and a later version's; shipping a workflow that ran a capability
+        nobody kept would have been coverage theatre of exactly the kind this repository
+        exists to refuse.
+    alternatives_considered:
+      - >-
+        Keep capabilities/ and accept the directory count. Defensible if the library ever
+        grows, and the reason to reject it now is that the shape was carrying two rulesets
+        and three capabilities that v1 does not want. Reinstating it later costs one commit;
+        carrying it unused costs every reader.
+      - >-
+        Flatten the rule files loose into controls/ with no rules/ subdirectory. Tried, and
+        it fails: semgrep --test cannot pair a config with fixtures that way, so the rules
+        would ship untested. The subdirectory is a tooling requirement, not tidiness.
+      - >-
+        Keep schemas/ for the registry alone. Rejected. One JSON Schema guarding one
+        document, when the validator that loads the document is already reading every field
+        it would check, is machinery about machinery.
+
+  - id: 6
+    title: runwAI ships no merge gate, and stops describing one
+    status: accepted
+    date: "2026-07-26"
+    context: >-
+      The template described three gates and shipped two workflows. `pr-gate` ran on every
+      pull request, and its header said "A PR that violates a technical boundary cannot
+      merge." The registry backed the claim in data: `mechanism: pr-gate` on twenty-nine
+      controls, `blocking: true` on twenty-three of them, and `release-gate` on five more
+      whose workflow had already been deleted with the capability that fed it.
+
+
+      None of it was true. `main` carries no branch protection, so nothing required any job
+      to pass before a merge, and nothing ever had. The workflow ran, went green, and
+      prevented exactly nothing — the same shape as a scanner installed in report-only mode,
+      which is the failure this repository names in five places and had shipped in its own
+      CI.
+
+
+      The gap is not fixable from inside the template, and that is the whole point.
+      Preventing a merge is branch protection: a setting on the repository at the forge. A
+      template can carry a workflow file; it cannot carry a repository setting. So a template
+      that promises a blocking gate is promising something it structurally cannot install,
+      and the adopter finds out the first time something merges red.
+    decision:
+      the_workflow_is_deleted: >-
+        .github/workflows/pr-gate.yml is gone. Its jobs that earn their place — the
+        structural self-checks, `semgrep --test` on the rulesets, bandit over the Python we
+        ship, and the full-history secret scan — moved into `posture`, which reports and
+        blocks nothing. Its `semgrep --error` pass did not move: `posture` already runs the
+        same rulesets over the same tree and keeps the findings, and a second pass differing
+        only in its exit code would have re-created the gate under a new name.
+      two_mechanisms_and_both_are_real: >-
+        `mechanism` now takes `pre-commit` or `posture` and nothing else. Both name a file in
+        this tree. `pre-commit` is the only check here that stops anything and is bypassable
+        with --no-verify; `posture` reports. Every control that named a deleted gate was
+        rerouted, and `blocking: true` survives only on the six controls whose rulesets the
+        pre-commit hook actually runs with --error.
+      the_invariant_is_mechanical: >-
+        validate_registry.py rejects `blocking: true` on any control routed to a
+        non-blocking mechanism. This is the cheapest lie the registry could tell — one word,
+        no code change, no visible defect — so it is enforced rather than reviewed, in the
+        same way the determinism invariant is.
+      ism_2032_is_downgraded: >-
+        RWA-0002 mapped ISM-2032 — build only after automated testing completes without
+        warnings — as `direct`. With no gate it is `supporting`: the workflow produces
+        evidence that the checks ran, and nothing refuses to proceed. Recorded here because
+        the honest number is smaller and that is the direction this repository moves in.
+    consequences:
+      easier: >-
+        The documentation and the machinery agree. A reader who believes what README, the
+        registry and the security report say about enforcement now believes something true,
+        which is the test .runwai/MAINTAINERS.md sets for a good change.
+      harder: >-
+        Nothing stops a bad merge, and the template no longer implies otherwise. An adopter
+        who wants enforcement has to turn on branch protection themselves and point it at
+        the `posture` jobs. That is a forge setting we can document and cannot ship, so the
+        documentation says so plainly rather than filling the gap with a workflow that looks
+        like an answer.
+      also: >-
+        Deleting a green workflow is the kind of change agents/rules/ci-never-weaken-a-gate.md
+        exists to prevent, so the distinction matters: that rule prohibits removing
+        enforcement to make a red build green. This removed a claim of enforcement that was
+        never enforcing, while CI was green, and moved every check that was doing real work.
+    alternatives_considered:
+      - >-
+        Keep the workflow and rename it. Cheapest, and it preserves the jobs — but the
+        registry would still route controls to a "gate" and the word would keep doing work
+        the machinery does not do. Rejected: the claim was the problem, not the filename.
+      - >-
+        Keep pr-gate and add branch protection. This is the only option that makes the
+        original claim true, and it is not available to a template: the setting lives on the
+        repository, not in the tree, so every adopter would inherit the promise and none of
+        them the protection.
+      - >-
+        Leave `blocking` as an aspiration and document the gap. Rejected on precedent. That
+        is exactly what `automatable_count: 754` was before it was deleted from the index —
+        a number describing what could be true, read by everyone as what is.
+
+  - id: 7
+    title: Two secret scanners, split by where each can honestly run
+    status: accepted
+    date: "2026-07-26"
+    context: >-
+      RWA-0010 named detect-secrets, pinned and running, and gitleaks, which had no version
+      and ran nowhere — one of the nine tools sitting in pinning.md because its release list
+      was unreachable from where this was authored. So the control's second tool was a name
+      with nothing behind it.
+
+
+      keyhog is a Rust secret scanner with a far larger detector corpus than
+      detect-secrets' plugin set, and it walks reachable git history rather than tracked
+      files alone. It is offered as a CLI, a pre-commit hook and a GitHub Action, and the
+      obvious move was to adopt it everywhere and drop detect-secrets.
+
+
+      The obvious move is wrong in one specific place. keyhog's `.pre-commit-hooks.yaml`
+      declares `language: system`: it runs whatever `keyhog` happens to be on PATH,
+      installed beforehand by a shell installer. Upstream documents why — `language: rust`
+      had pre-commit build the crate with default features, which link libhyperscan-dev,
+      absent on most machines, so the hook failed to build for nearly every adopter. The
+      constraint is real and not ours to fix.
+
+
+      That collides with two things this repository has already decided. Onboarding is one
+      step (AGENTS.md), and `language: system` adds an install before the hook works at
+      all. And an unpinned scanner is a non-deterministic control by definition — a binary
+      on PATH is pinned by nothing.
+    decision:
+      detect_secrets_keeps_the_hook: >-
+        It is `language: python` with additional_dependencies, so pre-commit installs it
+        and `pre-commit install` remains the whole of setup. The version is pinned in the
+        hook config where a reader can see it.
+      keyhog_takes_ci: >-
+        On a runner, both objections evaporate: the action installs a specific build, and
+        the version is pinned in the workflow. It scans the working tree and, in a second
+        pass, reachable history — the pass that catches a credential committed behind
+        --no-verify and deleted later. It replaces gitleaks in the registry, which drops
+        the unpinned count from nine to eight.
+      pinned_to_a_commit_not_a_tag: >-
+        The action is referenced by the full commit SHA behind v0.5.47, not the `@v0` the
+        README suggests. A major tag moves, and AGENTS.md already forbids bare major tags
+        for exactly this reason. This is the tool's own action from the repository that
+        publishes the binary, so the trusted-surface argument against third-party
+        marketplace wrappers does not apply to it.
+      verify_stays_off: >-
+        keyhog's --verify calls vendor APIs to establish which found credentials are still
+        live. It is off by default and CI sets it off explicitly, in a comment that says
+        why: the verdict would depend on a third party's state at scan time, which breaks
+        determinism, and the check would send candidate secrets off the machine. A scanner
+        that exfiltrates what it finds is not a control.
+      backend_is_explicit: >-
+        `--backend cpu` rather than `auto`. Autoroute selects an engine from what the
+        runner happens to have, including GPU paths. A check that picks its own engine per
+        machine is not reproducible, whatever the detection parity claims.
+    consequences:
+      easier: >-
+        Far more detectors and history coverage on every push and pull request, and one
+        fewer unpinned tool in the registry. Setup is unchanged for the adopter — nobody
+        has to install a Rust binary to commit.
+      harder: >-
+        The local and CI verdicts can now diverge, which the old arrangement was
+        specifically built to prevent: the CI job used detect-secrets-hook precisely so it
+        could not disagree with the hook. Two corpora means a commit can pass locally and
+        be flagged in CI. Recorded as the accepted cost of the wider net, and stated in the
+        workflow next to the job rather than left for someone to discover.
+      also: >-
+        `cargo install keyhog` is documented upstream and is not verified here — crates.io
+        refuses CONNECT from this environment. The GitHub Action pin, resolved over the git
+        protocol, is what ships, and pinning.md records both the receipt and the gap.
+    alternatives_considered:
+      - >-
+        keyhog everywhere, drop detect-secrets. One tool, one corpus, no divergence — and
+        it costs one-step onboarding, which is load-bearing enough that AGENTS.md makes it
+        an obligation. It also puts an unpinned PATH binary in a control's decision path.
+      - >-
+        keyhog everywhere alongside detect-secrets. Maximum coverage, two baselines, two
+        sets of false positives, and the same install step. The coverage is not worth the
+        maintenance on a template whose whole argument is that a noisy check gets switched
+        off.
+      - >-
+        Keep gitleaks and pin it properly. Defensible, and it does not survive contact with
+        the facts: the release list was unreachable when this was authored, which is why it
+        was unpinned for the life of the template. keyhog resolved cleanly on the first
+        attempt.
