@@ -4,6 +4,13 @@
 # security backlog that TODO-10 will generate from scanner findings.
 #
 # README section.
+#
+# Reviewed 2026-07-28 against MAINTAINERS.md and decisions.yaml. Each item carries a
+# `review` block: the recommendation, the alignment argument, and where an acceptance
+# criterion conflicts with an accepted decision, the honest rewording. Recommended
+# order: id_1 first (it is the good-change test made literal, and its receipts are
+# what id_3 cites and id_4 depends on), then id_3, then a reworked id_4. id_2
+# conflicts with decision 2 and is recommended for rejection.
 
 # .runwai/backlog.yaml
 
@@ -31,6 +38,63 @@ id_1:
       - "Uses 3+ deliberately vulnerable test cases per active rule"
       - "Output understandable by business users with no security expertise"
       - "Verification process itself is secure (cannot be bypassed)"
+    review:
+      date: "2026-07-28"
+      recommendation: implement-first
+      alignment: >-
+        This is the good-change test made literal: "adds verifiable receipts for claims".
+        The report currently asserts that nine rules enforce; verification proves they
+        fire, which is the difference between a claim and a receipt. Most of the machinery
+        already exists — controls/tests/ asserts every active rule in both directions and
+        `semgrep --test` already runs it — so the work is a plain-language wrapper, not a
+        new check.
+      corrections: >-
+        Two acceptance criteria conflict with accepted decisions and need rewording, not
+        the item rejecting. First, "runwai verify" implies an installed CLI; the template
+        is not a Python package (decision 3) and .runwai/tools/ is maintainer-only and
+        deletable by the adopter, so verification must live where deletion of .runwai/
+        cannot take it: ship it as `python3 .github/scripts/verify.py`, beside
+        security_report.py, invoked the same way. Second, "cannot be bypassed" is a
+        gate-shaped claim of exactly the kind decision 6 removed — nothing here can force
+        anything to run. The honest property is tamper-evidence, not bypass-proofing:
+        every verification input (fixtures, rule files, tool versions) is committed and
+        pinned, so a tampered setup fails verification visibly, and the output states
+        plainly that nothing forces verification to run.
+      proposed_implementation:
+        - >-
+          `.github/scripts/verify.py`: adopter-facing, offline, deterministic, stdlib +
+          the already-pinned scanners. House exit codes (0 pass, 1 fail, 2 could-not-run).
+        - >-
+          Rule receipts: run `semgrep --test --config controls/rules controls/tests` with
+          the pinned semgrep, parse the JSON result, and report per rule in plain
+          language: "fired on N known-vulnerable cases, stayed silent on M safe cases".
+        - >-
+          Secret-scan receipt: run detect-secrets-hook against a committed canary fixture
+          in controls/tests/ and require a non-zero exit. The canary and an exclude line
+          for it in .pre-commit-config.yaml land in the same commit, mirroring how the
+          semgrep fixtures are excluded today.
+        - >-
+          Hook-installed receipt: report whether `.git/hooks/pre-commit` exists. If not,
+          say what that means — "the commit-time checks are not installed; nothing will
+          run when you commit" — with the two install commands. Distinct from a rule
+          failure, because the remedy is different.
+        - >-
+          Determinism receipt: run the rule suite twice and require identical verdicts,
+          which is the "consistent across runs" criterion made checkable.
+        - >-
+          An honesty block closing the output, whatever the verdict: nine rules were
+          verified, not broad coverage; `--no-verify` walks past the hook; verified
+          checks mean the checks work, not that the code is secure.
+        - >-
+          Fixture floor: at least three `ruleid:` cases per active rule. Currently
+          runwai-js-unsafe-eval-deserialisation has two; pad where short, in the same
+          commit as the floor is asserted.
+        - >-
+          Wiring: a posture.yml step runs verify.py and publishes to the job summary, and
+          security_report.py gains one line sourced from it — "active rules verified
+          against their fixtures" with the date — so the report's claims carry the
+          receipt. AGENTS.md first-session flow and README get one line each
+          (MAINTAINERS.md ALWAYS rules).
 
 id_2:
     title: Inverted configuration management
@@ -56,6 +120,29 @@ id_2:
       - "Root directory contains ONLY config files relevant to detected project type"
       - "Original configs remain fully functional in .tools/ when not unpacked"
       - "No manual cleanup required by business users"
+    review:
+      date: "2026-07-28"
+      recommendation: reject
+      alignment: >-
+        Conflicts with accepted decision 2, which is explicit on both halves: "there is no
+        directory of files awaiting a copy step, and adding one requires overturning this
+        record", and its alternatives-considered list already rejected exactly this
+        mechanism — "a directory of starter files, placed by a setup command" — because a
+        file conditional on an agent running the right command is a subtler version of a
+        file conditional on a human copying it. A config in .tools/ is inert in decision
+        2's sense (does nothing until a step nobody is prompted to take), where a config
+        at the root is merely unexercised, and validate_helpers.py can only assert the
+        root copies parse and match their documented versions because they are live at
+        the paths their tools read.
+      disposition: >-
+        The problem is real; the remedy is already shipped on the other side. AGENTS.md
+        first-session step 3 has the agent delete the irrelevant configs — three edits in
+        one commit, recorded in docs/setup.md, enforced by validate_helpers.py — which
+        reaches the same clean root without a copy step or a project-type detector. If
+        root clutter still hurts in practice, the aligned investment is sharpening that
+        delete path (better project-type heuristics in the AGENTS.md table), not
+        inverting shipment. Adopting this item requires overturning decision 2 first,
+        deliberately, in decisions.yaml — not as a side effect of a backlog item.
 
 id_3:
     title: Contextual ISM interpreter command
@@ -81,6 +168,27 @@ id_3:
       - "Output includes plain English fix instructions for agent"
       - "Technical ISM details hidden by default, visible only when requested"
       - "Verification details include upstream source and version"
+    review:
+      date: "2026-07-28"
+      recommendation: implement-second
+      alignment: >-
+        Aligned, and cheap: everything the command needs to say already exists as
+        structured data (registry.yaml carries ism_text verbatim, mapping_fidelity,
+        notes and implementation.provenance; ism-index.json carries the semantic join).
+        No determinism conflict — the invariant bars a model from adjudicating a
+        control, not from explaining one; nothing here enters a decision path.
+      corrections: >-
+        Shape it per decision 4: canonical content in agents/ (an explain-control
+        command spec that says how to read a RWA entry and what to ground each sentence
+        in), with .claude/commands/explain.md as a thin adapter pointing into it. Every
+        factual claim in the output must be read from registry.yaml and
+        controls/ism-snapshot.json at answer time, never from model memory — the
+        verification-discipline section exists because plausible unread ISM text is this
+        repository's recorded failure mode. The command should also say the quiet part
+        when true: a control that is mapped with no implementation block has nothing
+        running behind it, and the explanation must not read as coverage. Sequence after
+        id_1 so "how do I prove this works" has a real answer to point at
+        (`python3 .github/scripts/verify.py`).
 
 id_4:
   title: Node mirrors to Python
@@ -106,3 +214,32 @@ id_4:
     - "security-report.md shows identical structure regardless of project language"
     - "Root directory contains ONLY relevant configs for detected language"
     - "ISM interpreter command provides language-appropriate remediation examples"
+  review:
+    date: "2026-07-28"
+    recommendation: rework-before-adopting
+    alignment: >-
+      The premise overstates the gap: three of the nine active rules are already
+      JavaScript/TypeScript (runwai-js-sql-template-literal, runwai-js-dangerous-html-sink,
+      runwai-js-unsafe-eval-deserialisation), each asserted in both directions by
+      injection.js and deserialisation.js, and the pre-commit semgrep hook already runs
+      on js/ts file types. "All 9 controls have equivalent Node.js implementations" is
+      the wrong target twice over. It fails the bad-change test — adding checks faster
+      than the honesty layer can describe them — and it repeats the recorded RWA-0023
+      failure: JS rules shipped without fixtures, asserted in neither direction, retired
+      in v1. And per-language sinks are not one-to-one: pickle model loading
+      (runwai-python-model-pickle-load) has no meaningful Node mirror, while eval-based
+      deserialisation already has no Python mirror the other way.
+    disposition: >-
+      Rework as a per-rule gap analysis, not a mirroring mandate. For each active rule,
+      either name the concrete JS sink equivalent — child_process exec/execSync with
+      template-literal interpolation mirroring runwai-python-shell-injection is the one
+      clear gap — or record why no equivalent exists, in the rule file's comment block.
+      Each new rule lands with both-direction fixtures, documented false-positive
+      classes, and its registry entry updated in the same commit, and inherits the id_1
+      fixture floor. The two criteria that belong to other items go back to them:
+      root-config selection is id_2's rejected mechanism, and language-appropriate
+      remediation is id_3's output.
+sequencing_note: >-
+  id_1 is the keystone: its per-rule receipts are what id_3 cites when a user asks
+  "how do I prove this works", and its fixture floor is the standard any id_4 rule
+  must meet on arrival. Nothing in id_3 or a reworked id_4 blocks on anything else.
