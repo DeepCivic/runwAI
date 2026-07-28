@@ -35,7 +35,8 @@ without being asked. **You do not need to read the rest of this file to start.**
 So you can tell whether your agent actually did it. It should, without further prompting:
 
 1. Tell you in a few sentences what you now have, and what it will and will not check
-2. Install the commit hook and run it once over everything
+2. Install the commit hook, run it once over everything, and prove the checks catch what
+   they claim (`python3 .github/scripts/verify.py`)
 3. Ask what you are building, then delete the root configs you do not need
 4. Offer to delete `.runwai/`, the maintainers' directory, and prune what refers to it
 5. Record what it did in [`docs/setup.md`](docs/setup.md)
@@ -100,10 +101,16 @@ is exactly why no template can switch it on for you, and why one that claims to 
 | RWA-0003, 0020, 0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, 0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
 
-**Nine rules, and that is the whole of it.** A first release defends a small surface
+**Ten rules, and that is the whole of it.** A first release defends a small surface
 honestly rather than a large one badly. Every other control in `controls/registry.yaml` is
 mapped with nothing running, and `security-report.md` says exactly that rather than
 implying coverage.
+
+**And you do not have to take the ten on trust.** `python3 .github/scripts/verify.py`
+proves each rule fires on committed, deliberately vulnerable examples and stays silent on
+the safe ones beside them — twice, requiring identical verdicts — and that the secret
+scanner catches a fake credential. Its output is written for someone who has to convince
+IT that the checks actually work, and it is equally plain about what a pass does not mean.
 
 **No model is ever the check.** An AI can write the code, and wrote most of this
 repository. But if you ask a model "is this code secure?", you can get different answers to
@@ -130,6 +137,11 @@ requirements baseline while building this template — a ready-made list of what
 review asks about, rather than one invented here. **You do not need any ISM obligation for
 this to be useful.** Ignore the control identifiers and the four rows still tell you what is
 checked and what is not.
+
+When someone does ask you about a specific control — IT, a reviewer, an assessor — tell
+your agent: `/explain RWA-0021`. It answers in plain language from the control registry,
+says what actually runs here and what to do about it, and keeps the ISM detail back until
+you ask for it.
 
 **A green report is not compliance.** It means the code you wrote did not trip a set of
 automated checks. Nobody should tell an assessor otherwise.
@@ -173,23 +185,27 @@ them in your own project before relying on them.
 
 ## Where things are
 
+This root is busier than most repositories you have seen, and on purpose: nothing here
+waits in a starter directory to be copied into place, so every file sits live where its
+tool — or its reader — already looks. What looks unusual is doing a job, and your agent's
+first session trims it to what your project actually needs.
+
 ```
-controls/           The control library: the registry, the nine semgrep rules and the
+controls/           The control library: the registry, the ten semgrep rules and the
                       fixtures asserting each one in both directions
 docs/setup.md       How this project is set up, as built. Your agent keeps it true
 security-report.md  Your security posture. Generated, blocks nothing.
                       The artefact this repository exists to produce
-report.md           Not that one. The template's own self-check readout, about
-                      runwAI rather than your code. Goes when .runwai/ goes
 AGENTS.md           Agent entry point — the obligations your agent reads unprompted
 agents/             Rules, commands, knowledge and skills. Yours; keep it
 llms.txt            Machine-readable index (llmstxt.org convention)
 STEAL.md            What is safe to lift from here, and how to bless your own files
 biome.json, playwright.config.ts, promptfooconfig.yaml
                     Your toolchain, shipped live at the root
-.runwai/           The maintainers' directory: notes kept by the people who build
-                      runwAI itself. Nothing you build depends on it, and deleting
-                      the whole folder breaks nothing in your project
+.runwai/           The maintainers' directory: notes and the template's own self-check
+                      readout, kept by the people who build runwAI itself. Nothing you
+                      build depends on it, and deleting the whole folder breaks nothing
+                      in your project
 ```
 
 Everything except that last one describes *your* repository and comes with you.

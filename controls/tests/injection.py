@@ -4,7 +4,7 @@
 # injection that exists so a rule can be asserted against it. Lifting any of it into real
 # code ships the exact defect the rule beside it was written to catch.
 #
-# Run with: semgrep --test --config files/ selftest/
+# Run with: semgrep --test --config controls/rules controls/tests
 # `ruleid:` asserts the rule fires on the next line. `ok:` asserts it does not.
 # The `ok:` cases are the point: a rule that cannot distinguish safe from unsafe
 # is not a control, it is noise.
@@ -28,6 +28,34 @@ def sql_sinks(cur, user_id):
 
     # ruleid: runwai-python-sql-string-building
     cur.executemany(f"INSERT INTO t VALUES ({user_id})")
+
+
+def sql_assembled_then_executed(cur, user_id):
+    # ruleid: runwai-python-sql-string-building-indirect
+    q = f"SELECT * FROM users WHERE id = {user_id}"
+    cur.execute(q)
+
+
+def sql_assembled_with_bound_params_still_interpolated(cur, table):
+    # Binding one value does not fix the interpolated table name.
+    # ruleid: runwai-python-sql-string-building-indirect
+    q = f"SELECT * FROM {table} WHERE active = %s"
+    cur.execute(q, (True,))
+
+
+def sql_assembled_far_from_the_sink(cur, user_id):
+    # ruleid: runwai-python-sql-string-building-indirect
+    q = f"DELETE FROM sessions WHERE user_id = {user_id}"
+    rows_before = cur.rowcount
+    cur.execute(q)
+    return rows_before
+
+
+def sql_assembled_static(cur):
+    # A query assembled without interpolation carries no untrusted data.
+    # ok: runwai-python-sql-string-building-indirect
+    q = "SELECT count(*) FROM users"
+    cur.execute(q)
 
 
 def sql_parameterised(cur, user_id):

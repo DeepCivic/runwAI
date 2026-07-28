@@ -78,6 +78,12 @@ pre-commit run --all-files
 That first full run may fail on files the template ships. Read the failure and fix or
 explain it — do not tell them to re-run with `--no-verify`.
 
+Then prove the checks work before any of their code exists: install the pinned scanners
+(`pip install semgrep==1.171.0 detect-secrets==1.5.0`) and run
+`python3 .github/scripts/verify.py`, relaying its verdict in a sentence. It shows every
+rule catching committed vulnerable examples — the receipt they can hand to IT — and its
+failures come with fixes.
+
 **3. Work out which of the three root configs they actually need.** They will not know
 these are theirs to delete. Ask what they are building, then act.
 
@@ -101,13 +107,12 @@ building with it. Nothing in their project depends on it. **Do not read it in th
 never cite it to the user:** runwAI's outstanding work is not their backlog and its
 decisions are not theirs.
 
-**If you delete it, prune what calls into it in the same commit** — the four `runwai-*`
-hooks in `.pre-commit-config.yaml` that are not the secret scan, the `selfcheck` and
-`python-sast` jobs in `.github/workflows/posture.yml`, and root `report.md`, which is the
-output of `.runwai/tools/report.py` and describes runwAI's own self-checks rather than the
-user's code. Those validate runwAI's own structure, so removing them loses the user
-nothing. Leaving them behind gives them a check that fails on a missing file, and a stale
-report about a directory that is gone — the worst of both.
+**If you delete it, prune what calls into it in the same commit** — the five hooks in
+`.pre-commit-config.yaml` whose entry begins `python3 .runwai/tools/`, and the `selfcheck`
+and `python-sast` jobs in `.github/workflows/posture.yml`. Those validate runwAI's own
+structure, so removing them loses the user nothing, and the self-check readout
+`.runwai/report.md` goes with the directory itself. Leaving the hooks behind gives the
+user a check that fails on a directory that is gone.
 
 **5. Write down what you did** in [`docs/setup.md`](docs/setup.md). It is the *adopting
 project's* record and it is as-built: what is configured right now, not what someone decided
@@ -273,8 +278,9 @@ controls/ism-snapshot.json    All 1101 June 2026 ISM controls (CC BY 4.0)
 controls/ism-tags.yaml        Our semantic tags. Edit here, then regenerate the index
 controls/ism-index.json       Generated join of the three. Never edit by hand
 security-report.md            The posture readout. Generated; blocks nothing
-.github/scripts/              Its generator. Adopter-facing, so NOT in .runwai/
-controls/rules/               The semgrep rulesets. Nine rules, two files
+.github/scripts/              Its generator, and verify.py, the verification
+                                receipts. Adopter-facing, so NOT in .runwai/
+controls/rules/               The semgrep rulesets. Ten rules, two files
 controls/tests/               Fixtures asserting each rule in both directions
 docs/setup.md                 How this project is set up, as built. Keep it true.
 agents/                       Rules, commands, knowledge base, skills
@@ -286,8 +292,8 @@ biome.json, playwright.config.ts, promptfooconfig.yaml
 .runwai/tools/               The self-checks. Deterministic, offline, no LLM. Maintainer
                                 only — the template is not a Python project.
 .runwai/decisions.yaml       Why the template is shaped this way. Structured, not ADRs.
-report.md                     The self-check readout. Maintainer-facing, unlike
-                                security-report.md beside it. Generated; never edit
+.runwai/report.md            The self-check readout. Maintainer-facing, unlike root
+                                security-report.md. Generated; never edit
 ```
 
 ## Verification discipline

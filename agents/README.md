@@ -67,6 +67,9 @@ filename prefix.
 
 - [llm-security-guardrails](knowledge/llm-security-guardrails.md) — guardrails for
   LLM-integrated code, keyed to the OWASP LLM Top 10 identifiers
+- [explaining-a-control](knowledge/explaining-a-control.md) — how to answer
+  `/explain RWA-XXXX`: grounded in the registry, plain language first, ISM detail
+  hidden until asked
 
 ## Two layers
 
@@ -76,7 +79,7 @@ thin adapters at the paths a specific tool requires.
 | Layer | Where | Contains |
 | :--- | :--- | :--- |
 | Canonical | `AGENTS.md`, `agents/` | All of it. Rules, knowledge, skills, the command list |
-| Adapter | `.claude/commands/*.md` | Nothing of its own. Three pointers into `agents/` |
+| Adapter | `.claude/commands/*.md` | Nothing of its own. Four pointers into `agents/` |
 
 The adapters exist because a Claude Code slash command only works from `.claude/commands/`
 — that is decision 2 applied to a vendor convention, not a second copy of the material. Add

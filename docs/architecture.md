@@ -74,7 +74,7 @@ controls/tests/               Annotated fixtures asserting each rule both ways
   validate_registry.py          determinism invariant, pinning, provenance, overlap
   ism.py                        snapshot (once per release) and verify (every commit)
   validate_helpers.py           the AI helper layer, offline and stdlib-only
-  report.py                     aggregates gate results into report.md
+  report.py                     aggregates gate results into .runwai/report.md
 .runwai/decisions.yaml       Why the template is shaped this way
 .pre-commit-config.yaml       Local checks, the only ones that stop anything
 .semgrepignore                Excludes selftest fixtures, which are deliberately vulnerable

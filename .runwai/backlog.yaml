@@ -1,108 +1,25 @@
 # runwAI development backlog.
 #
-# runwAI's own outstanding work. Not the adopting project's backlog, and not the
-# security backlog that TODO-10 will generate from scanner findings.
+# runwAI's own outstanding work. Not the adopting project's backlog, and not a security
+# backlog generated from scanner findings.
 #
-# README section.
-
-# .runwai/backlog.yaml
-
-id_1:
-    title: Verification capability for security setup
-    description: |
-      One-command verification that security checks are functioning correctly.
-      Uses deliberately vulnerable test cases from controls/fixtures to prove:
-      - All active security rules are properly installed and working
-      - No false negatives on known vulnerable patterns
-      - Results are consistent across runs
-      
-      Output must be interpretable by non-security experts:
-      "All verification tests passed" or specific actionable failures
-      
-      Solves: Business users need to prove to IT that security checks actually work
-    priority: critical
-    status: proposed
-    value: |
-      Enables business users to have credible conversations with IT teams about security posture
-      Closes the circular dependency: non-experts can verify setup without security knowledge
-      Transforms security report from "just another tool" to verifiable evidence
-    acceptance_criteria:
-      - "runwai verify returns clear pass/fail status"
-      - "Uses 3+ deliberately vulnerable test cases per active rule"
-      - "Output understandable by business users with no security expertise"
-      - "Verification process itself is secure (cannot be bypassed)"
-
-id_2:
-    title: Inverted configuration management
-    description: |
-      Config files start in .tools/ directory and are selectively unpacked to root
-      
-      - All tool configs begin in .tools/ directory (biome.json, playwright.config.ts, etc.)
-      - Verification script has params to unpack ONLY relevant configs based on project type
-      - Agent detects project type (Python, JS, etc.) and unpacks only needed configs
-      - No unnecessary files ever appear at root - clean from first commit
-      
-      Solves: Root directory clutter creates cognitive overload for business users
-    priority: high
-    status: proposed
-    value: |
-      Aligns with "you should not have to know what to ask for" philosophy
-      Prevents initial visual clutter rather than requiring cleanup
-      First impression shows only what's relevant to THIS project
-      Supports "vibe coder gets 70% there" by removing decision burden
-    acceptance_criteria:
-      - "All tool configs start in .tools/ directory in template"
-      - "runwai verify --project-type=python unpacks only relevant configs"
-      - "Root directory contains ONLY config files relevant to detected project type"
-      - "Original configs remain fully functional in .tools/ when not unpacked"
-      - "No manual cleanup required by business users"
-
-id_3:
-    title: Contextual ISM interpreter command
-    description: |
-      Agent command that provides ISM mapping ONLY when explicitly requested:
-      "/runwai explain RWA-00XX"
-      
-      Returns:
-      - Plain English explanation of what the control means for THIS project
-      - Direct instructions for agent to fix ("Replace X with Y in file.py")
-      - Technical verification details (only when requested)
-      
-      Solves: Business users need to answer IT questions about compliance without being security experts
-    priority: medium
-    status: proposed
-    value: |
-      Respects "don't need to know" principle - compliance details hidden until needed
-      Provides verifiable mapping when business users need to bridge gap to IT
-      Maintains clean root directory (no extra files)
-      Solves verification cascade by delivering exactly what's needed when needed
-    acceptance_criteria:
-      - "Command works without security knowledge"
-      - "Output includes plain English fix instructions for agent"
-      - "Technical ISM details hidden by default, visible only when requested"
-      - "Verification details include upstream source and version"
-
-id_4:
-  title: Node mirrors to Python
-  description: |
-    Add complete Node.js security coverage that mirrors Python implementation
-    - Implement equivalent Node.js-specific rules for all 9 active security controls
-    - Create Node.js fixture test cases in controls/fixtures for verification
-    - Update setup script to auto-detect Node.js projects and configure appropriate tools
-    - Ensure verification script works with Node.js codebases
-    
-    Solves: Current implementation is Python-centric despite having JS tool configs
-  priority: high
-  status: proposed
-  value: |
-    Enables "vibe coder" workflow for JavaScript/TypeScript developers
-    Makes tool truly multi-language rather than Python-first with JS tooling
-    Maintains consistent security posture reporting across language ecosystems
-    Prevents Node.js users from needing security expertise to configure properly
-  acceptance_criteria:
-    - "Setup script detects package.json and configures Node.js-specific rules"
-    - "All 9 security controls have equivalent Node.js implementations"
-    - "Verification script works with Node.js fixtures without manual intervention"
-    - "security-report.md shows identical structure regardless of project language"
-    - "Root directory contains ONLY relevant configs for detected language"
-    - "ISM interpreter command provides language-appropriate remediation examples"
+# Policy: only outstanding items live here. An item that is completed or rejected is
+# deleted in the commit that closes it — its record is that commit's message, which
+# cites the item's id, and .runwai/decisions.yaml where closing it changed the
+# template's shape. IDs are stable and never reused: the next item is id_5, whatever
+# became of id_1 through id_4.
+#
+# When nothing is outstanding, only this header and the template below remain.
+#
+# Template for a new item:
+#
+# id_5:
+#   title: One line, imperative
+#   description: |
+#     What it is, and the problem it solves.
+#   priority: critical | high | medium | low
+#   status: proposed
+#   value: |
+#     Why it is worth doing, argued in the template's own terms (MAINTAINERS.md).
+#   acceptance_criteria:
+#     - "Checkable statements, honest about what cannot be enforced"
