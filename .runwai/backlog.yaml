@@ -8,10 +8,10 @@
 # Reviewed 2026-07-28 against MAINTAINERS.md and decisions.yaml. Each item carries a
 # `review` block: the recommendation, the alignment argument, and where an acceptance
 # criterion conflicts with an accepted decision, the honest rewording. id_2 (resolved
-# at the presentation layer, decision 8) and id_4 (reshaped by the maintainer to
-# "either language, same first session", then implemented) closed the same day. Open
-# work, in order: id_1 first — it is the good-change test made literal, and its
-# receipts are what id_3 cites — then id_3.
+# at the presentation layer, decision 8), id_4 (reshaped by the maintainer to "either
+# language, same first session", then implemented) and id_3 (/explain, riding on the
+# registry with no new tooling) closed the same day. Open work: id_1 — the good-change
+# test made literal, and the receipt /explain will cite once it lands.
 
 # .runwai/backlog.yaml
 
@@ -163,7 +163,7 @@ id_3:
       
       Solves: Business users need to answer IT questions about compliance without being security experts
     priority: medium
-    status: proposed
+    status: resolved
     value: |
       Respects "don't need to know" principle - compliance details hidden until needed
       Provides verifiable mapping when business users need to bridge gap to IT
@@ -176,25 +176,29 @@ id_3:
       - "Verification details include upstream source and version"
     review:
       date: "2026-07-28"
-      recommendation: implement-second
+      recommendation: implemented
       alignment: >-
         Aligned, and cheap: everything the command needs to say already exists as
         structured data (registry.yaml carries ism_text verbatim, mapping_fidelity,
         notes and implementation.provenance; ism-index.json carries the semantic join).
         No determinism conflict — the invariant bars a model from adjudicating a
         control, not from explaining one; nothing here enters a decision path.
-      corrections: >-
-        Shape it per decision 4: canonical content in agents/ (an explain-control
-        command spec that says how to read a RWA entry and what to ground each sentence
-        in), with .claude/commands/explain.md as a thin adapter pointing into it. Every
-        factual claim in the output must be read from registry.yaml and
-        controls/ism-snapshot.json at answer time, never from model memory — the
-        verification-discipline section exists because plausible unread ISM text is this
-        repository's recorded failure mode. The command should also say the quiet part
-        when true: a control that is mapped with no implementation block has nothing
-        running behind it, and the explanation must not read as coverage. Sequence after
-        id_1 so "how do I prove this works" has a real answer to point at
-        (`python3 .github/scripts/verify.py`).
+      disposition: >-
+        Implemented per decision 4 and the decision 8 membership test, leveraging what
+        already ships: no new tool, no script, no dependency. Canonical content is
+        agents/knowledge/explaining-a-control.md — read every fact from
+        controls/registry.yaml or controls/ism-snapshot.json at answer time, never
+        memory; plain language first; explain, never adjudicate; a mapped control with
+        no implementation block is stated as "nothing runs", never implied covered;
+        ISM text, IDs, tool versions and the verification receipt (source, date,
+        ism_release with its snapshot SHA-256 — the "upstream source and version"
+        criterion) hidden until asked. .claude/commands/explain.md is a thin adapter
+        holding nothing of its own, and everything the command reads lives outside
+        .runwai/, so it survives the adopter's prune. Indexed in agents/README.md and
+        llms.txt; the root README points to it where a reader meets the control rows.
+        Originally sequenced after id_1 so "how do I prove this works" has a receipt
+        to cite; implemented first at the maintainer's direction — when id_1 lands,
+        add one line to the knowledge file pointing at verify.py.
 
 id_4:
   title: Either language, same first session

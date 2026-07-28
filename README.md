@@ -131,6 +131,11 @@ review asks about, rather than one invented here. **You do not need any ISM obli
 this to be useful.** Ignore the control identifiers and the four rows still tell you what is
 checked and what is not.
 
+When someone does ask you about a specific control — IT, a reviewer, an assessor — tell
+your agent: `/explain RWA-0021`. It answers in plain language from the control registry,
+says what actually runs here and what to do about it, and keeps the ISM detail back until
+you ask for it.
+
 **A green report is not compliance.** It means the code you wrote did not trip a set of
 automated checks. Nobody should tell an assessor otherwise.
 
