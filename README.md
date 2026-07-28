@@ -100,7 +100,7 @@ is exactly why no template can switch it on for you, and why one that claims to 
 | RWA-0003, 0020, 0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, 0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
 
-**Nine rules, and that is the whole of it.** A first release defends a small surface
+**Ten rules, and that is the whole of it.** A first release defends a small surface
 honestly rather than a large one badly. Every other control in `controls/registry.yaml` is
 mapped with nothing running, and `security-report.md` says exactly that rather than
 implying coverage.
@@ -179,7 +179,7 @@ tool — or its reader — already looks. What looks unusual is doing a job, and
 first session trims it to what your project actually needs.
 
 ```
-controls/           The control library: the registry, the nine semgrep rules and the
+controls/           The control library: the registry, the ten semgrep rules and the
                       fixtures asserting each one in both directions
 docs/setup.md       How this project is set up, as built. Your agent keeps it true
 security-report.md  Your security posture. Generated, blocks nothing.

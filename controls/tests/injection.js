@@ -55,3 +55,49 @@ function textContentIsFine(el, val) {
   // ok: runwai-js-dangerous-html-sink
   el.textContent = val;
 }
+
+const child_process = require("child_process");
+const { exec, execSync, execFile } = child_process;
+
+function shellTemplate(userInput) {
+  // ruleid: runwai-js-shell-injection
+  exec(`ls -la ${userInput}`);
+}
+
+function shellConcat(userInput) {
+  // ruleid: runwai-js-shell-injection
+  exec("ls -la " + userInput, (err, stdout) => stdout);
+}
+
+function shellSyncTemplate(userInput) {
+  // ruleid: runwai-js-shell-injection
+  execSync(`cat ${userInput}`);
+}
+
+function shellQualifiedTemplate(userInput) {
+  // ruleid: runwai-js-shell-injection
+  child_process.exec(`rm -f ${userInput}`);
+}
+
+function shellStaticIsFine() {
+  // A static command carries no untrusted data, so it must not be flagged.
+  // ok: runwai-js-shell-injection
+  exec("ls -la");
+}
+
+function shellSyncStaticIsFine() {
+  // ok: runwai-js-shell-injection
+  execSync("git status --short");
+}
+
+function shellArgvIsFine(userInput) {
+  // execFile passes the value as an argument, never through a shell.
+  // ok: runwai-js-shell-injection
+  execFile("ls", ["-la", userInput]);
+}
+
+function regexExecIsFine(pattern, userInput) {
+  // RegExp.prototype.exec is not child_process; the receiver anchor keeps it out.
+  // ok: runwai-js-shell-injection
+  return pattern.exec(`prefix ${userInput}`);
+}

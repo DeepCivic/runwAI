@@ -7,12 +7,11 @@
 #
 # Reviewed 2026-07-28 against MAINTAINERS.md and decisions.yaml. Each item carries a
 # `review` block: the recommendation, the alignment argument, and where an acceptance
-# criterion conflicts with an accepted decision, the honest rewording. Recommended
-# order: id_1 first (it is the good-change test made literal, and its receipts are
-# what id_3 cites and id_4 depends on), then id_3, then a reworked id_4. id_2's
-# clarified need — the repository's own first impression on GitHub — was resolved at
-# the presentation layer the same day (decision 8); its unpack mechanism stays
-# rejected per decision 2.
+# criterion conflicts with an accepted decision, the honest rewording. id_2 (resolved
+# at the presentation layer, decision 8) and id_4 (reshaped by the maintainer to
+# "either language, same first session", then implemented) closed the same day. Open
+# work, in order: id_1 first — it is the good-change test made literal, and its
+# receipts are what id_3 cites — then id_3.
 
 # .runwai/backlog.yaml
 
@@ -84,9 +83,9 @@ id_1:
           Determinism receipt: run the rule suite twice and require identical verdicts,
           which is the "consistent across runs" criterion made checkable.
         - >-
-          An honesty block closing the output, whatever the verdict: nine rules were
-          verified, not broad coverage; `--no-verify` walks past the hook; verified
-          checks mean the checks work, not that the code is secure.
+          An honesty block closing the output, whatever the verdict: the ten active
+          rules were verified, not broad coverage; `--no-verify` walks past the hook;
+          verified checks mean the checks work, not that the code is secure.
         - >-
           Fixture floor: at least three `ruleid:` cases per active rule. Currently
           runwai-js-unsafe-eval-deserialisation has two; pad where short, in the same
@@ -198,55 +197,59 @@ id_3:
         (`python3 .github/scripts/verify.py`).
 
 id_4:
-  title: Node mirrors to Python
+  title: Either language, same first session
   description: |
-    Add complete Node.js security coverage that mirrors Python implementation
-    - Implement equivalent Node.js-specific rules for all 9 active security controls
-    - Create Node.js fixture test cases in controls/fixtures for verification
-    - Update setup script to auto-detect Node.js projects and configure appropriate tools
-    - Ensure verification script works with Node.js codebases
-    
-    Solves: Current implementation is Python-centric despite having JS tool configs
+    Reshaped by the maintainer, 2026-07-28. The requirement is not "mirror every rule":
+    it is that it does not matter whether someone starts Python or Node — the agent has
+    what it needs to get them set up.
+
+    Original title was "Node mirrors to Python", asking for equivalent Node.js rules
+    for all active controls, package.json detection, and per-language configuration.
+    The review below records why blanket mirroring was the wrong target and what the
+    reshaped requirement actually needed.
   priority: high
-  status: proposed
+  status: resolved
   value: |
-    Enables "vibe coder" workflow for JavaScript/TypeScript developers
-    Makes tool truly multi-language rather than Python-first with JS tooling
-    Maintains consistent security posture reporting across language ecosystems
-    Prevents Node.js users from needing security expertise to configure properly
+    Enables the "vibe coder" workflow identically for JavaScript/TypeScript developers
+    Makes the tool genuinely multi-language rather than Python-first with JS tooling
+    Keeps security posture reporting structure identical across language ecosystems
   acceptance_criteria:
-    - "Setup script detects package.json and configures Node.js-specific rules"
-    - "All 9 security controls have equivalent Node.js implementations"
-    - "Verification script works with Node.js fixtures without manual intervention"
+    - "The one-step first session is identical for a Python and a Node project"
+    - "Each sink class an active rule covers is covered in both languages, or the rule file records why no equivalent exists"
+    - "Every rule, either language, is asserted in both directions by a committed fixture"
     - "security-report.md shows identical structure regardless of project language"
-    - "Root directory contains ONLY relevant configs for detected language"
-    - "ISM interpreter command provides language-appropriate remediation examples"
   review:
     date: "2026-07-28"
-    recommendation: rework-before-adopting
+    recommendation: implemented-as-reshaped
     alignment: >-
-      The premise overstates the gap: three of the nine active rules are already
-      JavaScript/TypeScript (runwai-js-sql-template-literal, runwai-js-dangerous-html-sink,
-      runwai-js-unsafe-eval-deserialisation), each asserted in both directions by
-      injection.js and deserialisation.js, and the pre-commit semgrep hook already runs
-      on js/ts file types. "All 9 controls have equivalent Node.js implementations" is
-      the wrong target twice over. It fails the bad-change test — adding checks faster
-      than the honesty layer can describe them — and it repeats the recorded RWA-0023
-      failure: JS rules shipped without fixtures, asserted in neither direction, retired
-      in v1. And per-language sinks are not one-to-one: pickle model loading
-      (runwai-python-model-pickle-load) has no meaningful Node mirror, while eval-based
-      deserialisation already has no Python mirror the other way.
+      The premise of the original wording overstated the gap: the setup flow was already
+      language-neutral — one hook, semgrep running on python, javascript and ts file
+      types, rules language-scoped so a project without one language simply never
+      triggers its rules, and no per-language configuration step for a detector to
+      choose. Detection would have added a step to a flow whose whole point is having
+      one. Three rules were already JS/TS with both-direction fixtures. Blanket
+      mirroring also fails the bad-change test (checks added faster than the honesty
+      layer can describe them) and repeats the recorded RWA-0023 failure: JS rules
+      shipped without fixtures, asserted in neither direction, retired in v1.
     disposition: >-
-      Rework as a per-rule gap analysis, not a mirroring mandate. For each active rule,
-      either name the concrete JS sink equivalent — child_process exec/execSync with
-      template-literal interpolation mirroring runwai-python-shell-injection is the one
-      clear gap — or record why no equivalent exists, in the rule file's comment block.
-      Each new rule lands with both-direction fixtures, documented false-positive
-      classes, and its registry entry updated in the same commit, and inherits the id_1
-      fixture floor. The two criteria that belong to other items go back to them:
-      root-config selection is id_2's rejected mechanism, and language-appropriate
-      remediation is id_3's output.
+      Implemented as a per-sink-class gap analysis. The one real gap was shell command
+      injection: Python had runwai-python-shell-injection, Node had nothing. Closed with
+      runwai-js-shell-injection (child_process exec and execSync, template-literal and
+      concatenation forms, bare and qualified receivers), asserted in both directions by
+      four vulnerable and four safe fixtures — including RegExp.prototype.exec, which
+      the receiver anchor deliberately excludes — and the rule count updated from nine
+      to ten across README.md, AGENTS.md, docs/setup.md, MAINTAINERS.md and status.md
+      in the same commit. Asymmetries that remain are recorded, not implied away:
+      pickle-format model loading has no Node equivalent (nothing to mirror), eval-based
+      deserialisation has no Python mirror the other way, and the JS shell rule's
+      known-uncovered forms (spawn with shell true, indirectly assembled commands) are
+      documented in the rule file where a maintainer extending it will look. The two
+      original criteria that belonged to other items went back to them: root-config
+      selection was id_2 (resolved, decision 8), language-appropriate remediation is
+      id_3's output.
 sequencing_note: >-
-  id_1 is the keystone: its per-rule receipts are what id_3 cites when a user asks
-  "how do I prove this works", and its fixture floor is the standard any id_4 rule
-  must meet on arrival. Nothing in id_3 or a reworked id_4 blocks on anything else.
+  id_1 is the keystone of what remains: its per-rule receipts are what id_3 cites
+  when a user asks "how do I prove this works". runwai-js-shell-injection landed
+  meeting id_1's fixture floor (four vulnerable cases); the floor still needs
+  asserting mechanically, and runwai-js-unsafe-eval-deserialisation padding to
+  three, when id_1 is built.

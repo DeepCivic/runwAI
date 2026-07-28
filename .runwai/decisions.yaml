@@ -661,6 +661,17 @@ decisions:
         most repositories and why, with one line per entry. Bizarre-but-explained is
         acceptable. Bizarre-and-silent is not. Hidden-and-broken — the unpack
         directory — is decision 2's rejected alternative.
+      membership_test: >-
+        Added on maintainer review, and it is the converse that makes the rule
+        two-way. Because AGENTS.md instructs the onboarding agent to offer pruning
+        .runwai/, pruning must never cost the adopter anything — so nothing designed
+        for the adopter's benefit may live in it. And because it is the one directory
+        maintainers actually read, anything inside it that is not useful to
+        maintainers is clutter and gets deleted. Both directions audited when this
+        was recorded: everything in .runwai/ serves template maintenance, and the
+        adopter-facing generator (.github/scripts/security_report.py) already lives
+        outside it. Backlog id_1's placement rule — verify.py in .github/scripts/,
+        never .runwai/tools/ — is this test applied in advance.
     consequences:
       easier: >-
         Deleting .runwai/ now takes the self-check readout with it, so the

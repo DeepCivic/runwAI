@@ -9,7 +9,7 @@ The security report is a calibration instrument - its value is truthfulness abou
 
 ## Core Principles
 1. **Determinism**: No AI in security decision path - same input = same output
-2. **Honest coverage**: Never imply more coverage than exists (9 rules, not 100+)
+2. **Honest coverage**: Never imply more coverage than exists (10 rules, not 100+)
 3. **"You shouldn't need to know what to ask for"**: Critical knowledge lives in AGENTS.md for agents to read unprompted
 
 ## Load-Bearing Components

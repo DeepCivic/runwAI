@@ -10,7 +10,7 @@ by `.runwai/tools/report.py`; the limits below are not, and are maintained by ha
 | Controls mapped | 35 (7 `direct`, 22 `partial`, 6 `supporting`) |
 | ISM release | June 2026 — **all 35 IDs verified**, 0 fabricated |
 | Capabilities | 7 |
-| Rule tests | 9 rules across 2 rulesets, each asserted on both a failing and a passing case. TODO-14 retired the other two |
+| Rule tests | 10 rules across 2 rulesets, each asserted on both a failing and a passing case. TODO-14 retired the other two |
 | AI helper layer | `AGENTS.md`, 11 agent rules, 1 skill — structure derived from upstream, licences verified |
 | Adopter toolchain configs | 3, live at the root. Unexercised here: runwAI has no JS/TS |
 | Vendored sources | 10, each pinned to a resolved 40-character commit SHA |

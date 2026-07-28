@@ -273,7 +273,7 @@ controls/ism-tags.yaml        Our semantic tags. Edit here, then regenerate the 
 controls/ism-index.json       Generated join of the three. Never edit by hand
 security-report.md            The posture readout. Generated; blocks nothing
 .github/scripts/              Its generator. Adopter-facing, so NOT in .runwai/
-controls/rules/               The semgrep rulesets. Nine rules, two files
+controls/rules/               The semgrep rulesets. Ten rules, two files
 controls/tests/               Fixtures asserting each rule in both directions
 docs/setup.md                 How this project is set up, as built. Keep it true.
 agents/                       Rules, commands, knowledge base, skills
