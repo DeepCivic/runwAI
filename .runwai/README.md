@@ -17,7 +17,7 @@ changing anything structural.
 | File | What it is |
 | :--- | :--- |
 | [`MAINTAINERS.md`](MAINTAINERS.md) | What the template is for, from our side. The argument, not the index |
-| [`backlog.yaml`](backlog.yaml) | runwAI's outstanding work, structured. Stable IDs, referenced from commit messages |
+| [`backlog.yaml`](backlog.yaml) | runwAI's outstanding work, structured. Stable IDs, referenced from commit messages. Closed items are deleted, not archived — the closing commit is the record |
 | [`decisions.yaml`](decisions.yaml) | Decisions made while building the template. Distinct from `docs/setup.md`, which is the adopter's as-built record |
 | [`provenance.md`](provenance.md) | Upstream repo, commit SHA and licence for every derived file |
 | [`pinning.md`](pinning.md) | Verified tool pins, pending pins, how to complete one |

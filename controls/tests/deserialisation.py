@@ -58,6 +58,10 @@ def unsafe_model_load(path):
     # ruleid: runwai-python-model-pickle-load
     joblib.load(path)
 
+    # Saying the unsafe part out loud does not make it safe.
+    # ruleid: runwai-python-model-pickle-load
+    torch.load(path, weights_only=False)
+
 
 def safer_model_load(path):
     # weights_only=True refuses to unpickle arbitrary objects.

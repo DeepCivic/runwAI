@@ -116,6 +116,21 @@ keyhog scan . --create-baseline keyhog-baseline.json
 
 then pass it to the action's `baseline` input.
 
+## The verification receipts
+
+```bash
+pip install semgrep==1.171.0 detect-secrets==1.5.0    # the pinned scanners it drives
+python3 .github/scripts/verify.py                     # prove the checks catch what they claim
+```
+
+Adopter-facing, stdlib-only, offline. Runs every active rule against the committed
+fixtures in both directions, twice (identical verdicts required); asserts the fixture
+floor (three vulnerable and one safe case per rule, so an untested rule cannot pass
+silently); and scans a fake credential generated at run time the way the commit hook
+scans. Output is plain language with a fix per failure; exit codes follow the house
+convention above. `--no-install-check` skips the commit-hook check — it is for CI,
+where a checkout has no hooks. The `posture` workflow runs it on every push.
+
 ## The report
 
 ```bash

@@ -131,6 +131,32 @@ jobs:
       - name: Check generated report is current
         run: python3 .runwai/tools/report.py --check
 
+  verification:
+    name: Verification receipts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the pinned scanners
+        run: pip install semgrep==1.171.0 detect-secrets==1.5.0
+
+      # Proves the checks catch what they claim: every rule against its committed
+      # fixtures in both directions, twice (identical verdicts required), the fixture
+      # floor, and the secret scanner against a canary generated at run time.
+      # --no-install-check because a CI checkout has no commit hook, and a job that is
+      # red for a reason no reader here can fix teaches readers to ignore the job.
+      - name: Run the verification receipts
+        run: |
+          set -o pipefail
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          python3 .github/scripts/verify.py --no-install-check | tee -a "$GITHUB_STEP_SUMMARY"
+          status=$?
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+
   ruleset-tests:
     name: Ruleset tests
     runs-on: ubuntu-latest

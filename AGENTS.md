@@ -78,6 +78,12 @@ pre-commit run --all-files
 That first full run may fail on files the template ships. Read the failure and fix or
 explain it — do not tell them to re-run with `--no-verify`.
 
+Then prove the checks work before any of their code exists: install the pinned scanners
+(`pip install semgrep==1.171.0 detect-secrets==1.5.0`) and run
+`python3 .github/scripts/verify.py`, relaying its verdict in a sentence. It shows every
+rule catching committed vulnerable examples — the receipt they can hand to IT — and its
+failures come with fixes.
+
 **3. Work out which of the three root configs they actually need.** They will not know
 these are theirs to delete. Ask what they are building, then act.
 

@@ -105,6 +105,12 @@ honestly rather than a large one badly. Every other control in `controls/registr
 mapped with nothing running, and `security-report.md` says exactly that rather than
 implying coverage.
 
+**And you do not have to take the ten on trust.** `python3 .github/scripts/verify.py`
+proves each rule fires on committed, deliberately vulnerable examples and stays silent on
+the safe ones beside them — twice, requiring identical verdicts — and that the secret
+scanner catches a fake credential. Its output is written for someone who has to convince
+IT that the checks actually work, and it is equally plain about what a pass does not mean.
+
 **No model is ever the check.** An AI can write the code, and wrote most of this
 repository. But if you ask a model "is this code secure?", you can get different answers to
 the same question, and a rule that changes its mind is not a rule. So every check here is

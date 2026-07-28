@@ -51,6 +51,8 @@ want (the ISM release, and the snapshot's SHA-256).
 - A topic rather than an ID ("what does the ISM say about backups?") —
   `controls/ism-index.json` is the semantic index; start there.
 - An ID in neither place — say it does not exist. Never invent a control ID.
+- "How do I prove the checks actually work?" — `python3 .github/scripts/verify.py`,
+  the verification receipts. Run it and relay its verdict rather than re-deriving it.
 
 ## Never
 

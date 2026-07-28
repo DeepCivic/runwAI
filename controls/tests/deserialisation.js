@@ -15,6 +15,12 @@ function unsafeFunctionCtor(payload) {
   return new Function(payload);
 }
 
+function unsafeEvalDecoded(payload) {
+  // Decoding first changes nothing: the decoded payload still executes.
+  // ruleid: runwai-js-unsafe-eval-deserialisation
+  return eval(atob(payload));
+}
+
 function safeParse(payload) {
   // ok: runwai-js-unsafe-eval-deserialisation
   return JSON.parse(payload);
