@@ -22,7 +22,9 @@ they parse, pin an exact version, and agree with the version README.md documents
 
 The one thing genuinely at risk from shipping live is a second `AGENTS.md`, which is a trap:
 an agent reading the wrong file follows instructions for a codebase that does not exist. So
-there is exactly one, at the root, and it carries a two-modes section instead.
+there is exactly one, at the root, and it speaks only to the adopter's agent — maintainer
+instruction lives in `.runwai/MAINTAINERS.md`, loaded deliberately by a session that says
+it is maintaining the template (decision 11).
 
 See [decision 1](../.runwai/decisions.yaml) for what
 gets copied in versus written here, and

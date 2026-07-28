@@ -1,6 +1,6 @@
 # Security report
 
-_Generated 2026-07-26 14:16 UTC by `.github/scripts/security_report.py`. Do not edit by hand._
+_Generated 2026-07-28 14:04 UTC by `.github/scripts/security_report.py`. Do not edit by hand._
 
 **This is not a compliance claim, and must not be shown to an assessor as one.** It records which automated checks ran over this repository and what they found. The ISM governs a whole system — the people who run it, where it is hosted, who is allowed near it. A repository is a small part of that.
 

@@ -35,8 +35,8 @@ without being asked. **You do not need to read the rest of this file to start.**
 So you can tell whether your agent actually did it. It should, without further prompting:
 
 1. Tell you in a few sentences what you now have, and what it will and will not check
-2. Install the commit hook, run it once over everything, and prove the checks catch what
-   they claim (`python3 .github/scripts/verify.py`)
+2. Run `make first-session` — install the commit hook, run every check once over
+   everything, and prove the checks catch what they claim
 3. Ask what you are building, then delete the root configs you do not need
 4. Offer to delete `.runwai/`, the maintainers' directory, and prune what refers to it
 5. Record what it did in [`docs/setup.md`](docs/setup.md)
@@ -55,14 +55,17 @@ necessary.
 <summary><strong>The same thing by hand</strong></summary>
 
 ```bash
-pip install pre-commit==4.6.1
-pre-commit install
-pre-commit run --all-files
+make first-session
 ```
 
-Or `/selfcheck`, which runs every check and reports what failed. The full list, with exit
-codes, is in [`agents/running-the-checks.md`](agents/running-the-checks.md). Every one is
-offline and deterministic — no network, no clock dependence, no model.
+That runs the session's mechanical steps in order, each pinned to an exact version:
+`make setup` (install the toolchain), `make hook`, `make check` (everything, over the
+whole tree), `make verify` (prove the rules catch what they claim), `make report`. Run
+them individually when you want one. Or `/selfcheck`, which runs every check and reports
+what failed. The full list, with exit codes, is in
+[`agents/running-the-checks.md`](agents/running-the-checks.md). Every check is offline
+and deterministic — no network, no clock dependence, no model; `make setup` is the one
+step that touches the network.
 
 </details>
 
@@ -103,7 +106,7 @@ is exactly why no template can switch it on for you, and why one that claims to 
 
 **Ten rules, and that is the whole of it.** A first release defends a small surface
 honestly rather than a large one badly. Every other control in `controls/registry.yaml` is
-mapped with nothing running, and `security-report.md` says exactly that rather than
+mapped with nothing running, and `docs/security-report.md` says exactly that rather than
 implying coverage.
 
 **And you do not have to take the ten on trust.** `python3 .github/scripts/verify.py`
@@ -121,8 +124,8 @@ than by convention, and argued in full in [`docs/architecture.md`](docs/architec
 
 ## Reading the security report
 
-`security-report.md` is generated, blocks nothing, and is the artefact this repository
-exists to produce. It sorts every control into four rows, and the distinctions are the
+[`docs/security-report.md`](docs/security-report.md) is generated, blocks nothing, and is
+the artefact this repository exists to produce. It sorts every control into four rows, and the distinctions are the
 whole value:
 
 | Row | What it means |
@@ -193,13 +196,16 @@ first session trims it to what your project actually needs.
 ```
 controls/           The control library: the registry, the ten semgrep rules and the
                       fixtures asserting each one in both directions
-docs/setup.md       How this project is set up, as built. Your agent keeps it true
-security-report.md  Your security posture. Generated, blocks nothing.
-                      The artefact this repository exists to produce
+docs/               setup.md — how this project is set up, as built; your agent keeps
+                      it true — and security-report.md, your posture readout.
+                      Generated, blocks nothing. The artefact this repository
+                      exists to produce
+Makefile            The first session's mechanical steps as pinned, deterministic
+                      targets: `make first-session`
 AGENTS.md           Agent entry point — the obligations your agent reads unprompted
-agents/             Rules, commands, knowledge and skills. Yours; keep it
+agents/             Rules, the canonical command list, knowledge and skills. Yours
 llms.txt            Machine-readable index (llmstxt.org convention)
-STEAL.md            What is safe to lift from here, and how to bless your own files
+STEAL.md            The fast path for anyone — or any agent — taking code from here
 biome.json, playwright.config.ts, promptfooconfig.yaml
                     Your toolchain, shipped live at the root
 .runwai/           The maintainers' directory: notes and the template's own self-check
@@ -221,8 +227,9 @@ Everything except that last one describes *your* repository and comes with you.
   precisely, provenance and licensing rules
 - [`docs/ism-verification.md`](docs/ism-verification.md) — how the control text was
   verified, and how to re-verify it after a new release
-- [`STEAL.md`](STEAL.md) — the reuse protocol: what is safe to lift, how to mark your own
-  files, and which paths are not Apache-2.0
+- [`STEAL.md`](STEAL.md) — how to take code from here in four steps, and which paths are
+  not Apache-2.0; the curation protocol behind it is
+  [`.steal/curation.md`](.steal/curation.md)
 
 ## Licence
 

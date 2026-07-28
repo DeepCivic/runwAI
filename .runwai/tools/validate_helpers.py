@@ -69,7 +69,7 @@ RULE_FILE = re.compile(r"^(?!_)([a-z0-9]+)-[a-z0-9-]+\.md$")
 # document that explains the repository's own rules.
 LIVE_LINK_ROOTS = ("AGENTS.md", "llms.txt", "agents", "docs", ".runwai", "STEAL.md", ".steal")
 
-# A blessing under STEAL.md's protocol: a comment line whose whole purpose is the marker —
+# A blessing under .steal/curation.md's protocol: a comment line whose whole purpose is the marker —
 # an optional comment leader in whatever syntax the host language uses, then STEAL:, then a
 # description. Anchored to the line start so that prose *about* the protocol is not mistaken
 # for a blessing. That distinction is not hypothetical: the first run of this check flagged
@@ -438,8 +438,8 @@ def check_steal(root: Path, report: Report, paths: list[Path] | None = None) -> 
     if listed != sorted(listed):
         report.error(
             ".steal/manifest.md",
-            "table is not sorted by path. STEAL.md requires it so that two agents "
-            "enriching the same manifest produce the same diff.",
+            "table is not sorted by path. .steal/curation.md requires it so that two "
+            "agents enriching the same manifest produce the same diff.",
         )
 
     indexed = set(listed)

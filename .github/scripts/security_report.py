@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate security-report.md: where this repository stands against the ISM.
+"""Generate docs/security-report.md: where this repository stands against the ISM.
 
 This is the artefact runwAI exists to produce. It answers "how does what I have built
 compare to the ISM?" for someone who has never read the ISM and will not start now.
@@ -330,7 +330,9 @@ def main() -> int:
         print(f"FATAL: could not build the report: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
 
-    out = args.out or (root / "security-report.md")
+    # docs/, not the root: a root slot requires a tool or a convention reading the path
+    # there, and nothing reads this one — see decision 9 in .runwai/decisions.yaml.
+    out = args.out or (root / "docs" / "security-report.md")
     out.write_text(content, encoding="utf-8")
     print(f"wrote {out.name}: {len(findings)} findings")
     return 0
