@@ -102,12 +102,11 @@ never cite it to the user:** runwAI's outstanding work is not their backlog and 
 decisions are not theirs.
 
 **If you delete it, prune what calls into it in the same commit** — the four `runwai-*`
-hooks in `.pre-commit-config.yaml` that are not the secret scan, the `selfcheck` and
-`python-sast` jobs in `.github/workflows/posture.yml`, and root `report.md`, which is the
-output of `.runwai/tools/report.py` and describes runwAI's own self-checks rather than the
-user's code. Those validate runwAI's own structure, so removing them loses the user
-nothing. Leaving them behind gives them a check that fails on a missing file, and a stale
-report about a directory that is gone — the worst of both.
+hooks in `.pre-commit-config.yaml` that are not the secret scan, and the `selfcheck` and
+`python-sast` jobs in `.github/workflows/posture.yml`. Those validate runwAI's own
+structure, so removing them loses the user nothing, and the self-check readout
+`.runwai/report.md` goes with the directory itself. Leaving the hooks behind gives the
+user a check that fails on a directory that is gone.
 
 **5. Write down what you did** in [`docs/setup.md`](docs/setup.md). It is the *adopting
 project's* record and it is as-built: what is configured right now, not what someone decided
@@ -286,8 +285,8 @@ biome.json, playwright.config.ts, promptfooconfig.yaml
 .runwai/tools/               The self-checks. Deterministic, offline, no LLM. Maintainer
                                 only — the template is not a Python project.
 .runwai/decisions.yaml       Why the template is shaped this way. Structured, not ADRs.
-report.md                     The self-check readout. Maintainer-facing, unlike
-                                security-report.md beside it. Generated; never edit
+.runwai/report.md            The self-check readout. Maintainer-facing, unlike root
+                                security-report.md. Generated; never edit
 ```
 
 ## Verification discipline

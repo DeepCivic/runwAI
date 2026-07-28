@@ -173,23 +173,27 @@ them in your own project before relying on them.
 
 ## Where things are
 
+This root is busier than most repositories you have seen, and on purpose: nothing here
+waits in a starter directory to be copied into place, so every file sits live where its
+tool — or its reader — already looks. What looks unusual is doing a job, and your agent's
+first session trims it to what your project actually needs.
+
 ```
 controls/           The control library: the registry, the nine semgrep rules and the
                       fixtures asserting each one in both directions
 docs/setup.md       How this project is set up, as built. Your agent keeps it true
 security-report.md  Your security posture. Generated, blocks nothing.
                       The artefact this repository exists to produce
-report.md           Not that one. The template's own self-check readout, about
-                      runwAI rather than your code. Goes when .runwai/ goes
 AGENTS.md           Agent entry point — the obligations your agent reads unprompted
 agents/             Rules, commands, knowledge and skills. Yours; keep it
 llms.txt            Machine-readable index (llmstxt.org convention)
 STEAL.md            What is safe to lift from here, and how to bless your own files
 biome.json, playwright.config.ts, promptfooconfig.yaml
                     Your toolchain, shipped live at the root
-.runwai/           The maintainers' directory: notes kept by the people who build
-                      runwAI itself. Nothing you build depends on it, and deleting
-                      the whole folder breaks nothing in your project
+.runwai/           The maintainers' directory: notes and the template's own self-check
+                      readout, kept by the people who build runwAI itself. Nothing you
+                      build depends on it, and deleting the whole folder breaks nothing
+                      in your project
 ```
 
 Everything except that last one describes *your* repository and comes with you.

@@ -630,3 +630,58 @@ decisions:
         the facts: the release list was unreachable when this was authored, which is why it
         was unpinned for the life of the template. keyhog resolved cleanly on the first
         attempt.
+
+  - id: 8
+    title: The root is the adopter's shop window
+    status: accepted
+    date: "2026-07-28"
+    context: >-
+      Backlog id_2 was filed against a real experience, clarified by the maintainer on
+      review: a visitor landing on the GitHub page sees the root listing before any
+      prose, and next to the repositories they already know it reads as bizarre — two
+      sibling reports, three configs no code here exercises, a STEAL manifest. That is
+      the template's own first impression, which the first-session delete path cannot
+      reach: a visitor sees the root before they ever clone. The mechanism id_2
+      proposed — configs waiting in .tools/ for a selective unpack — is the alternative
+      decision 2 already names and rejects, so the need has to be met without moving
+      anything a tool reads.
+    decision:
+      rule: >-
+        A file earns its root slot in exactly one of two ways: a tool or a convention
+        reads it there (decision 2's placements, AGENTS.md, llms.txt, LICENSE), or it
+        is the artefact the repository exists to hand the adopter (security-report.md).
+        Anything that is runwAI's own record lives in .runwai/, identifiable by
+        location. Applied immediately: report.md, the maintainer-facing self-check
+        readout, moves to .runwai/report.md. No tool read it at root, it was absent
+        from llms.txt because it was never adopter content, and beside
+        security-report.md it was the most confusing pair a visitor could meet first.
+      presentation: >-
+        What remains unusual at the root is explained where the visitor actually
+        looks: README.md's "Where things are" opens by saying the root is busier than
+        most repositories and why, with one line per entry. Bizarre-but-explained is
+        acceptable. Bizarre-and-silent is not. Hidden-and-broken — the unpack
+        directory — is decision 2's rejected alternative.
+    consequences:
+      easier: >-
+        Deleting .runwai/ now takes the self-check readout with it, so the
+        first-session prune list in AGENTS.md is one item shorter, and a stale report
+        about a directory that is gone can no longer be left behind. A visitor meets
+        one report, the one written for them.
+      harder: >-
+        The nanochat-derived pattern of a root report file no longer matches the
+        upstream placement it was lifted from; .runwai/provenance.md records the
+        pattern, which survives the move, not the path.
+      accepted_cost: >-
+        The three toolchain configs still sit at the root doing nothing in this
+        repository. That is decision 2's accepted cost restated — they are
+        unexercised, not inert — and the README now says so at the point a visitor
+        wonders about it.
+    alternatives_considered:
+      - >-
+        The .tools/ unpack directory as filed in backlog id_2. Rejected without
+        reargument: decision 2 names that mechanism in its alternatives and rejects
+        it, and a backlog item does not overturn a decision record.
+      - >-
+        Moving security-report.md into docs/ as well. Rejected: it is the artefact
+        this repository exists to produce, and burying the deliverable to tidy the
+        shop window inverts the priorities.

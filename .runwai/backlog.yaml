@@ -9,8 +9,10 @@
 # `review` block: the recommendation, the alignment argument, and where an acceptance
 # criterion conflicts with an accepted decision, the honest rewording. Recommended
 # order: id_1 first (it is the good-change test made literal, and its receipts are
-# what id_3 cites and id_4 depends on), then id_3, then a reworked id_4. id_2
-# conflicts with decision 2 and is recommended for rejection.
+# what id_3 cites and id_4 depends on), then id_3, then a reworked id_4. id_2's
+# clarified need — the repository's own first impression on GitHub — was resolved at
+# the presentation layer the same day (decision 8); its unpack mechanism stays
+# rejected per decision 2.
 
 # .runwai/backlog.yaml
 
@@ -108,7 +110,7 @@ id_2:
       
       Solves: Root directory clutter creates cognitive overload for business users
     priority: high
-    status: proposed
+    status: resolved
     value: |
       Aligns with "you should not have to know what to ask for" philosophy
       Prevents initial visual clutter rather than requiring cleanup
@@ -122,27 +124,32 @@ id_2:
       - "No manual cleanup required by business users"
     review:
       date: "2026-07-28"
-      recommendation: reject
+      recommendation: resolved-at-presentation-layer
+      clarified_intent: >-
+        Maintainer clarification, 2026-07-28: the item responds to the experience of
+        seeing this repository on GitHub, where the root listing reads as bizarre next
+        to repositories a visitor already knows. That is the template's own first
+        impression, which the first-session delete path cannot reach — a visitor sees
+        the root before they ever clone. An earlier draft of this review read the item
+        as adopter-side clutter and recommended rejection outright; the clarification
+        narrows what is rejected to the mechanism alone.
       alignment: >-
-        Conflicts with accepted decision 2, which is explicit on both halves: "there is no
-        directory of files awaiting a copy step, and adding one requires overturning this
-        record", and its alternatives-considered list already rejected exactly this
-        mechanism — "a directory of starter files, placed by a setup command" — because a
-        file conditional on an agent running the right command is a subtler version of a
-        file conditional on a human copying it. A config in .tools/ is inert in decision
-        2's sense (does nothing until a step nobody is prompted to take), where a config
-        at the root is merely unexercised, and validate_helpers.py can only assert the
-        root copies parse and match their documented versions because they are live at
-        the paths their tools read.
+        The mechanism as filed — configs waiting in .tools/ for a selective unpack —
+        stays rejected: decision 2 names that exact alternative and rejects it, and the
+        files it would move are the ones whose root placement is load-bearing. The
+        clarified need is real, and it is met without moving anything a tool reads.
+        Decision 8 records the rule: a file earns its root slot because a tool or
+        convention reads it there, or because it is the artefact the repository exists
+        to hand the adopter; everything that is runwAI's own record lives in .runwai/.
       disposition: >-
-        The problem is real; the remedy is already shipped on the other side. AGENTS.md
-        first-session step 3 has the agent delete the irrelevant configs — three edits in
-        one commit, recorded in docs/setup.md, enforced by validate_helpers.py — which
-        reaches the same clean root without a copy step or a project-type detector. If
-        root clutter still hurts in practice, the aligned investment is sharpening that
-        delete path (better project-type heuristics in the AGENTS.md table), not
-        inverting shipment. Adopting this item requires overturning decision 2 first,
-        deliberately, in decisions.yaml — not as a side effect of a backlog item.
+        Done under decision 8: report.md, the maintainer-facing self-check readout,
+        moved to .runwai/report.md — no tool read it at root, and beside
+        security-report.md it was the most confusing pair a visitor could meet first —
+        and README.md's "Where things are" now opens by saying the root is busier than
+        most repositories and why. Deleting .runwai/ takes the readout with it, so the
+        AGENTS.md first-session prune list got one item shorter. If the root still
+        reads as bizarre after this, the remaining lever is forge-side (repository
+        description and topics), which no file in a template can set.
 
 id_3:
     title: Contextual ISM interpreter command
