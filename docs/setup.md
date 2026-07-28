@@ -14,7 +14,7 @@ becomes yours as your agent adapts it.
 | :--- | :--- | :--- |
 | While you build | Nothing | No |
 | On commit | Secret scan and SAST on what you staged, plus structural self-checks | Yes — this is the only place anything stops |
-| On push and pull request | The same checks again, plus `security-report.md` | No, never |
+| On push and pull request | The same checks again, plus `docs/security-report.md` | No, never |
 
 **Nothing here prevents a merge.** The commit hook is the only thing that stops an action,
 and `git commit --no-verify` walks past it. CI reports. If you want a failing check to
@@ -35,7 +35,7 @@ to a security baseline?" and it blocks nothing, so it is safe to ignore until yo
 
 Ten rules. That is the whole of it, and it is deliberate — a first release defends a small
 surface honestly rather than a large one badly. Every other control in
-`controls/registry.yaml` is mapped with nothing running, and `security-report.md` says so
+`controls/registry.yaml` is mapped with nothing running, and `docs/security-report.md` says so
 in those words.
 
 None of it is taken on trust: `python3 .github/scripts/verify.py` proves each rule catches

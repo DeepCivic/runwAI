@@ -20,6 +20,10 @@ pre-commit install
 
 The self-checks additionally need `pyyaml==6.0.3` and `jsonschema==4.26.0`.
 
+The adopter-facing steps are also `Makefile` targets — `make first-session`, or `setup`,
+`hook`, `check`, `verify` and `report` individually. The Makefile wraps the commands on
+this page and adds none of its own, so this list stays canonical.
+
 ## The self-checks
 
 ```bash
@@ -151,7 +155,7 @@ python3 .github/scripts/security_report.py \
   --findings semgrep.json --scan-scope "local, changed files"
 ```
 
-Writes `security-report.md`. Blocks nothing and has no staleness gate — it carries a
+Writes `docs/security-report.md`. Blocks nothing and has no staleness gate — it carries a
 generation timestamp instead, so a stale copy says so on its face rather than failing a
 build. Run without `--findings` and it says plainly that no scanner output was supplied,
 which is not the same as nothing found.

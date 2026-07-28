@@ -1,6 +1,6 @@
 # 🗺️ Stealable Manifest
 
-Curated under [`STEAL.md`](../STEAL.md). Every row is a claim about a file, so keep it true:
+Curated under [`curation.md`](curation.md). Every row is a claim about a file, so keep it true:
 if the file changes shape, change the row in the same commit or remove it.
 
 Sorted by path. `Public` is takeable by anyone under the licence for that path — see the
@@ -23,7 +23,7 @@ rules exist to prevent. A ban is cheap and the failure it prevents is not.
 
 ## Why the list is this short
 
-Three files, and the reason is the four criteria in `STEAL.md` applied to ourselves.
+Three files, and the reason is the four criteria in `curation.md` applied to ourselves.
 
 **The two rulesets** have fixtures asserting each rule in both directions — it must fire on
 the bad case and stay silent on the good one. That is the test the fourth criterion asks
@@ -40,12 +40,12 @@ is coupling rather than testing.** An earlier note here blamed the absence of te
 understated it: each of those files is written against runwAI's own layout — the registry
 schema, the rule directories, the manifest format, the section registry. Adding tests would
 not make them liftable, because what you would be lifting is a reader for a tree you do not
-have. The honest advice is to read them for the pattern, which is what `STEAL.md` calls
+have. The honest advice is to read them for the pattern, which is what `curation.md` calls
 boring, and to write your own.
 
 Everything else is either boring — configuration and registry data that only means
 something in place — or governed by an upstream licence that makes "steal it" the wrong
-verb. Both cases are covered in `STEAL.md`. The three root toolchain configs are the
+verb. Both cases are covered in `curation.md` and `STEAL.md`. The three root toolchain configs are the
 closest call: they are self-contained and genuinely designed to be taken, but nothing in
 this repository exercises them (runwAI has no JS/TS), so blessing them would be vouching
 for files no check here has ever run. They ship live at the root instead, which is the
