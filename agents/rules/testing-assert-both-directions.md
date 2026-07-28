@@ -10,8 +10,8 @@ tags: testing, selftest, semgrep
 **Impact: HIGH**
 
 Every rule needs a fixture that makes it fire and a fixture that must leave it silent.
-Semgrep pairs fixtures to rule files by basename, so `files/injection.yaml` requires
-`selftest/injection.py`.
+Semgrep pairs fixtures to rule files by basename, so `controls/rules/injection.yaml`
+requires `controls/tests/injection.py`.
 
 The `ok:` cases matter more than the `ruleid:` ones. Any rule can be made to fire — a rule
 matching everything fires perfectly. What distinguishes a control from noise is that it
@@ -41,7 +41,10 @@ Run it:
 semgrep --test --config controls/rules controls/tests
 ```
 
-Enforced by: the `ruleset-tests` job in `.github/workflows/posture.yml`. It is the only
-place the rules themselves are tested — everything else runs them *against* code.
+Enforced by: the `ruleset-tests` and `verification` jobs in
+`.github/workflows/posture.yml`, and locally by `python3 .github/scripts/verify.py`, which
+additionally asserts a floor of three vulnerable and one safe case per rule — so a rule
+with no fixture fails verification instead of passing silently. These are the only places
+the rules themselves are tested; everything else runs them *against* code.
 
 Reference: [.runwai/contributing.md](../../.runwai/contributing.md)

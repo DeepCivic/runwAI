@@ -35,7 +35,8 @@ without being asked. **You do not need to read the rest of this file to start.**
 So you can tell whether your agent actually did it. It should, without further prompting:
 
 1. Tell you in a few sentences what you now have, and what it will and will not check
-2. Install the commit hook and run it once over everything
+2. Install the commit hook, run it once over everything, and prove the checks catch what
+   they claim (`python3 .github/scripts/verify.py`)
 3. Ask what you are building, then delete the root configs you do not need
 4. Offer to delete `.runwai/`, the maintainers' directory, and prune what refers to it
 5. Record what it did in [`docs/setup.md`](docs/setup.md)

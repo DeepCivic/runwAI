@@ -4,7 +4,7 @@
 # arbitrary code on untrusted input — pickle, marshal, unsafe YAML, pickled model loading.
 # They exist to be caught, never to be copied.
 #
-# Run with: semgrep --test --config files/ selftest/
+# Run with: semgrep --test --config controls/rules controls/tests
 
 import json
 import marshal

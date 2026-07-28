@@ -107,9 +107,9 @@ building with it. Nothing in their project depends on it. **Do not read it in th
 never cite it to the user:** runwAI's outstanding work is not their backlog and its
 decisions are not theirs.
 
-**If you delete it, prune what calls into it in the same commit** — the four `runwai-*`
-hooks in `.pre-commit-config.yaml` that are not the secret scan, and the `selfcheck` and
-`python-sast` jobs in `.github/workflows/posture.yml`. Those validate runwAI's own
+**If you delete it, prune what calls into it in the same commit** — the five hooks in
+`.pre-commit-config.yaml` whose entry begins `python3 .runwai/tools/`, and the `selfcheck`
+and `python-sast` jobs in `.github/workflows/posture.yml`. Those validate runwAI's own
 structure, so removing them loses the user nothing, and the self-check readout
 `.runwai/report.md` goes with the directory itself. Leaving the hooks behind gives the
 user a check that fails on a directory that is gone.
@@ -278,7 +278,8 @@ controls/ism-snapshot.json    All 1101 June 2026 ISM controls (CC BY 4.0)
 controls/ism-tags.yaml        Our semantic tags. Edit here, then regenerate the index
 controls/ism-index.json       Generated join of the three. Never edit by hand
 security-report.md            The posture readout. Generated; blocks nothing
-.github/scripts/              Its generator. Adopter-facing, so NOT in .runwai/
+.github/scripts/              Its generator, and verify.py, the verification
+                                receipts. Adopter-facing, so NOT in .runwai/
 controls/rules/               The semgrep rulesets. Ten rules, two files
 controls/tests/               Fixtures asserting each rule in both directions
 docs/setup.md                 How this project is set up, as built. Keep it true.

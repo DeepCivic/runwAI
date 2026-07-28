@@ -38,6 +38,10 @@ surface honestly rather than a large one badly. Every other control in
 `controls/registry.yaml` is mapped with nothing running, and `security-report.md` says so
 in those words.
 
+None of it is taken on trust: `python3 .github/scripts/verify.py` proves each rule catches
+its committed vulnerable examples and stays silent on the safe ones, and CI re-proves it on
+every push. See `agents/running-the-checks.md`.
+
 ## The toolchain configs, and deleting the ones you do not need
 
 Three configs ship at the root. They do three unrelated jobs, and **most projects need

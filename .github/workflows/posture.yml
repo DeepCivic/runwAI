@@ -148,12 +148,14 @@ jobs:
       # floor, and the secret scanner against a canary generated at run time.
       # --no-install-check because a CI checkout has no commit hook, and a job that is
       # red for a reason no reader here can fix teaches readers to ignore the job.
+      # The || capture keeps bash -e from aborting before the summary's closing fence
+      # is written, so a failed run still renders readably in the job summary.
       - name: Run the verification receipts
         run: |
           set -o pipefail
+          status=0
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          python3 .github/scripts/verify.py --no-install-check | tee -a "$GITHUB_STEP_SUMMARY"
-          status=$?
+          python3 .github/scripts/verify.py --no-install-check | tee -a "$GITHUB_STEP_SUMMARY" || status=$?
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           exit $status
 

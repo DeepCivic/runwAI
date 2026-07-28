@@ -3,7 +3,7 @@
 // STEAL: IGNORE: Deliberately vulnerable by design. Every `ruleid:` case below is a working
 // injection written so a rule can be asserted against it. Never lift it into real code.
 //
-// Run with: semgrep --test --config files/ selftest/
+// Run with: semgrep --test --config controls/rules controls/tests
 
 function sqlTemplateLiteral(db, id) {
   // ruleid: runwai-js-sql-template-literal

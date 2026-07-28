@@ -4,7 +4,7 @@
 # injection that exists so a rule can be asserted against it. Lifting any of it into real
 # code ships the exact defect the rule beside it was written to catch.
 #
-# Run with: semgrep --test --config files/ selftest/
+# Run with: semgrep --test --config controls/rules controls/tests
 # `ruleid:` asserts the rule fires on the next line. `ok:` asserts it does not.
 # The `ok:` cases are the point: a rule that cannot distinguish safe from unsafe
 # is not a control, it is noise.
