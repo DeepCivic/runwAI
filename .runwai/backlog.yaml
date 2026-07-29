@@ -6,14 +6,14 @@
 # Policy: only outstanding items live here. An item that is completed or rejected is
 # deleted in the commit that closes it — its record is that commit's message, which
 # cites the item's id, and .runwai/decisions.yaml where closing it changed the
-# template's shape. IDs are stable and never reused: the next item is id_5, whatever
-# became of id_1 through id_4.
+# template's shape. IDs are stable and never reused: the next item is id_6, whatever
+# became of id_1 through id_5.
 #
 # When nothing is outstanding, only this header and the template below remain.
 #
 # Template for a new item:
 #
-# id_5:
+# id_6:
 #   title: One line, imperative
 #   description: |
 #     What it is, and the problem it solves.
@@ -23,3 +23,46 @@
 #     Why it is worth doing, argued in the template's own terms (MAINTAINERS.md).
 #   acceptance_criteria:
 #     - "Checkable statements, honest about what cannot be enforced"
+
+id_5:
+  title: Rebalance the commit-time gate against where each check can honestly run
+  description: |
+    `.pre-commit-config.yaml` runs seven blocking hooks: the secret scan, SAST over staged
+    files, and five structural self-checks — the registry validator, ISM claim verification,
+    the ISM index staleness check, the helper-layer check and the report freshness check.
+    That makes saving work the heaviest gate in the repository, when the stated design is
+    fast checks on save and the full set where it reports.
+
+    Commit time is for what must never enter history, which is a leaked credential. The
+    structural checks are about runwAI's own coherence: they need the whole tree, they are
+    not about the change being saved, and `.github/workflows/posture.yml` already re-runs
+    every one of them.
+
+    This was previously carried as a sub-task of TODO-9 under the pre-publication ID
+    scheme. TODO-9 was closed on unrelated grounds — the IaC capability it was really about
+    went away — and the rebalance went with it unaddressed. `.runwai/status.md` went on
+    pointing at TODO-9 as the plan, which is how a closed item ended up standing in for
+    outstanding work. It is refiled here under its own id so the pointer resolves.
+  priority: medium
+  status: proposed
+  value: |
+    A gate in the wrong place is not a weakened gate, and this one has not been weakened —
+    nothing was moved after it failed. But it is still the gate the maintainer meets most
+    often, and the cost of getting the placement wrong is paid on every commit. The rule in
+    AGENTS.md is to put a check where it can actually see the problem; the repository does
+    not currently follow its own rule about itself.
+
+    Moving a check after it fails is weakening it, so this has to be decided as design and
+    recorded as a decision, not done the next time a hook is inconvenient.
+  acceptance_criteria:
+    - "A decision record states which checks run at commit time and why, in terms of what
+       each one can see there"
+    - "The secret scan stays on the commit hook: a credential that reaches a push is
+       already public and must be rotated rather than deleted"
+    - "Every check moved off the commit hook is verified as already running in
+       .github/workflows/posture.yml, named job by named job, before it is removed"
+    - "Hook counts in .runwai/status.md and AGENTS.md's deletion instructions are corrected
+       in the same commit"
+  not_enforceable: |
+    Nothing mechanically checks that a check sits where it can see its subject matter. This
+    stays a review judgement, which is why it is written down rather than automated.
