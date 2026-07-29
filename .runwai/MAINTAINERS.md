@@ -50,6 +50,11 @@ A change is bad if:
   that — maintainer instruction belongs here, never there
 - Update README.md in root if appropriate; audience is the template-user
 - Keep root .md files concise
+- Leave `CLAUDE.md` as a one-line `@AGENTS.md` import. Claude Code reads that filename and
+  not `AGENTS.md`; content in the bridge is a second guide to keep in step
+- Keep the first-session step list in AGENTS.md and README.md's verification checklist in
+  step, and in their own registers: imperative for the agent, "so you can tell whether your
+  agent actually did it" for the human. Duplication here is deliberate (decision 16)
 
 The test: Would a stranger form an accurate belief about security posture from the report? Everything exists to make the answer "yes."
 
@@ -134,7 +139,11 @@ controls/tests/               Fixtures asserting each rule in both directions
 docs/setup.md                 How this project is set up, as built. Keep it true.
 agents/                       Rules, commands, knowledge base, skills
 STEAL.md                      The taking path, addressed to the taker
-.steal/                       Its index (manifest.md) and protocol (curation.md)
+.steal/                       Its index (manifest.md) and protocol (curation.md).
+                                Removable by the adopter as a pair — validate_helpers
+                                treats both-gone as a decision, one-gone as an error
+CLAUDE.md                     `@AGENTS.md` and nothing else. The bridge that makes the
+                                guide reachable by Claude Code, which reads this filename
 biome.json, playwright.config.ts, promptfooconfig.yaml
                               The adopter's toolchain, shipped live. Inert here by
                                 subject matter — runwAI has no JS/TS — never by design.

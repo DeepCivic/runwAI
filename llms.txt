@@ -17,6 +17,7 @@ somewhere — every file ships in the place its tool already looks for it.
 ## Start here
 
 - [AGENTS.md](AGENTS.md): Entry point for the adopter's agent — the invariant, the obligations, the first session
+- [CLAUDE.md](CLAUDE.md): A one-line `@AGENTS.md` import. Claude Code reads this filename and not AGENTS.md, so the bridge is what makes the guide reach it. Holds no content of its own
 - [README.md](README.md): The adopter's front door — what runwAI checks, what it does not, and the one step to start
 - [Makefile](Makefile): The first session's mechanical steps as pinned, deterministic targets
 - [agents/README.md](agents/README.md): Index of rules, commands, skills and knowledge

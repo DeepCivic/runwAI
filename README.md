@@ -39,10 +39,12 @@ So you can tell whether your agent actually did it. It should, without further p
    everything, and prove the checks catch what they claim
 3. Ask what you are building, then delete the root configs you do not need
 4. Offer to delete `.runwai/`, the maintainers' directory, and prune what refers to it
-5. Record what it did in [`docs/setup.md`](docs/setup.md)
-6. **Rewrite `AGENTS.md` to describe your project rather than this template**, and say that
+5. **Ask whether you want other people to be able to reuse pieces of this**, and keep or
+   remove `STEAL.md` and `.steal/` on your answer — not on its own guess
+6. Record what it did in [`docs/setup.md`](docs/setup.md)
+7. **Rewrite `AGENTS.md` to describe your project rather than this template**, and say that
    it has
-7. Tell you — unprompted — that nothing here can block a merge, that a green report is not
+8. Tell you — unprompted — that nothing here can block a merge, that a green report is not
    compliance, and that you can ignore the control identifiers entirely
 
 If it did none of that and simply waited for instructions, say *"follow the first-session
@@ -120,7 +122,7 @@ secure, and a report that pooled them would let it look that way. It never block
 commit, and it names every ecosystem it did not scan rather than counting silence as a
 pass.
 
-**And you do not have to take the ten on trust.** `python3 .github/scripts/verify.py`
+**And you do not have to take the fourteen on trust.** `python3 .github/scripts/verify.py`
 proves each rule fires on committed, deliberately vulnerable examples and stays silent on
 the safe ones beside them — twice, requiring identical verdicts — and that the secret
 scanner catches a fake credential. Its output is written for someone who has to convince
@@ -215,9 +217,12 @@ docs/               setup.md — how this project is set up, as built; your agen
 Makefile            The first session's mechanical steps as pinned, deterministic
                       targets: `make first-session`
 AGENTS.md           Agent entry point — the obligations your agent reads unprompted
+CLAUDE.md           One line: `@AGENTS.md`. Claude Code reads this filename and not the
+                      other one, so without it the guide above is invisible to it
 agents/             Rules, the canonical command list, knowledge and skills. Yours
 llms.txt            Machine-readable index (llmstxt.org convention)
-STEAL.md            The fast path for anyone — or any agent — taking code from here
+STEAL.md            The fast path for anyone — or any agent — taking code from here.
+                      Your agent asks in the first session whether you want it at all
 biome.json, playwright.config.ts, promptfooconfig.yaml
                     Your toolchain, shipped live at the root
 .runwai/           The maintainers' directory: notes and the template's own self-check
