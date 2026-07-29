@@ -41,12 +41,17 @@ AUDIT_BIN ?= .audit-cache/bin
 .PHONY: first-session setup hook check verify report audit doctor \
         setup-audit-tools setup-audit-dbs
 
-# audit and doctor run last and are not allowed to abort the session. Both report on
-# things a first session cannot be expected to have got right yet — a dependency with a
-# CVE, an unset environment variable — and neither is a reason to stop setting up.
-first-session: setup hook check verify report
+# audit and doctor are not allowed to abort the session. Both report on things a first
+# session cannot be expected to have got right yet — a dependency with a CVE, an unset
+# environment variable — and neither is a reason to stop setting up.
+#
+# `report` runs after `audit` and not before, because it reads what the audit wrote. The
+# other order produced a report whose Dependency posture section said no audit output was
+# supplied, immediately after one had been.
+first-session: setup hook check verify
 	@$(MAKE) --no-print-directory audit || true
 	@$(MAKE) --no-print-directory doctor || true
+	@$(MAKE) --no-print-directory report
 
 setup: ## Install the pinned toolchain (the one step that needs the network)
 	$(PYTHON) -m pip install pre-commit==4.6.1 semgrep==1.171.0 detect-secrets==1.5.0 pyyaml==6.0.3

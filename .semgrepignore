@@ -20,6 +20,12 @@ controls/ism-index.json
 
 .git/
 
+# The dependency audit's working directory: two scanner binaries of a couple of hundred
+# megabytes each, and a vulnerability database of about a gigabyte. Gitignored, so semgrep
+# already skips it by default — named here as well because a run with --no-git-ignore
+# would otherwise try to read all of it.
+.audit-cache/
+
 # .runwai/ holds runwAI's own development record — backlog, decisions, provenance. That
 # is documentation about building the template, not code shipped by it.
 #

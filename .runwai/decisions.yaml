@@ -579,7 +579,11 @@ decisions:
       all. And an unpinned scanner is a non-deterministic control by definition — a binary
       on PATH is pinned by nothing.
     decision:
-      detect_secrets_keeps_the_hook: >-
+      # A key named for the scanner, not a value: detect-secrets' keyword detector
+      # reads `secrets...:` and cannot tell a decision's field name from a
+      # credential. Suppressed here with the reason, rather than in the baseline
+      # where nobody reviewing this file would see it.
+      detect_secrets_keeps_the_hook: >-  # pragma: allowlist secret
         It is `language: python` with additional_dependencies, so pre-commit installs it
         and `pre-commit install` remains the whole of setup. The version is pinned in the
         hook config where a reader can see it.
