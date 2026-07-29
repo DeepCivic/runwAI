@@ -217,8 +217,9 @@ docs/               setup.md — how this project is set up, as built; your agen
 Makefile            The first session's mechanical steps as pinned, deterministic
                       targets: `make first-session`
 AGENTS.md           Agent entry point — the obligations your agent reads unprompted
-CLAUDE.md           One line: `@AGENTS.md`. Claude Code reads this filename and not the
-                      other one, so without it the guide above is invisible to it
+CLAUDE.md           An `@AGENTS.md` import and nothing else. Claude Code reads this
+                      filename and not the other one, so without the bridge the guide
+                      above is invisible to it
 agents/             Rules, the canonical command list, knowledge and skills. Yours
 llms.txt            Machine-readable index (llmstxt.org convention)
 STEAL.md            The fast path for anyone — or any agent — taking code from here.

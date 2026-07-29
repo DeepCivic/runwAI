@@ -67,8 +67,15 @@ RULE_FILE = re.compile(r"^(?!_)([a-z0-9]+)-[a-z0-9-]+\.md$")
 # where two links still pointed at docs/adr/0001 months after TODO-11 moved that record to
 # .runwai/decisions/ — a confident cross-reference to a page that was not there, in the
 # document that explains the repository's own rules.
+#
+# README.md is in the set because the first-session instructions promise it is: AGENTS.md
+# tells the setup agent that deleting the reuse layer means clearing every link `make check`
+# names, and README.md links into STEAL.md and .steal/ twice. Left out, the front door was
+# the one file where a deletion could leave a dangling link and the check would still say
+# PASSED — the worst place to have one, and a promise the tool was not keeping.
 LIVE_LINK_ROOTS = (
-    "AGENTS.md", "CLAUDE.md", "llms.txt", "agents", "docs", ".runwai", "STEAL.md", ".steal",
+    "AGENTS.md", "CLAUDE.md", "README.md", "llms.txt", "agents", "docs", ".runwai",
+    "STEAL.md", ".steal",
 )
 
 # A blessing under .steal/curation.md's protocol: a comment line whose whole purpose is the marker —
