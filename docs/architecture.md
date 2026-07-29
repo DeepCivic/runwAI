@@ -74,7 +74,7 @@ controls/tests/               Annotated fixtures asserting each rule both ways
   validate_registry.py          determinism invariant, pinning, provenance, overlap
   ism.py                        snapshot (once per release) and verify (every commit)
   validate_helpers.py           the AI helper layer, offline and stdlib-only
-  report.py                     aggregates gate results into report.md
+  report.py                     aggregates gate results into .runwai/report.md
 .runwai/decisions.yaml       Why the template is shaped this way
 .pre-commit-config.yaml       Local checks, the only ones that stop anything
 .semgrepignore                Excludes selftest fixtures, which are deliberately vulnerable
@@ -97,7 +97,7 @@ named anything else would be describing machinery this repository does not carry
    SAST findings on the files you staged. It is bypassable with `--no-verify`, so it is
    never the whole story.
 2. **`posture`** — the CI workflow. Runs the rulesets in report mode, writes
-   `security-report.md`, tests the rulesets against their own fixtures, re-scans the full
+   `docs/security-report.md`, tests the rulesets against their own fixtures, re-scans the full
    history for secrets, and runs the structural self-checks. It reports; it blocks nothing.
 
 **runwAI ships no merge gate, and will not.** Preventing a merge is branch protection: a

@@ -16,18 +16,20 @@ somewhere — every file ships in the place its tool already looks for it.
 
 ## Start here
 
-- [AGENTS.md](AGENTS.md): Entry point for agents — the invariant, Do/Don't, boundaries
+- [AGENTS.md](AGENTS.md): Entry point for the adopter's agent — the invariant, the obligations, the first session
 - [README.md](README.md): The adopter's front door — what runwAI checks, what it does not, and the one step to start
+- [Makefile](Makefile): The first session's mechanical steps as pinned, deterministic targets
 - [agents/README.md](agents/README.md): Index of rules, commands, skills and knowledge
 
 ## Reuse
 
-- [STEAL.md](STEAL.md): What in this repository is safe to lift, how to bless a file, and which paths are not Apache-2.0
+- [STEAL.md](STEAL.md): The fast path for taking code from this repository — the four steps, and which paths are not Apache-2.0
 - [.steal/manifest.md](.steal/manifest.md): The index of stealable resources, with tags and descriptions
+- [.steal/curation.md](.steal/curation.md): The curation protocol — how a file is blessed, banned, and kept indexed
 
 ## The ISM, machine-readable
 
-- [security-report.md](security-report.md): Where this repository stands against the ISM right now — what is checked, what is not, and what the scanners found
+- [docs/security-report.md](docs/security-report.md): Where this repository stands against the ISM right now — what is checked, what is not, and what the scanners found
 - [controls/ism-index.json](controls/ism-index.json): All 1101 controls, each with semantic tags and a code/infrastructure/organisational surface. Generated — start here to ask what the ISM says about a topic
 - [controls/ism-tags.yaml](controls/ism-tags.yaml): The tag vocabulary and the per-section judgements the index is built from
 
@@ -61,6 +63,7 @@ somewhere — every file ships in the place its tool already looks for it.
 ## Optional
 
 - [agents/knowledge/llm-security-guardrails.md](agents/knowledge/llm-security-guardrails.md): Guardrails for LLM-integrated code, keyed to OWASP LLM01–LLM10
+- [agents/knowledge/explaining-a-control.md](agents/knowledge/explaining-a-control.md): How an agent explains a control in plain language, grounded in the registry
 - [agents/running-the-checks.md](agents/running-the-checks.md): The canonical command list — self-checks, scans, exit codes
 - [agents/knowledge-base.md](agents/knowledge-base.md): Vendoring workflow, licence families, network access shape
 - [docs/ism-verification.md](docs/ism-verification.md): Control verification method and status

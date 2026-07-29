@@ -17,8 +17,8 @@ tick and the appearance of coverage, but the thing it claims to look at is no lo
 looked at. The failure has a known shape — a check-ID verifier once shipped here whose
 regex `CKV[A-Z_]*_[0-9]+` could not match `CKV_K8S_19`, so three Kubernetes checks were
 silently skipped by the very verifier meant to catch bad IDs. It was removed with the
-capability it served rather than fixed, and the defect is recorded in `.runwai/backlog.yaml`
-so the pattern outlives the code.
+capability it served rather than fixed. The pattern is written down here rather than
+pointed at, so that it outlives both the code and any file this project later deletes.
 
 If you genuinely cannot fix a finding, say so explicitly and leave the run red. An honest
 red build is a working check.

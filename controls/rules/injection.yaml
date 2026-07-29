@@ -16,6 +16,9 @@
 #     The template literal still interpolates. Suppress, or move to a bound query.
 #   innerHTML assigned from a sanitiser's output
 #     The rule cannot see that DOMPurify ran. Suppress with the sanitiser named.
+#   A local function named exec or execSync that is not child_process
+#     The JS shell rule matches the bare names because that is how child_process is
+#     usually destructured. Suppress with a reason naming what the function is.
 #
 # Suppress individually and give a reason, never blanket:
 #
@@ -103,6 +106,33 @@ rules:
       - pattern-not: $EL.innerHTML = "..."
       - pattern-not: $EL.insertAdjacentHTML($POS, "...")
       - pattern-not: document.write("...")
+
+  - id: runwai-js-shell-injection
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Shell command built by interpolation reaches child_process. Use execFile with
+      an argument array, or keep the command static. [RWA-0020 / ISM-1240]
+    metadata:
+      runwai-control: RWA-0020
+      category: security
+      confidence: HIGH
+    # The bare names are matched because destructuring is the dominant idiom
+    # (`const { exec } = require("child_process")`), and the receiver is anchored to
+    # `child_process` rather than a metavariable so RegExp.prototype.exec never
+    # matches. Known-uncovered, recorded rather than guessed at: spawn with
+    # `shell: true`, and a command assembled indirectly before the call — the mirror
+    # of runwai-python-sql-string-building-indirect does not exist for shell yet.
+    patterns:
+      - pattern-either:
+          - pattern: exec(`...${$X}...`, ...)
+          - pattern: exec("..." + $X, ...)
+          - pattern: execSync(`...${$X}...`, ...)
+          - pattern: execSync("..." + $X, ...)
+          - pattern: child_process.exec(`...${$X}...`, ...)
+          - pattern: child_process.exec("..." + $X, ...)
+          - pattern: child_process.execSync(`...${$X}...`, ...)
+          - pattern: child_process.execSync("..." + $X, ...)
 
   - id: runwai-python-shell-injection
     languages: [python]

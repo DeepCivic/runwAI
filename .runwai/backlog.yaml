@@ -1,108 +1,275 @@
 # runwAI development backlog.
 #
-# runwAI's own outstanding work. Not the adopting project's backlog, and not the
-# security backlog that TODO-10 will generate from scanner findings.
+# runwAI's own outstanding work. Not the adopting project's backlog, and not a security
+# backlog generated from scanner findings.
 #
-# README section.
+# Policy: only outstanding items live here. An item that is completed or rejected is
+# deleted in the commit that closes it — its record is that commit's message, which
+# cites the item's id, and .runwai/decisions.yaml where closing it changed the
+# template's shape. IDs are stable and never reused: the next item is id_10, whatever
+# became of id_1 through id_9.
+#
+# When nothing is outstanding, only this header and the template below remain.
+#
+# Template for a new item:
+#
+# id_10:
+#   title: One line, imperative
+#   description: |
+#     What it is, and the problem it solves.
+#   priority: critical | high | medium | low
+#   status: proposed
+#   value: |
+#     Why it is worth doing, argued in the template's own terms (MAINTAINERS.md).
+#   acceptance_criteria:
+#     - "Checkable statements, honest about what cannot be enforced"
 
-# .runwai/backlog.yaml
-
-id_1:
-    title: Verification capability for security setup
-    description: |
-      One-command verification that security checks are functioning correctly.
-      Uses deliberately vulnerable test cases from controls/fixtures to prove:
-      - All active security rules are properly installed and working
-      - No false negatives on known vulnerable patterns
-      - Results are consistent across runs
-      
-      Output must be interpretable by non-security experts:
-      "All verification tests passed" or specific actionable failures
-      
-      Solves: Business users need to prove to IT that security checks actually work
-    priority: critical
-    status: proposed
-    value: |
-      Enables business users to have credible conversations with IT teams about security posture
-      Closes the circular dependency: non-experts can verify setup without security knowledge
-      Transforms security report from "just another tool" to verifiable evidence
-    acceptance_criteria:
-      - "runwai verify returns clear pass/fail status"
-      - "Uses 3+ deliberately vulnerable test cases per active rule"
-      - "Output understandable by business users with no security expertise"
-      - "Verification process itself is secure (cannot be bypassed)"
-
-id_2:
-    title: Inverted configuration management
-    description: |
-      Config files start in .tools/ directory and are selectively unpacked to root
-      
-      - All tool configs begin in .tools/ directory (biome.json, playwright.config.ts, etc.)
-      - Verification script has params to unpack ONLY relevant configs based on project type
-      - Agent detects project type (Python, JS, etc.) and unpacks only needed configs
-      - No unnecessary files ever appear at root - clean from first commit
-      
-      Solves: Root directory clutter creates cognitive overload for business users
-    priority: high
-    status: proposed
-    value: |
-      Aligns with "you should not have to know what to ask for" philosophy
-      Prevents initial visual clutter rather than requiring cleanup
-      First impression shows only what's relevant to THIS project
-      Supports "vibe coder gets 70% there" by removing decision burden
-    acceptance_criteria:
-      - "All tool configs start in .tools/ directory in template"
-      - "runwai verify --project-type=python unpacks only relevant configs"
-      - "Root directory contains ONLY config files relevant to detected project type"
-      - "Original configs remain fully functional in .tools/ when not unpacked"
-      - "No manual cleanup required by business users"
-
-id_3:
-    title: Contextual ISM interpreter command
-    description: |
-      Agent command that provides ISM mapping ONLY when explicitly requested:
-      "/runwai explain RWA-00XX"
-      
-      Returns:
-      - Plain English explanation of what the control means for THIS project
-      - Direct instructions for agent to fix ("Replace X with Y in file.py")
-      - Technical verification details (only when requested)
-      
-      Solves: Business users need to answer IT questions about compliance without being security experts
-    priority: medium
-    status: proposed
-    value: |
-      Respects "don't need to know" principle - compliance details hidden until needed
-      Provides verifiable mapping when business users need to bridge gap to IT
-      Maintains clean root directory (no extra files)
-      Solves verification cascade by delivering exactly what's needed when needed
-    acceptance_criteria:
-      - "Command works without security knowledge"
-      - "Output includes plain English fix instructions for agent"
-      - "Technical ISM details hidden by default, visible only when requested"
-      - "Verification details include upstream source and version"
-
-id_4:
-  title: Node mirrors to Python
+id_5:
+  title: Rebalance the commit-time gate against where each check can honestly run
   description: |
-    Add complete Node.js security coverage that mirrors Python implementation
-    - Implement equivalent Node.js-specific rules for all 9 active security controls
-    - Create Node.js fixture test cases in controls/fixtures for verification
-    - Update setup script to auto-detect Node.js projects and configure appropriate tools
-    - Ensure verification script works with Node.js codebases
-    
-    Solves: Current implementation is Python-centric despite having JS tool configs
+    `.pre-commit-config.yaml` runs seven blocking hooks: the secret scan, SAST over staged
+    files, and five structural self-checks — the registry validator, ISM claim verification,
+    the ISM index staleness check, the helper-layer check and the report freshness check.
+    That makes saving work the heaviest gate in the repository, when the stated design is
+    fast checks on save and the full set where it reports.
+
+    Commit time is for what must never enter history, which is a leaked credential. The
+    structural checks are about runwAI's own coherence: they need the whole tree, they are
+    not about the change being saved, and `.github/workflows/posture.yml` already re-runs
+    every one of them.
+
+    This was previously carried as a sub-task of TODO-9 under the pre-publication ID
+    scheme. TODO-9 was closed on unrelated grounds — the IaC capability it was really about
+    went away — and the rebalance went with it unaddressed. `.runwai/status.md` went on
+    pointing at TODO-9 as the plan, which is how a closed item ended up standing in for
+    outstanding work. It is refiled here under its own id so the pointer resolves.
+  priority: medium
+  status: proposed
+  value: |
+    A gate in the wrong place is not a weakened gate, and this one has not been weakened —
+    nothing was moved after it failed. But it is still the gate the maintainer meets most
+    often, and the cost of getting the placement wrong is paid on every commit. The rule in
+    AGENTS.md is to put a check where it can actually see the problem; the repository does
+    not currently follow its own rule about itself.
+
+    Moving a check after it fails is weakening it, so this has to be decided as design and
+    recorded as a decision, not done the next time a hook is inconvenient.
+  acceptance_criteria:
+    - "A decision record states which checks run at commit time and why, in terms of what
+       each one can see there"
+    - "The secret scan stays on the commit hook: a credential that reaches a push is
+       already public and must be rotated rather than deleted"
+    - "Every check moved off the commit hook is verified as already running in
+       .github/workflows/posture.yml, named job by named job, before it is removed"
+    - "Hook counts in .runwai/status.md and AGENTS.md's deletion instructions are corrected
+       in the same commit"
+  not_enforceable: |
+    Nothing mechanically checks that a check sits where it can see its subject matter. This
+    stays a review judgement, which is why it is written down rather than automated.
+
+id_6:
+  title: Known vulnerable dependencies (CVEs)
+  description: |
+    Add offline, deterministic CVE auditing across all detected package managers.
+    - Implement `make audit` that runs `pip-audit`, `npm audit` and `cargo audit` in parallel
+    - Cache the local vulnerability databases (`.audit-cache/`) to keep checks offline and
+      reproducible
+    - Generate a dependency bill-of-materials (SBOM) in `docs/dependencies.md` during
+      `first-session`
+    - Append audit results to `docs/security-report.md` under a new "Dependency Posture"
+      section
+    - **Do not** wire this into the commit hook — run it in CI only, so it reports rather
+      than blocks
+
+    Solves: the current checks read source files and say nothing about the third-party
+    packages that code depends on.
   priority: high
   status: proposed
   value: |
-    Enables "vibe coder" workflow for JavaScript/TypeScript developers
-    Makes tool truly multi-language rather than Python-first with JS tooling
-    Maintains consistent security posture reporting across language ecosystems
-    Prevents Node.js users from needing security expertise to configure properly
+    Catches known CVEs without requiring anyone to monitor mailing lists.
+    Keeps the green report honest — a clean codebase on a vulnerable dependency is not
+    secure, and today the report does not distinguish the two.
+    Deterministic in the sense this repository means it: same lockfile plus same database
+    snapshot yields the same verdict on every run, with no model in the decision path.
+    Audits each lockfile it finds, so a repository holding more than one ecosystem is
+    covered per ecosystem rather than at whichever one was detected first.
   acceptance_criteria:
-    - "Setup script detects package.json and configures Node.js-specific rules"
-    - "All 9 security controls have equivalent Node.js implementations"
-    - "Verification script works with Node.js fixtures without manual intervention"
-    - "security-report.md shows identical structure regardless of project language"
-    - "Root directory contains ONLY relevant configs for detected language"
-    - "ISM interpreter command provides language-appropriate remediation examples"
+    - "`make audit` runs with zero network calls after an initial `make setup-audit-dbs`"
+    - "Each language's audit tool runs only if its lockfile exists (Pipfile.lock,
+       package-lock.json, Cargo.lock) and reports `not applicable` otherwise, distinctly
+       from a pass"
+    - "The security report separates dependency CVEs from code-level findings"
+    - "A failing audit does not abort `git commit` or `make first-session` — it annotates
+       the run"
+    - "Every audit tool is pinned to an exact version, or recorded `install: unavailable`
+       with no version at all"
+  maintainer_note: |
+    Three things to settle before this is picked up, none of them blocking the idea.
+
+    Pinning: pip-audit, npm audit and cargo audit are unpinned as written. MAINTAINERS.md
+    requires an exact version per tool, or `install: unavailable` and no version — an
+    unpinned scanner is a non-deterministic control by definition. Folded into the
+    acceptance criteria above.
+
+    Database snapshots: "same DB snapshot = same verdict" is the right claim, but a cached
+    vulnerability database is a moving upstream. It needs the same provenance discipline as
+    any vendored content — where it came from, at what resolved revision — or the
+    determinism claim is not checkable.
+
+    `/explain CVE-2025-1234` is a scope extension, not a free ride.
+    agents/knowledge/explaining-a-control.md reads verified ISM text out of
+    controls/registry.yaml and controls/ism-snapshot.json. A CVE is neither, so the command
+    would need a second, sourced lookup path — and inventing CVE descriptions from memory
+    is exactly the failure class MAINTAINERS.md's verification discipline names.
+
+id_7:
+  title: Path traversal and unsafe file operations
+  description: |
+    Add deterministic semgrep rules for unsafe file path handling.
+    - Implement `controls/rules/path-traversal.yaml` with two rules:
+      - Rule A: unsanitised user input passed to file system APIs (`open()`,
+        `fs.readFileSync`)
+      - Rule B: missing path canonicalisation before `os.path.join` or `path.join`
+    - Create fixtures at `controls/tests/path-traversal.py` and
+      `controls/tests/path-traversal.js`, asserting each rule in both directions
+    - Add a control record per rule in `controls/registry.yaml`, with an ISM ID read
+      verbatim from `controls/ism-snapshot.json` and a pessimistic `mapping_fidelity`
+    - Extend `.github/scripts/verify.py` to prove both rules fire on their fixtures
+    - Document the known false-positive classes at the top of the rule file
+
+    Solves: the current injection rules catch SQL, shell and HTML sinks but miss the
+    simplest file-read exploit.
+  priority: high
+  status: proposed
+  value: |
+    Path traversal is the obvious neighbour of the sink classes already covered, and it is
+    mechanically detectable in the same way — no new tool, no new gate, one more ruleset
+    behind the same pinned semgrep.
+    Near-zero false positives when scoped to unsanitised variables reaching a file API,
+    rather than to every path join.
+    It is the kind of mistake an agent writing code for a non-expert makes silently:
+    `open(f"/var/{user}")` looks like working code and reviews as working code.
+  acceptance_criteria:
+    - "Both rules fire on their vulnerable fixtures and stay silent on the safe ones, under
+       `semgrep --test --config controls/rules controls/tests`"
+    - "Rules cover Python (os.path.join, pathlib) and Node (path.join, fs)"
+    - "`verify.py` includes path traversal in its assertion suite, meeting the fixture floor
+       of three vulnerable and one safe case per rule"
+    - "The rule count is corrected wherever it is stated — README.md, docs/setup.md,
+       .runwai/status.md and .runwai/MAINTAINERS.md all say ten today"
+    - "`/explain` remediation names the canonicalisation function per language (realpath,
+       resolve)"
+  maintainer_note: |
+    Two corrections against the tree as it stands, applied above.
+
+    Fixtures go in `controls/tests/`, not `controls/fixtures/`, and the basename must match
+    the ruleset. `semgrep --test` pairs a rules directory with a parallel fixture directory
+    by basename — that pairing is why controls/rules/ and controls/tests/ are two
+    directories at all (decision 5), and `path-traversal.yaml` needs
+    `controls/tests/path-traversal.*` or the rules ship asserted in neither direction.
+
+    Rust was in the original filing and is dropped from the criteria rather than promised.
+    The commit hook's semgrep entry is scoped `types_or: [python, javascript, ts]`, so a
+    Rust rule would not run at commit time, and nothing in this repository could assert it.
+    Adding Rust means widening the hook's scope deliberately and saying so — a separate
+    decision, not a line in an acceptance criterion.
+
+    "Two new controls" is two new *rules*. A control is a record in controls/registry.yaml
+    carrying verbatim ISM text; the rules do not become controls until that record exists,
+    and the security report reads coverage from the registry, not from the rule files.
+
+id_8:
+  title: Environment and runtime parity check (`make doctor`)
+  description: |
+    Add a deterministic environment sanity check for the adopter's project.
+    - Reads `.env.example` or `config.schema.json` and verifies every required variable is set
+    - Compares runtime versions (`python --version`, `node --version`) against the pinned
+      `.tool-versions` or equivalent
+    - Checks that the directories the project declares it writes to are writable
+    - Flags set-but-unused environment variables, to catch drift from old configs
+    - Adds a `make doctor` target, and reports its result during `make first-session`
+
+    Solves: missing environment variables and mismatched runtimes, which is where a working
+    setup silently stops being reproducible.
+  priority: medium
+  status: proposed
+  value: |
+    Deterministic and offline: it reads declared state and compares it to actual state, with
+    no model and no network.
+    It fits the one-step onboarding promise — the adopter's agent can report "your
+    environment is ready", or name exactly what is missing, without the adopter knowing to
+    ask.
+    It reports and does not block, which is the posture the rest of the template already
+    takes.
+  acceptance_criteria:
+    - "`make doctor` exits with a human-readable pass/fail summary"
+    - "Missing required variables exit non-zero in CI and do not block commits"
+    - "A project that declares no environment requirements reports `not applicable`, not a
+       pass"
+    - "Runtime version mismatches are reported with the command that fixes them"
+  maintainer_note: |
+    Placement needs deciding before this is written, and it is the interesting part.
+
+    The original filing put it at `scripts/doctor.py`. There is no `scripts/` directory, and
+    a new root directory has to clear decision 9: a root slot means a tool or a convention
+    reads the path there. Decision 3 splits the existing Python two ways — runwAI's own
+    self-checks in `.runwai/tools/`, adopter-facing machinery in `.github/scripts/` — and
+    this is adopter-facing, so `.github/scripts/doctor.py` is the placement that follows the
+    existing rule. That also passes decision 8's membership test: an adopter who prunes
+    `.runwai/` must not lose it.
+
+    The original filing also proposed a "Runtime Environment" row in the security report.
+    Left out above. `docs/security-report.md` reports ISM control coverage, and a row about
+    environment variables in an ISM posture readout is the kind of coverage inflation
+    MAINTAINERS.md's change test rejects — it makes the report look broader without any
+    control standing behind the row. `make doctor` printing its own verdict costs nothing
+    and claims nothing.
+
+id_9:
+  title: Inter-service API contract checking
+  description: |
+    Add a deterministic contract check that validates API compatibility between components
+    that are versioned separately.
+    - Parse OpenAPI/AsyncAPI specs or protobuf definitions from each component
+    - Run the consumer's committed example requests and responses against the producer's
+      schema
+    - Flag mismatches: missing fields, type changes, status code changes
+    - Store contract fixtures alongside the code they describe, so a breaking change and its
+      fixture update land in the same commit
+    - Report in CI as an annotation, never as a commit-time gate
+
+    Solves: silent breakage when one component changes its API shape and the other finds out
+    in production.
+  priority: medium
+  status: proposed
+  value: |
+    Deterministic in the strict sense: given two schema versions, the diff is a mechanical
+    comparison with no judgement and no model.
+    Catches integration failures at review time rather than after deploy.
+    Keeps components decoupled — an API may change, provided the consumer's fixture changes
+    with it and someone reviews both.
+  acceptance_criteria:
+    - "`make contract-check` outputs a structured diff report"
+    - "A contract breakage annotates the run and does not block the commit hook"
+    - "A repository with one component, or no schemas, reports `not applicable` rather than
+       passing"
+    - "Any tool used (pact, openapi-diff) is pinned to an exact version, or recorded
+       `install: unavailable` with no version"
+  maintainer_note: |
+    Filed describing "your polyglot/submodule architecture". runwAI has no submodules and no
+    services — it is Python, YAML and Markdown — so this is a feature for the adopter's
+    project, not a description of this one. Reworded above to say so, because a backlog item
+    that describes a repository shape this repository does not have is the first step toward
+    a self-check that asserts something nobody has.
+
+    Same two carve-outs as id_8. Placement follows decision 3 — adopter-facing, so
+    `.github/scripts/`, not a new root `scripts/`. And the proposed "Contract Posture"
+    section in the security report is left out: contract drift is not an ISM control, and
+    the report's value is that every row in it has a mapped control behind it.
+
+    Worth an explicit judgement before this is picked up, more than the other three: this is
+    the item furthest from what MAINTAINERS.md says runwAI is for. The two value streams are
+    AI coding scaffolding and honest security posture reporting, and API contract testing is
+    neither. It may still be worth doing — it is deterministic and it fits the reporting
+    posture — but it widens the template's remit, and that is a decision to record rather
+    than to arrive at by implementing a backlog item.

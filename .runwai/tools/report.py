@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate report.md: a single deterministic summary of repository state.
+"""Generate .runwai/report.md: a single deterministic summary of repository state.
 
 The pattern is taken from karpathy/nanochat (MIT, 92d63d4e) — one generated Markdown file
 summarising a run, useful as an audit trail and as a feedback loop for an agent that needs
@@ -16,7 +16,7 @@ reviewers learn to ignore the file.
 
 Because it is deterministic, staleness is checkable:
 
-    python3 .runwai/tools/report.py            # write report.md
+    python3 .runwai/tools/report.py            # write .runwai/report.md
     python3 .runwai/tools/report.py --check    # exit 1 if the committed report is stale
 
 Exit codes:
@@ -187,19 +187,22 @@ def main() -> int:
         return 2
 
     content = build(root)
-    path = root / "report.md"
+    path = root / ".runwai" / "report.md"
 
     if args.check:
         if not path.is_file():
-            print("FAILED: report.md does not exist. Run: python3 .runwai/tools/report.py")
+            print(
+                "FAILED: .runwai/report.md does not exist. "
+                "Run: python3 .runwai/tools/report.py"
+            )
             return 1
         if path.read_text(encoding="utf-8") != content:
             print(
-                "FAILED: report.md is stale. Run `python3 .runwai/tools/report.py` and commit "
-                "the result."
+                "FAILED: .runwai/report.md is stale. Run `python3 .runwai/tools/report.py` "
+                "and commit the result."
             )
             return 1
-        print("report.md is up to date")
+        print(".runwai/report.md is up to date")
         return 0
 
     path.write_text(content, encoding="utf-8")

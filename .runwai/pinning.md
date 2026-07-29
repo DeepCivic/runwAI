@@ -83,8 +83,17 @@ enforced simply does not run.
 
 An `iac` job used to verify this by diffing the claimed IDs against `checkov --list`. It
 went with the workflow it lived in, and nothing verifies check IDs today. Recorded here so
-that whoever reintroduces checkov reintroduces the verifier with it — and reads the defect
-in `backlog.yaml` first, because that verifier's own regex could not match `CKV_K8S_19`.
+that whoever reintroduces checkov reintroduces the verifier with it — and fixes the
+verifier's own defect on the way in, because it had one.
+
+**That verifier's extraction regex was `CKV[A-Z_]*_[0-9]+`, which permits no digit inside
+the middle segment, so `CKV_K8S_19` never matched.** `CKV_K8S_19`, `CKV_K8S_20` and
+`CKV_K8S_21` were invisible to the gate meant to catch bad IDs. The correct pattern is
+`CKV[A-Z0-9_]*_[0-9]+`. It damages both sides of the comparison, so fixing only the claimed
+side produces three false failures. The defect was recorded rather than fixed, because the
+job that carried it was deleted with the capability it served; this paragraph is that
+record now that the backlog item holding it has been closed and removed under the policy in
+[`backlog.yaml`](backlog.yaml).
 
 ## GitHub Actions pins
 

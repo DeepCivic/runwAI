@@ -20,6 +20,10 @@ pre-commit install
 
 The self-checks additionally need `pyyaml==6.0.3` and `jsonschema==4.26.0`.
 
+The adopter-facing steps are also `Makefile` targets — `make first-session`, or `setup`,
+`hook`, `check`, `verify` and `report` individually. The Makefile wraps the commands on
+this page and adds none of its own, so this list stays canonical.
+
 ## The self-checks
 
 ```bash
@@ -116,14 +120,29 @@ keyhog scan . --create-baseline keyhog-baseline.json
 
 then pass it to the action's `baseline` input.
 
+## The verification receipts
+
+```bash
+pip install semgrep==1.171.0 detect-secrets==1.5.0    # the pinned scanners it drives
+python3 .github/scripts/verify.py                     # prove the checks catch what they claim
+```
+
+Adopter-facing, stdlib-only, offline. Runs every active rule against the committed
+fixtures in both directions, twice (identical verdicts required); asserts the fixture
+floor (three vulnerable and one safe case per rule, so an untested rule cannot pass
+silently); and scans a fake credential generated at run time the way the commit hook
+scans. Output is plain language with a fix per failure; exit codes follow the house
+convention above. `--no-install-check` skips the commit-hook check — it is for CI,
+where a checkout has no hooks. The `posture` workflow runs it on every push.
+
 ## The report
 
 ```bash
-python3 .runwai/tools/report.py                # writes report.md
-python3 .runwai/tools/report.py --check        # fail if report.md is stale
+python3 .runwai/tools/report.py                # writes .runwai/report.md
+python3 .runwai/tools/report.py --check        # fail if .runwai/report.md is stale
 ```
 
-`report.md` is generated, committed, and deliberately **timestamp-free**: regenerating it
+`.runwai/report.md` is generated, committed, and deliberately **timestamp-free**: regenerating it
 on an unchanged tree produces a byte-identical file. A report carrying a timestamp produces
 a diff on every run, so the diff stops carrying information and reviewers learn to ignore
 the file — the same trap the `posture` workflow's secret-scan step already documents.
@@ -136,7 +155,7 @@ python3 .github/scripts/security_report.py \
   --findings semgrep.json --scan-scope "local, changed files"
 ```
 
-Writes `security-report.md`. Blocks nothing and has no staleness gate — it carries a
+Writes `docs/security-report.md`. Blocks nothing and has no staleness gate — it carries a
 generation timestamp instead, so a stale copy says so on its face rather than failing a
 build. Run without `--findings` and it says plainly that no scanner output was supplied,
 which is not the same as nothing found.

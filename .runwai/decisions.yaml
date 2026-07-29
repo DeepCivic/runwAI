@@ -137,6 +137,11 @@ decisions:
     title: Ship working files, not templates of files
     status: accepted
     date: "2026-07-26"
+    amends: >-
+      Decision 11 (2026-07-28) retired the two-modes clause of the AGENTS.md placement:
+      the file now speaks only to the adopter's agent, and maintainer instruction lives in
+      .runwai/MAINTAINERS.md, loaded deliberately. The placement itself — one live
+      AGENTS.md at the root, never a skeleton, never a second copy — is unchanged.
     context: >-
       Decision 1 settles what gets vendored in versus written here. This one settles where
       it lands, which is a separate question with a worse default: a directory of starter
@@ -630,3 +635,256 @@ decisions:
         the facts: the release list was unreachable when this was authored, which is why it
         was unpinned for the life of the template. keyhog resolved cleanly on the first
         attempt.
+
+  - id: 8
+    title: The root is the adopter's shop window
+    status: accepted
+    date: "2026-07-28"
+    amends: >-
+      Decision 9 (2026-07-28) removed this record's second clause: being "the artefact
+      the repository exists to hand the adopter" no longer earns a root slot on its own,
+      and security-report.md moved to docs/security-report.md on the maintainer's second
+      review of the root. The rule that survives is the first clause alone — a tool or a
+      convention reads the path at the root.
+    context: >-
+      Backlog id_2 was filed against a real experience, clarified by the maintainer on
+      review: a visitor landing on the GitHub page sees the root listing before any
+      prose, and next to the repositories they already know it reads as bizarre — two
+      sibling reports, three configs no code here exercises, a STEAL manifest. That is
+      the template's own first impression, which the first-session delete path cannot
+      reach: a visitor sees the root before they ever clone. The mechanism id_2
+      proposed — configs waiting in .tools/ for a selective unpack — is the alternative
+      decision 2 already names and rejects, so the need has to be met without moving
+      anything a tool reads.
+    decision:
+      rule: >-
+        A file earns its root slot in exactly one of two ways: a tool or a convention
+        reads it there (decision 2's placements, AGENTS.md, llms.txt, LICENSE), or it
+        is the artefact the repository exists to hand the adopter (security-report.md).
+        Anything that is runwAI's own record lives in .runwai/, identifiable by
+        location. Applied immediately: report.md, the maintainer-facing self-check
+        readout, moves to .runwai/report.md. No tool read it at root, it was absent
+        from llms.txt because it was never adopter content, and beside
+        security-report.md it was the most confusing pair a visitor could meet first.
+      presentation: >-
+        What remains unusual at the root is explained where the visitor actually
+        looks: README.md's "Where things are" opens by saying the root is busier than
+        most repositories and why, with one line per entry. Bizarre-but-explained is
+        acceptable. Bizarre-and-silent is not. Hidden-and-broken — the unpack
+        directory — is decision 2's rejected alternative.
+      membership_test: >-
+        Added on maintainer review, and it is the converse that makes the rule
+        two-way. Because AGENTS.md instructs the onboarding agent to offer pruning
+        .runwai/, pruning must never cost the adopter anything — so nothing designed
+        for the adopter's benefit may live in it. And because it is the one directory
+        maintainers actually read, anything inside it that is not useful to
+        maintainers is clutter and gets deleted. Both directions audited when this
+        was recorded: everything in .runwai/ serves template maintenance, and the
+        adopter-facing generator (.github/scripts/security_report.py) already lives
+        outside it. Backlog id_1's placement rule — verify.py in .github/scripts/,
+        never .runwai/tools/ — is this test applied in advance.
+    consequences:
+      easier: >-
+        Deleting .runwai/ now takes the self-check readout with it, so the
+        first-session prune list in AGENTS.md is one item shorter, and a stale report
+        about a directory that is gone can no longer be left behind. A visitor meets
+        one report, the one written for them.
+      harder: >-
+        The nanochat-derived pattern of a root report file no longer matches the
+        upstream placement it was lifted from; .runwai/provenance.md records the
+        pattern, which survives the move, not the path.
+      accepted_cost: >-
+        The three toolchain configs still sit at the root doing nothing in this
+        repository. That is decision 2's accepted cost restated — they are
+        unexercised, not inert — and the README now says so at the point a visitor
+        wonders about it.
+    alternatives_considered:
+      - >-
+        The .tools/ unpack directory as filed in backlog id_2. Rejected without
+        reargument: decision 2 names that mechanism in its alternatives and rejects
+        it, and a backlog item does not overturn a decision record.
+      - >-
+        Moving security-report.md into docs/ as well. Rejected: it is the artefact
+        this repository exists to produce, and burying the deliverable to tidy the
+        shop window inverts the priorities.
+
+  - id: 9
+    title: A root slot means something reads the path there, with no second clause
+    status: accepted
+    date: "2026-07-28"
+    context: >-
+      Decision 8 tidied the root and kept security-report.md there under a second clause:
+      the artefact the repository exists to produce earns a slot even though nothing reads
+      it at that path. On reviewing the result, the maintainer's verdict was that the root
+      still reads cluttered — and the one file left whose slot rested on that second
+      clause, rather than on a tool or convention reading the path, was the report.
+    decision:
+      the_rule_loses_its_second_clause: >-
+        A file sits at the root only when a tool or a convention reads it there: the
+        toolchain configs and .pre-commit-config.yaml at the paths their tools read,
+        AGENTS.md, llms.txt, LICENSE, README.md and STEAL.md by convention, Makefile
+        because make reads it there (decision 10). One test, no judgement call about
+        which artefact matters most.
+      the_report_moves_to_docs: >-
+        docs/security-report.md, beside docs/setup.md — the two files that describe this
+        repository's current state now live in the same place. The generator's default
+        output path, the posture workflow's summary, artifact and drift steps, and every
+        documented reference moved in the same commit. The generated report carries no
+        relative links, so nothing inside it broke.
+      discovery_moves_to_readme: >-
+        The shop window was never really the file listing — it is README.md, which GitHub
+        renders below it. The report is linked from the sections a visitor actually
+        reads, and burying-the-deliverable, decision 8's objection, is answered by the
+        link rather than by the slot.
+    consequences:
+      easier: >-
+        The root rule is one test with no exception to argue, and the listing a visitor
+        meets is shorter by the one file that made them ask what generated it.
+      harder: >-
+        External links to the old root path break; the posture workflow and the
+        generator had to move in step, which is the same one-commit coupling every path
+        move here has carried.
+      accepted_cost: >-
+        The deliverable is one directory deeper than the front door. README.md carries
+        the discovery, which is where a reader who does not already know the filename
+        was going to start anyway.
+    alternatives_considered:
+      - >-
+        Keep the report at the root, per decision 8. Rejected by the same maintainer on
+        second review: the second clause proved to be exactly the judgement call the
+        rest of the rule exists to avoid, and the clutter it protected was the last of
+        it.
+
+  - id: 10
+    title: The first session's mechanical steps are Makefile targets
+    status: accepted
+    date: "2026-07-28"
+    context: >-
+      AGENTS.md's first session mixes judgement — say what they have, ask what they are
+      building, rewrite the file — with mechanics: pinned pip installs, hook install, a
+      full run, the verification receipts, the report. The mechanics existed only as
+      prose and fenced commands, replayed by an agent transcribing them, which is where
+      a wrong flag or a stale pin slips in. The maintainer asked for a deterministic
+      replication of the first session.
+    decision:
+      make_targets: >-
+        A root Makefile with one target per mechanical step — setup, hook, check,
+        verify, report — and first-session running them in order. Every install is
+        pinned to an exact version in the target itself; setup is the only step that
+        touches the network. Judgement steps stay in AGENTS.md, which now tells the
+        setup agent to run the target rather than transcribe commands.
+      earns_its_slot: >-
+        Under decision 9's test, not despite it: make reads Makefile at the root by
+        convention, the same way each toolchain config earns its place.
+      the_canonical_list_stays_canonical: >-
+        Decision 4 made agents/running-the-checks.md the single enumeration of the
+        checks. The Makefile wraps the adopter-facing subset and adds no command of its
+        own, states so in its header, and points back at the list — an adapter in
+        decision 4's sense, executable rather than vendor-specific.
+    consequences:
+      easier: >-
+        One command replays the session's mechanics identically for an agent, a human,
+        or CI, and the receipt run (verify.py) stops being the step most often skipped.
+      harder: >-
+        The pins now appear in one more file. The helper self-check does not yet compare
+        the Makefile's pins against running-the-checks.md, so that agreement is review
+        rather than machinery.
+      accepted_cost: >-
+        make becomes a soft dependency. Soft, because every target wraps one documented
+        command that remains runnable without it.
+    alternatives_considered:
+      - >-
+        A shell script in .github/scripts/. The same determinism, but nothing reads a
+        script there unprompted — an adopter has to be told it exists, which is the
+        discovery failure decision 2 refuses. make is the convention that makes the
+        entry point self-announcing.
+
+  - id: 11
+    title: AGENTS.md speaks only to the adopter
+    status: accepted
+    date: "2026-07-28"
+    context: >-
+      AGENTS.md carried both audiences: an adopter half, then a mode-selection section
+      and a maintainer half — Do/Don't, boundaries, project structure, verification
+      discipline — below a horizontal rule. The maintainer half was more than half the
+      file. The audiences are not symmetric: the adopter's agent cannot be prompted to
+      load the right context, which is the whole argument for AGENTS.md existing, while
+      a maintainer can and does say what they are working on. Every adopter session paid
+      for the maintainer's manual, and the mode fork was the single most likely way to
+      spend a first session in the wrong mode.
+    decision:
+      one_audience: >-
+        AGENTS.md now addresses the adopter's agent and nothing else. The mode-selection
+        section and everything below the horizontal rule moved into
+        .runwai/MAINTAINERS.md, which was already the maintainer's entry point and now
+        holds the working rules too. What remains at the top of AGENTS.md is a two-line
+        pointer: a session about maintaining the template says so and loads
+        MAINTAINERS.md deliberately.
+      maintainers_prompt_their_context: >-
+        The asymmetry is the design. Unprompted knowledge delivery exists for the reader
+        who cannot know what to ask for; a maintainer is the reader who can. Assuming
+        maintainers state their context costs them one line per session and buys every
+        adopter a file that is entirely about them.
+      first_session_gets_simpler: >-
+        The setup agent's rewrite instruction no longer says "delete everything below
+        the horizontal rule" — there is nothing below it. It says delete the maintainer
+        pointer and the first-session section, keep the obligations, add what an agent
+        cannot infer.
+    consequences:
+      easier: >-
+        The file every session loads is half the length and all of it applies. The
+        wrong-mode failure — a maintainer process applied to an adopter's project — now
+        requires loading a dot-directory file on purpose.
+      harder: >-
+        A maintainer who forgets to load MAINTAINERS.md gets no Do/Don't list at all,
+        where before the wrong file at least contained it. The pre-commit self-checks
+        still catch the mechanical part of what the list guarded.
+      accepted_cost: >-
+        Two entry points to keep coherent instead of one file with an internal seam.
+        The seam was the part that misfired, so the trade is taken knowingly.
+    alternatives_considered:
+      - >-
+        Keep both halves and sharpen the mode-selection prose. Rejected: the cost was
+        never that the fork was unclear, it was that the fork existed in the file whose
+        reader least needs one, and that every adopter session paid context for
+        instructions addressed to someone else.
+
+  - id: 12
+    title: STEAL.md addresses the taker
+    status: accepted
+    date: "2026-07-28"
+    context: >-
+      STEAL.md exists to streamline an outside agent lifting code from this repository.
+      As written it opened with the curation protocol — blessing criteria, marker
+      syntax, enrichment on commit — which is instruction for agents working in this
+      tree, and the taker had to read past the maintainer's manual to assemble their own
+      path from fragments: manifest location at the top, validation in the middle,
+      licences near the end. The file served its second audience first.
+    decision:
+      steal_md_is_the_taking_path: >-
+        Rewritten to address the taker in second person, in order of what they do: open
+        the manifest, check the licence for the path, recheck the row against the file,
+        take the whole unit. The bans and the licence table stay, because they are the
+        taker's concerns. The invariant that a missing manifest means nothing is safe to
+        steal stays stated here, where validate_helpers.py's check assumes it.
+      curation_moves_beside_the_manifest: >-
+        The protocol — criteria, markers, enrichment, the no-agent workflow, the sorted
+        table rule — is .steal/curation.md, next to the manifest it governs. STEAL.md,
+        the adopter guidance and MAINTAINERS.md point at it; the self-check's messages
+        name it.
+    consequences:
+      easier: >-
+        An agent that opens STEAL.md to take something reads only taking instructions,
+        and an agent curating reads only curation. Each file has one audience, which is
+        the same split decisions 3 and 11 made for the maintainer's material.
+      harder: >-
+        The protocol is one hop from the root. The hop is taken by the reader who is
+        working in the tree anyway, not by the visitor the root file exists for.
+      accepted_cost: >-
+        External links to sections that moved out of STEAL.md break. The file keeps its
+        root slot by the convention clause of decision 9.
+    alternatives_considered:
+      - >-
+        Reorder STEAL.md with the taking path first and curation below. Rejected: that
+        is the two-modes seam decision 11 just removed from AGENTS.md, reproduced in
+        the other root file agents read cold.

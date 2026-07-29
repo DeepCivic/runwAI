@@ -61,7 +61,7 @@ repos:
         files: ^controls/
 
       # The index joins the snapshot, the semantic tags and the source rationale. It is
-      # generated and committed, and deterministic for the same reason report.md is, so a
+      # generated and committed, and deterministic for the same reason .runwai/report.md is, so a
       # staleness check is meaningful rather than perpetually dirty.
       - id: runwai-ism-index
         name: "ISM semantic index is current"
@@ -103,8 +103,8 @@ repos:
             biome\.json|playwright\.config\.ts|promptfooconfig\.yaml
           )
 
-      # report.md is generated and committed. It is timestamp-free by design, so a
-      # stale check is meaningful rather than perpetually dirty.
+      # .runwai/report.md is generated and committed. It is timestamp-free by design,
+      # so a stale check is meaningful rather than perpetually dirty.
       - id: runwai-report
         name: "Generated report is current"
         entry: python3 .runwai/tools/report.py --check

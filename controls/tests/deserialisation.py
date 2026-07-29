@@ -4,7 +4,7 @@
 # arbitrary code on untrusted input — pickle, marshal, unsafe YAML, pickled model loading.
 # They exist to be caught, never to be copied.
 #
-# Run with: semgrep --test --config files/ selftest/
+# Run with: semgrep --test --config controls/rules controls/tests
 
 import json
 import marshal
@@ -57,6 +57,10 @@ def unsafe_model_load(path):
 
     # ruleid: runwai-python-model-pickle-load
     joblib.load(path)
+
+    # Saying the unsafe part out loud does not make it safe.
+    # ruleid: runwai-python-model-pickle-load
+    torch.load(path, weights_only=False)
 
 
 def safer_model_load(path):
