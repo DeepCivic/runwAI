@@ -38,11 +38,6 @@ id_5:
     not about the change being saved, and `.github/workflows/posture.yml` already re-runs
     every one of them.
 
-    This was previously carried as a sub-task of TODO-9 under the pre-publication ID
-    scheme. TODO-9 was closed on unrelated grounds — the IaC capability it was really about
-    went away — and the rebalance went with it unaddressed. `.runwai/status.md` went on
-    pointing at TODO-9 as the plan, which is how a closed item ended up standing in for
-    outstanding work. It is refiled here under its own id so the pointer resolves.
   priority: medium
   status: proposed
   value: |
@@ -103,24 +98,6 @@ id_6:
        the run"
     - "Every audit tool is pinned to an exact version, or recorded `install: unavailable`
        with no version at all"
-  maintainer_note: |
-    Three things to settle before this is picked up, none of them blocking the idea.
-
-    Pinning: pip-audit, npm audit and cargo audit are unpinned as written. MAINTAINERS.md
-    requires an exact version per tool, or `install: unavailable` and no version — an
-    unpinned scanner is a non-deterministic control by definition. Folded into the
-    acceptance criteria above.
-
-    Database snapshots: "same DB snapshot = same verdict" is the right claim, but a cached
-    vulnerability database is a moving upstream. It needs the same provenance discipline as
-    any vendored content — where it came from, at what resolved revision — or the
-    determinism claim is not checkable.
-
-    `/explain CVE-2025-1234` is a scope extension, not a free ride.
-    agents/knowledge/explaining-a-control.md reads verified ISM text out of
-    controls/registry.yaml and controls/ism-snapshot.json. A CVE is neither, so the command
-    would need a second, sourced lookup path — and inventing CVE descriptions from memory
-    is exactly the failure class MAINTAINERS.md's verification discipline names.
 
 id_7:
   title: Path traversal and unsafe file operations
@@ -159,24 +136,6 @@ id_7:
        .runwai/status.md and .runwai/MAINTAINERS.md all say ten today"
     - "`/explain` remediation names the canonicalisation function per language (realpath,
        resolve)"
-  maintainer_note: |
-    Two corrections against the tree as it stands, applied above.
-
-    Fixtures go in `controls/tests/`, not `controls/fixtures/`, and the basename must match
-    the ruleset. `semgrep --test` pairs a rules directory with a parallel fixture directory
-    by basename — that pairing is why controls/rules/ and controls/tests/ are two
-    directories at all (decision 5), and `path-traversal.yaml` needs
-    `controls/tests/path-traversal.*` or the rules ship asserted in neither direction.
-
-    Rust was in the original filing and is dropped from the criteria rather than promised.
-    The commit hook's semgrep entry is scoped `types_or: [python, javascript, ts]`, so a
-    Rust rule would not run at commit time, and nothing in this repository could assert it.
-    Adding Rust means widening the hook's scope deliberately and saying so — a separate
-    decision, not a line in an acceptance criterion.
-
-    "Two new controls" is two new *rules*. A control is a record in controls/registry.yaml
-    carrying verbatim ISM text; the rules do not become controls until that record exists,
-    and the security report reads coverage from the registry, not from the rule files.
 
 id_8:
   title: Environment and runtime parity check (`make doctor`)
@@ -207,23 +166,6 @@ id_8:
     - "A project that declares no environment requirements reports `not applicable`, not a
        pass"
     - "Runtime version mismatches are reported with the command that fixes them"
-  maintainer_note: |
-    Placement needs deciding before this is written, and it is the interesting part.
-
-    The original filing put it at `scripts/doctor.py`. There is no `scripts/` directory, and
-    a new root directory has to clear decision 9: a root slot means a tool or a convention
-    reads the path there. Decision 3 splits the existing Python two ways — runwAI's own
-    self-checks in `.runwai/tools/`, adopter-facing machinery in `.github/scripts/` — and
-    this is adopter-facing, so `.github/scripts/doctor.py` is the placement that follows the
-    existing rule. That also passes decision 8's membership test: an adopter who prunes
-    `.runwai/` must not lose it.
-
-    The original filing also proposed a "Runtime Environment" row in the security report.
-    Left out above. `docs/security-report.md` reports ISM control coverage, and a row about
-    environment variables in an ISM posture readout is the kind of coverage inflation
-    MAINTAINERS.md's change test rejects — it makes the report look broader without any
-    control standing behind the row. `make doctor` printing its own verdict costs nothing
-    and claims nothing.
 
 id_9:
   title: Inter-service API contract checking
@@ -255,26 +197,3 @@ id_9:
        passing"
     - "Any tool used (pact, openapi-diff) is pinned to an exact version, or recorded
        `install: unavailable` with no version"
-  maintainer_note: |
-    Filed describing "your polyglot/submodule architecture". runwAI has no submodules and no
-    services — it is Python, YAML and Markdown — so this is a feature for the adopter's
-    project, not a description of this one. Reworded above to say so, because a backlog item
-    that describes a repository shape this repository does not have is the first step toward
-    a self-check that asserts something nobody has.
-
-    Same two carve-outs as id_8. Placement follows decision 3 — adopter-facing, so
-    `.github/scripts/`, not a new root `scripts/`. And the proposed "Contract Posture"
-    section in the security report is left out: contract drift is not an ISM control, and
-    the report's value is that every row in it has a mapped control behind it.
-
-    The remit question was raised and has been answered. This is the item furthest from the
-    two value streams MAINTAINERS.md names — AI coding scaffolding, and honest security
-    posture reporting — and API contract checking is neither. Raised on that basis; the
-    maintainer's ruling is that it stands. Recorded here rather than argued again: the item
-    is in scope by decision, not by a fit that was overlooked.
-
-    What that ruling does not waive is the discipline the item is held to. It reports and
-    does not gate, it is pinned or explicitly unpinned, it reports `not applicable` where it
-    has nothing to read, and it does not add a row to the security report — contract drift
-    is not an ISM control, and every row in that report has a mapped control behind it. A
-    widened remit is not a relaxed one.
