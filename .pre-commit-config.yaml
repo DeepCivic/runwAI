@@ -16,12 +16,16 @@ repos:
       # --- RWA-0010 / ISM-2030: block secrets at commit time -------------------
       - id: runwai-detect-secrets
         name: "RWA-0010 secret scan (ISM-2030)"
-        entry: detect-secrets-hook --baseline .secrets.baseline
+        # The baseline lives in controls/ rather than at the root: detect-secrets is told
+        # the path explicitly, so nothing reads it at the root by convention, and the
+        # root rule (decision 9) is that a slot means something reads the path there.
+        # It is this control's configuration, so it sits with the control library.
+        entry: detect-secrets-hook --baseline controls/.secrets.baseline
         language: python
         additional_dependencies: ["detect-secrets==1.5.0"]
         exclude: |
           (?x)^(
-            \.secrets\.baseline|
+            controls/\.secrets\.baseline|
             controls/ism-snapshot\.json|
             controls/ism-index\.json
           )$

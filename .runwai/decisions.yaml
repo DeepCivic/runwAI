@@ -1007,3 +1007,69 @@ decisions:
         separate from one another, not about one environment matching its own declaration.
         It is already claimed by RWA-0005, and stretching it here is precisely the class of
         error the verification discipline section exists to prevent.
+
+  - id: 15
+    title: Decision 9's root test, applied to the two files that were never re-examined
+    status: accepted
+    date: "2026-07-29"
+    context: >-
+      Decision 9 reduced the root rule to one test — a file sits at the root only when a
+      tool or a convention reads it there — and applied it to the file that prompted the
+      review, security-report.md. Two files were never put through it, because neither had
+      come up: .secrets.baseline at the root, and .github/social-preview/, which is not at
+      the root but is in the other directory an adopter inherits wholesale.
+
+
+      The maintainer's reading on review was that the root still looks busy and that
+      .secrets.baseline is the clearest case of a file nobody had asked the question about.
+    decision:
+      the_baseline_moves_to_controls: >-
+        detect-secrets' default filename is .secrets.baseline at the root, but this
+        repository does not rely on the default: .pre-commit-config.yaml passes
+        `--baseline controls/.secrets.baseline` explicitly. Nothing reads the path at the
+        root, so under decision 9 it has no root slot. controls/ is where it belongs on the
+        positive test rather than by elimination — it is RWA-0010's configuration, sitting
+        beside controls/rules/, which is the configuration of the other four.
+      the_social_preview_moves_to_runwai: >-
+        The card is runwAI's own branding. A project built from this template is not called
+        runwAI and will never unfurl this image, which makes it decision 8's membership
+        test in the direction that is easy to miss: not "does this serve maintainers" but
+        "does an adopter lose anything when .runwai/ is pruned". They lose nothing here, and
+        they gain the removal of six npm packages — two Fontsource faces, playwright and its
+        transitives — that docs/dependencies.md was listing as their dependencies because
+        the render script sat in .github/.
+      github_directory_is_not_a_synonym_for_maintainer: >-
+        .github/scripts/ stays where it is. Backlog id_1's placement rule already says
+        verify.py is adopter-facing and belongs there; the workflows and the report
+        generators are the adopter's too. What moved is the one thing in that directory
+        that was about runwAI rather than about the repository runwAI becomes.
+    consequences:
+      easier: >-
+        The root listing loses an entry, and the adopter's bill of materials loses its only
+        six npm rows — a template whose SBOM advertises fonts for a logo the adopter is
+        about to delete was miscounting what they depend on. Both moves are the existing
+        rules applied, not new rules, so neither adds a test to argue about.
+      harder: >-
+        Anyone who knows detect-secrets expects .secrets.baseline at the root and will not
+        find it there. The pre-commit entry names the path, MAINTAINERS.md's structure map
+        carries a line saying why, and a regenerated baseline written with the default flag
+        would land at the root and be silently ignored.
+      accepted_cost: >-
+        docs/dependencies.md had to be regenerated for a path change that altered no
+        package, no version and no licence. That is the same one-commit coupling every path
+        move here has carried, and it is cheaper than a generated file that disagrees with
+        the tree.
+    alternatives_considered:
+      - >-
+        Leave .secrets.baseline at the root on the convention clause of decision 9. Rejected
+        on the facts: the clause is about a convention that *reads* the path — AGENTS.md,
+        llms.txt, LICENSE — and detect-secrets is being told where to look. A filename most
+        repositories happen to put at the root is recognition, not a read.
+      - >-
+        Move the social preview to .runwai/docs/. Rejected: it is a small build with a
+        lockfile, a renderer and an output, not a document, and burying a package.json
+        inside a documentation directory is how the audit finds it and nobody else does.
+      - >-
+        Delete the social preview and set the card by hand at GitHub. Rejected: the PNG is a
+        build output with a pinned, reproducible input, and that reproducibility is the
+        whole reason the directory exists rather than an image someone once exported.
