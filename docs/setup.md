@@ -32,8 +32,9 @@ to a security baseline?" and it blocks nothing, so it is safe to ignore until yo
 | RWA-0010 | `keyhog` 0.5.47, pinned, in CI | The whole tree and its reachable history, with far more detectors |
 | RWA-0003, RWA-0020, RWA-0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, RWA-0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
+| RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |
 
-Ten rules. That is the whole of it, and it is deliberate — a first release defends a small
+Fourteen rules. That is the whole of it, and it is deliberate — a first release defends a small
 surface honestly rather than a large one badly. Every other control in
 `controls/registry.yaml` is mapped with nothing running, and `docs/security-report.md` says so
 in those words.

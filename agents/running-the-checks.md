@@ -82,6 +82,7 @@ Scan the whole tree the way the pre-commit hook scans your staged files:
 semgrep scan --error --metrics=off \
   --config controls/rules/injection.yaml \
   --config controls/rules/deserialisation.yaml \
+  --config controls/rules/path-traversal.yaml \
   .
 ```
 

@@ -131,7 +131,7 @@ otherwise discover at the worst moment:
   action, and `git commit --no-verify` walks straight past it. CI reports. Blocking a merge
   is branch protection — a setting at their forge that no template can switch on for them.
 - **A green report is not compliance.** It means their code did not trip a set of automated
-  checks. 35 of 1101 controls are mapped, most `partial`.
+  checks. 36 of 1101 controls are mapped, most `partial`.
 - **A check with nothing to look at is *not applicable*, not a pass.** Absent Terraform is
   not a finding and not a clean bill of health either.
 - **They can ignore the control identifiers entirely** and the report still tells them what

@@ -103,8 +103,9 @@ is exactly why no template can switch it on for you, and why one that claims to 
 | RWA-0010 | `detect-secrets` at commit time, `keyhog` in CI | Credentials before they enter history, then the whole tree and its history afterwards |
 | RWA-0003, 0020, 0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, 0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
+| RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |
 
-**Ten rules, and that is the whole of it.** A first release defends a small surface
+**Fourteen rules, and that is the whole of it.** A first release defends a small surface
 honestly rather than a large one badly. Every other control in `controls/registry.yaml` is
 mapped with nothing running, and `docs/security-report.md` says exactly that rather than
 implying coverage.
@@ -194,8 +195,8 @@ tool — or its reader — already looks. What looks unusual is doing a job, and
 first session trims it to what your project actually needs.
 
 ```
-controls/           The control library: the registry, the ten semgrep rules and the
-                      fixtures asserting each one in both directions
+controls/           The control library: the registry, the fourteen semgrep rules and
+                      the fixtures asserting each one in both directions
 docs/               setup.md — how this project is set up, as built; your agent keeps
                       it true — and security-report.md, your posture readout.
                       Generated, blocks nothing. The artefact this repository

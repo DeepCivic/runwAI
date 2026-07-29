@@ -15,7 +15,7 @@ The security report is a calibration instrument - its value is truthfulness abou
 
 ## Core Principles
 1. **Determinism**: No AI in security decision path - same input = same output
-2. **Honest coverage**: Never imply more coverage than exists (10 rules, not 100+)
+2. **Honest coverage**: Never imply more coverage than exists (14 rules, not 100+)
 3. **"You shouldn't need to know what to ask for"**: Critical knowledge lives in AGENTS.md for agents to read unprompted
 
 ## Load-Bearing Components
@@ -81,7 +81,7 @@ The test: Would a stranger form an accurate belief about security posture from t
 - Never invent an ISM control ID, a tool version, or a commit SHA. An unverified ID in an
   assessor-facing document is worse than no document.
 - Never mark something `verified` without a `verification_source` and a `verified_on` date
-- Never describe a passing build as compliant. 35 of 1101 controls are mapped, most
+- Never describe a passing build as compliant. 36 of 1101 controls are mapped, most
   `partial`; the honest claim is which checks ran and what they found
 - Never claim content is vendored without recording its upstream licence
 - Never scan `controls/tests/` with a normal scan — the fixtures contain deliberate
@@ -120,7 +120,7 @@ docs/security-report.md       The posture readout. Generated; blocks nothing
                                 receipts. Adopter-facing, so NOT in .runwai/
 Makefile                      The adopter's first session as deterministic targets.
                                 Wraps agents/running-the-checks.md; adds nothing
-controls/rules/               The semgrep rulesets. Ten rules, two files
+controls/rules/               The semgrep rulesets. Fourteen rules, three files
 controls/tests/               Fixtures asserting each rule in both directions
 docs/setup.md                 How this project is set up, as built. Keep it true.
 agents/                       Rules, commands, knowledge base, skills

@@ -26,16 +26,17 @@ repos:
             controls/ism-index\.json
           )$
 
-      # --- RWA-0020, RWA-0021, RWA-0022: SAST on changed files ----------------
+      # --- RWA-0020, RWA-0021, RWA-0022, RWA-0027: SAST on changed files ------
       # --error is what makes this a gate. Without it semgrep reports findings and
       # exits zero, which is the most common way a scanner ends up installed but
       # not enforcing anything.
       - id: runwai-semgrep
-        name: "RWA-0020/0021/0022 SAST (ISM-1240, ISM-1276, ISM-2058)"
+        name: "RWA-0020/0021/0022/0027 SAST (ISM-1240, ISM-1276, ISM-2058, ISM-2016)"
         entry: >-
           semgrep scan --error --metrics=off --quiet
           --config controls/rules/injection.yaml
           --config controls/rules/deserialisation.yaml
+          --config controls/rules/path-traversal.yaml
         language: python
         additional_dependencies: ["semgrep==1.171.0"]
         types_or: [python, javascript, ts]

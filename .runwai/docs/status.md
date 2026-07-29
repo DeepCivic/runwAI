@@ -11,10 +11,10 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 
 | | |
 | :--- | :--- |
-| Controls mapped | 35 (6 `direct`, 23 `partial`, 6 `supporting`) |
-| ISM release | June 2026 — **all 35 IDs verified**, 0 fabricated |
-| Controls with a mechanism behind them | 6 of 35. The rest are mapped with nothing running, and `docs/security-report.md` says so in those words |
-| Rule tests | 10 rules across 2 rulesets, each asserted on both a failing and a passing case |
+| Controls mapped | 36 (6 `direct`, 24 `partial`, 6 `supporting`) |
+| ISM release | June 2026 — **all 36 controls verified against the snapshot**, 0 fabricated IDs |
+| Controls with a mechanism behind them | 7 of 36. The rest are mapped with nothing running, and `docs/security-report.md` says so in those words |
+| Rule tests | 14 rules across 3 rulesets, each asserted on both a failing and a passing case |
 | AI helper layer | `AGENTS.md`, 11 agent rules, 1 skill — structure derived from upstream, licences verified |
 | Adopter toolchain configs | 3, live at the root. Unexercised here: runwAI has no JS/TS |
 | Vendored sources | 10, each pinned to a resolved 40-character commit SHA |
@@ -23,7 +23,7 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 
 ## Limits, deliberately visible
 
-**Most mappings are `partial`.** The ISM is not a CI specification. Of 35 controls only 6
+**Most mappings are `partial`.** The ISM is not a CI specification. Of 36 controls only 6
 are `direct` — the tool enforces exactly what the control requires. `partial` means it
 covers part of it; `supporting` means it produces evidence but does not satisfy the
 control. Only `direct` mappings should be described to an assessor as enforced. See

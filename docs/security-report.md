@@ -1,6 +1,6 @@
 # Security report
 
-_Generated 2026-07-28 14:04 UTC by `.github/scripts/security_report.py`. Do not edit by hand._
+_Generated 2026-07-29 14:33 UTC by `.github/scripts/security_report.py`. Do not edit by hand._
 
 **This is not a compliance claim, and must not be shown to an assessor as one.** It records which automated checks ran over this repository and what they found. The ISM governs a whole system — the people who run it, where it is hosted, who is allowed near it. A repository is a small part of that.
 
@@ -13,6 +13,7 @@ _Generated 2026-07-28 14:04 UTC by `.github/scripts/security_report.py`. Do not 
 | `RWA-0020` | Input validation and output encoding | pre-commit — `controls/rules/injection.yaml` |
 | `RWA-0021` | Parameterised queries, minimal database error disclosure | pre-commit — `controls/rules/injection.yaml` |
 | `RWA-0022` | Validate before deserialising | pre-commit — `controls/rules/deserialisation.yaml` |
+| `RWA-0027` | Path traversal and unsafe file operations | pre-commit — `controls/rules/path-traversal.yaml` |
 | `RWA-0074` | AI model storage format and inference rate limiting | pre-commit — `controls/rules/deserialisation.yaml` |
 
 Scanned: not recorded
@@ -27,9 +28,9 @@ The June 2026 ISM has 1101 controls. This repository can say something about a s
 
 | | Controls | What it means |
 | :--- | ---: | :--- |
-| Has a check behind it | 10 | A pinned tool in this repository is wired to this control |
+| Has a check behind it | 11 | A pinned tool in this repository is wired to this control |
 | Mapped, nothing runs | 42 | Recorded as in scope, with no check behind it yet |
-| Unassessed | 702 | Evidence could live in code or infrastructure. Nothing here looks at it |
+| Unassessed | 701 | Evidence could live in code or infrastructure. Nothing here looks at it |
 | Out of scope | 347 | People, policy, premises and process. No repository can evidence these |
 
 **A check being wired is not a check having run.** The first row counts controls with a mechanism attached, not controls verified on this commit. A check whose subject matter is absent — no Python or JavaScript in the tree for the rules to read — has not run, and reads identically here to one that ran and found nothing. The column below says where each would run.
@@ -43,10 +44,11 @@ The June 2026 ISM has 1101 controls. This repository can say something about a s
 | ISM | Via | Where it runs | What the ISM asks for |
 | :--- | :--- | :--- | :--- |
 | `ISM-0402` | RWA-0003 | pre-commit | Software is comprehensively tested for vulnerabilities using SAST, DAST and SCA prior to its initial release, any subsequent release, and pe… |
-| `ISM-1240` | RWA-0020 | pre-commit | Validation and sanitisation are performed on all input received over the internet by software. |
+| `ISM-1240` | RWA-0020, RWA-0027 | pre-commit | Validation and sanitisation are performed on all input received over the internet by software. |
 | `ISM-1241` | RWA-0020 | pre-commit | Output encoding is performed on all output produced by web applications. |
 | `ISM-1276` | RWA-0021 | pre-commit | Parameterised queries or stored procedures, instead of dynamically generated queries, are used by software for database interactions. |
 | `ISM-1278` | RWA-0021 | pre-commit | Software is designed or configured to provide as little error information as possible about the structure of databases. |
+| `ISM-2016` | RWA-0027 | pre-commit | Validation and sanitisation are performed on all input received over a local network by software. |
 | `ISM-2028` | RWA-0003 | pre-commit | All software artefacts are tested to detect known weaknesses using static application security testing (SAST), dynamic application security … |
 | `ISM-2030` | RWA-0010 | pre-commit | Scanning is used during commits to identify plain text or encoded secrets and keys, which are then blocked from being stored in the authorit… |
 | `ISM-2058` | RWA-0022 | pre-commit | Data sources and serialised data inputs are validated before being deserialised. |

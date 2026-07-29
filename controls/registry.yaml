@@ -570,6 +570,68 @@ controls:
         File uploads or input are restricted to specific file types, with malicious
         content scanning occurring prior to file access, file execution or file storage.
 
+  - id: RWA-0027
+    ism_ids: [ISM-1240, ISM-2016]
+    title: Path traversal and unsafe file operations
+    description: >-
+      Flag file paths assembled by interpolation, and joined paths handed to a filesystem
+      call without canonicalisation, in Python and Node.
+    domain: appsec
+    mechanism: pre-commit
+    enforcement: deterministic
+    blocking: true
+    mapping_fidelity: partial
+    tools:
+      - name: semgrep
+        version: "1.171.0"
+        class: sast
+        install: pypi
+        verified_version: true
+    implementation:
+      gate: pre-commit
+      files:
+        - controls/rules/path-traversal.yaml
+      covers: >-
+        The filesystem sink class only. Both ISM IDs are about validating input in
+        general; these four rules see one way unvalidated input causes harm, at the point
+        it reaches a file API.
+      provenance:
+        origin: original
+        authored_by: ai-assisted
+        verified_on: "2026-07-29"
+    verification_status: verified
+    verification_source: controls/ism-snapshot.json
+    verified_on: "2026-07-29"
+    ism_text:
+      ISM-1240: >-
+        Validation and sanitisation are performed on all input received over the
+        internet by software.
+      ISM-2016: >-
+        Validation and sanitisation are performed on all input received over a local
+        network by software.
+    notes: >-
+      The fix, per language, because "canonicalise it" is not an instruction. Python:
+      os.path.realpath(candidate), then assert the result starts with the realpath of the
+      base directory; with pathlib, Path(candidate).resolve() then .is_relative_to(base).
+      Node: path.resolve(candidate), then assert it starts with path.resolve(base) plus
+      path.sep; fs.realpath additionally resolves symlinks and is stronger where the file
+      already exists. Resolving without then comparing to the base is not a fix — it
+      normalises the path and still opens whatever it names.
+
+
+      Partial, and the same limit as RWA-0020: "all input" is an absolute that sink
+      matching cannot verify. These rules match the shape of the defect where the path is
+      built — interpolated into a call, or joined and passed straight in — so a path
+      assembled several statements earlier, through a helper, or read from config is not
+      seen. Zip slip, symlink following and TOCTOU races are path-handling defects with a
+      different shape and none of them is covered. The rule file lists all of this, and
+      its false-positive classes, at the top.
+
+
+      ISM-2016 is claimed here rather than by RWA-0020 because it is otherwise unmapped
+      and the same rules answer it: a traversal segment is unvalidated input whether it
+      arrived over the internet or over a local network.
+
   # ---------------------------------------------------------------------------
   # Supply chain: SBOM, CBOM, provenance
   #

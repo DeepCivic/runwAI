@@ -99,44 +99,6 @@ id_6:
     - "Every audit tool is pinned to an exact version, or recorded `install: unavailable`
        with no version at all"
 
-id_7:
-  title: Path traversal and unsafe file operations
-  description: |
-    Add deterministic semgrep rules for unsafe file path handling.
-    - Implement `controls/rules/path-traversal.yaml` with two rules:
-      - Rule A: unsanitised user input passed to file system APIs (`open()`,
-        `fs.readFileSync`)
-      - Rule B: missing path canonicalisation before `os.path.join` or `path.join`
-    - Create fixtures at `controls/tests/path-traversal.py` and
-      `controls/tests/path-traversal.js`, asserting each rule in both directions
-    - Add a control record per rule in `controls/registry.yaml`, with an ISM ID read
-      verbatim from `controls/ism-snapshot.json` and a pessimistic `mapping_fidelity`
-    - Extend `.github/scripts/verify.py` to prove both rules fire on their fixtures
-    - Document the known false-positive classes at the top of the rule file
-
-    Solves: the current injection rules catch SQL, shell and HTML sinks but miss the
-    simplest file-read exploit.
-  priority: high
-  status: proposed
-  value: |
-    Path traversal is the obvious neighbour of the sink classes already covered, and it is
-    mechanically detectable in the same way — no new tool, no new gate, one more ruleset
-    behind the same pinned semgrep.
-    Near-zero false positives when scoped to unsanitised variables reaching a file API,
-    rather than to every path join.
-    It is the kind of mistake an agent writing code for a non-expert makes silently:
-    `open(f"/var/{user}")` looks like working code and reviews as working code.
-  acceptance_criteria:
-    - "Both rules fire on their vulnerable fixtures and stay silent on the safe ones, under
-       `semgrep --test --config controls/rules controls/tests`"
-    - "Rules cover Python (os.path.join, pathlib) and Node (path.join, fs)"
-    - "`verify.py` includes path traversal in its assertion suite, meeting the fixture floor
-       of three vulnerable and one safe case per rule"
-    - "The rule count is corrected wherever it is stated — README.md, docs/setup.md,
-       .runwai/docs/status.md and .runwai/MAINTAINERS.md all say ten today"
-    - "`/explain` remediation names the canonicalisation function per language (realpath,
-       resolve)"
-
 id_8:
   title: Environment and runtime parity check (`make doctor`)
   description: |

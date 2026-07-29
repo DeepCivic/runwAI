@@ -58,6 +58,7 @@ jobs:
           semgrep scan --json --output semgrep.json --metrics=off --quiet \
             --config controls/rules/injection.yaml \
             --config controls/rules/deserialisation.yaml \
+            --config controls/rules/path-traversal.yaml \
             . || true
           test -f semgrep.json || echo '{"results": [], "errors": ["scan produced no output"]}' > semgrep.json
 

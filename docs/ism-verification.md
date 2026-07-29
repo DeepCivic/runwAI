@@ -54,7 +54,7 @@ is recorded per control as `mapping_fidelity`:
 | `partial` | The tool enforces part of it | Only with the gap stated |
 | `supporting` | The tool produces evidence but does not satisfy the control | No |
 
-Of 35 controls: 6 `direct`, 23 `partial`, 6 `supporting`. The predominance of `partial`
+Of 36 controls: 6 `direct`, 24 `partial`, 6 `supporting`. The predominance of `partial`
 is the honest finding. The ISM is not a CI specification, and most of its controls are
 broader than any scanner can enforce.
 
