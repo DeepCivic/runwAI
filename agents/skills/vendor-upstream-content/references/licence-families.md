@@ -57,6 +57,6 @@ implementation, so a file written to conform to it is our own work regardless of
 spec or its reference implementation is licensed. Same for a `biome.json` written against
 biome's published schema, or a `promptfooconfig.yaml` against promptfoo's.
 
-This distinction is why several sources in `.runwai/provenance.md` are recorded as
+This distinction is why several sources in `.runwai/docs/provenance.md` are recorded as
 `referenced` with no obligation despite our files resembling theirs in shape: what they
 share is an interface, not expression.

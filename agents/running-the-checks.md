@@ -21,8 +21,13 @@ pre-commit install
 The self-checks additionally need `pyyaml==6.0.3` and `jsonschema==4.26.0`.
 
 The adopter-facing steps are also `Makefile` targets — `make first-session`, or `setup`,
-`hook`, `check`, `verify` and `report` individually. The Makefile wraps the commands on
-this page and adds none of its own, so this list stays canonical.
+`hook`, `check`, `verify`, `audit`, `doctor` and `report` individually. The Makefile wraps
+the commands on this page and adds none of its own, so this list stays canonical.
+
+The dependency scanners are release binaries rather than packages, so they have their own
+setup targets — `setup-audit-tools` and `setup-audit-dbs`, both networked, both described
+under **The dependency audit** below. `make first-session` runs `audit` and `doctor` last
+and does not let either abort the session.
 
 ## The self-checks
 
@@ -55,7 +60,7 @@ Exit codes are uniform across all three:
 | 2 | Could not run — missing dependency or unreadable input. |
 
 Add `--strict` to treat warnings as failures. CI moves to `--strict` once the pending pins
-in `.runwai/pinning.md` are complete; until then, warnings are expected.
+in `.runwai/docs/pinning.md` are complete; until then, warnings are expected.
 
 ## The checks that stop something
 
@@ -82,6 +87,7 @@ Scan the whole tree the way the pre-commit hook scans your staged files:
 semgrep scan --error --metrics=off \
   --config controls/rules/injection.yaml \
   --config controls/rules/deserialisation.yaml \
+  --config controls/rules/path-traversal.yaml \
   .
 ```
 
@@ -135,14 +141,53 @@ scans. Output is plain language with a fix per failure; exit codes follow the ho
 convention above. `--no-install-check` skips the commit-hook check — it is for CI,
 where a checkout has no hooks. The `posture` workflow runs it on every push.
 
+## The dependency audit
+
+Two networked setup steps, then an offline scan. The database is an input rather than an
+ambient service, which is what makes the verdict reproducible: refresh it and you know a
+changed verdict came from the advisories, not the code.
+
+```bash
+make setup-audit-tools       # trivy 0.72.0 and syft 1.50.0, checksum-verified
+make setup-audit-dbs         # the vulnerability database, once (~1 GB in .audit-cache/)
+export PATH="$PWD/.audit-cache/bin:$PATH"
+make audit                   # offline from here: --skip-db-update --offline-scan
+```
+
+Writes `docs/dependencies.md` (the bill of materials, committed and timestamp-free) and
+`.audit-cache/audit.json` (the result the security report reads). Exit codes follow the
+house convention above: `0` clean **or nothing to audit**, `1` known vulnerabilities, `2`
+a scanner or the database is missing.
+
+An ecosystem with no manifest in the tree reports `not applicable` by name, never as a
+pass. **This is not on the commit hook and must not be put there** — a CVE published
+overnight is not a reason a commit cannot be saved. It runs in the `posture` workflow and
+in `make first-session`, where it is not allowed to abort the run.
+
+## The environment check
+
+```bash
+make doctor                  # or: bash .github/scripts/doctor.sh
+```
+
+Compares what the repository declares — `.env.example` or `config.schema.json` for
+variables, `mise.toml` or `.tool-versions` for runtime pins — against the machine it is
+running on. Bash and coreutils only, so it runs before anything is installed, which is
+the machine most likely to be wrong.
+
+It reads variable *names* and never their values, including from `.env`. A project that
+declares nothing reports `not applicable` and exits 0. Exit codes: `0` matched or nothing
+declared, `1` something declared is missing or mismatched, `2` could not run. Remedies are
+printed as `mise` commands, because mise reads all three declaration formats.
+
 ## The report
 
 ```bash
-python3 .runwai/tools/report.py                # writes .runwai/report.md
-python3 .runwai/tools/report.py --check        # fail if .runwai/report.md is stale
+python3 .runwai/tools/report.py                # writes .runwai/docs/report.md
+python3 .runwai/tools/report.py --check        # fail if .runwai/docs/report.md is stale
 ```
 
-`.runwai/report.md` is generated, committed, and deliberately **timestamp-free**: regenerating it
+`.runwai/docs/report.md` is generated, committed, and deliberately **timestamp-free**: regenerating it
 on an unchanged tree produces a byte-identical file. A report carrying a timestamp produces
 a diff on every run, so the diff stops carrying information and reviewers learn to ignore
 the file — the same trap the `posture` workflow's secret-scan step already documents.
@@ -152,13 +197,16 @@ the file — the same trap the `posture` workflow's secret-scan step already doc
 ```bash
 python3 .github/scripts/security_report.py            # coverage only, no scanners
 python3 .github/scripts/security_report.py \
-  --findings semgrep.json --scan-scope "local, changed files"
+  --findings semgrep.json --audit .audit-cache/audit.json \
+  --scan-scope "local, changed files"
 ```
 
 Writes `docs/security-report.md`. Blocks nothing and has no staleness gate — it carries a
 generation timestamp instead, so a stale copy says so on its face rather than failing a
 build. Run without `--findings` and it says plainly that no scanner output was supplied,
-which is not the same as nothing found.
+which is not the same as nothing found; the same goes for `--audit` and the **Dependency
+posture** section, which is kept separate from code findings so that a clean codebase on a
+vulnerable dependency cannot read as clean.
 
 The `posture` workflow runs it on every push and pull request, publishes it to the job
 summary, and uploads it as an artifact.

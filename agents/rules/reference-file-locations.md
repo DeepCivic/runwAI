@@ -25,6 +25,6 @@ tags: reference
 | Scan exclusions | `.semgrepignore` |
 | Your project's setup, as built | `docs/setup.md` |
 | Template decisions, backlog, provenance | `.runwai/` (runwAI's own; not the adopter's) |
-| Helper provenance | `.runwai/provenance.md` |
+| Helper provenance | `.runwai/docs/provenance.md` |
 
 Reference: [docs/architecture.md](../../docs/architecture.md)

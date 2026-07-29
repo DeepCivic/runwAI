@@ -8,13 +8,16 @@ bare major tags).
 
 ## Verified pins
 
-These versions were confirmed to exist at the time of writing. Everything except keyhog
-is installed from PyPI directly rather than through third-party marketplace actions, which
-keeps the trusted surface to one registry and the pins reviewable in one place.
+These versions were confirmed to exist at the time of writing. Everything except keyhog,
+trivy and syft is installed from PyPI directly rather than through third-party marketplace
+actions, which keeps the trusted surface to one registry and the pins reviewable in one
+place.
 
 | Tool | Version | Class | Controls |
 | :--- | :--- | :--- | :--- |
 | keyhog | 0.5.47 | secret-scan | RWA-0010 |
+| trivy | 0.72.0 | sca, container-scan | RWA-0031, 0051 |
+| syft | 1.50.0 | sbom | RWA-0031, 0032 |
 | semgrep | 1.171.0 | sast | RWA-0002, 0003, 0011, 0012, 0020–0026, 0041, 0060, 0061, 0073, 0074 |
 | checkov | 3.3.8 | iac-scan, config-scan | RWA-0005, 0011, 0040, 0041, 0042, 0061 |
 | detect-secrets | 1.5.0 | secret-scan | RWA-0002, 0010, 0071 |
@@ -54,14 +57,27 @@ as citing an unverified control ID.
 
 | Tool | Class | Controls | Why unpinned |
 | :--- | :--- | :--- | :--- |
-| grype | sca | RWA-0031 | GitHub release binary |
 | cosign | signing | RWA-0035, RWA-0036 | GitHub release binary |
-| trivy | container-scan | RWA-0051 | GitHub release binary |
 | hadolint | container-lint | RWA-0050 | GitHub release binary |
 | coverage | coverage-gate | RWA-0024 | Language-specific; needs one ruleset per ecosystem |
 | branch-protection-audit | config-scan | RWA-0001 | Forge API script, not yet written |
 | codeowners-audit | config-scan | RWA-0004 | Forge API script, not yet written |
 | lockfile-registry-audit | config-scan | RWA-0030 | Not yet written |
+
+### How the trivy and syft pins were verified
+
+Neither is on PyPI, so both receipts are recorded rather than assumed — the same discipline
+the keyhog row above gets, and for the same reason.
+
+| Claim | How it was checked |
+| :--- | :--- |
+| trivy `0.72.0`, syft `1.50.0` | Highest semver tag in `git ls-remote --tags --refs` on each upstream, sorted numerically rather than lexically |
+| The releases are real | A tag is not a release. Each platform asset was requested and returned `200`: `trivy_0.72.0_Linux-64bit.tar.gz` and `syft_1.50.0_linux_amd64.tar.gz`, plus the ARM64 pair |
+| The assets are pinned by content | SHA-256 for all four assets read from each release's own `checksums.txt`, recorded in the `Makefile`, and verified against the downloaded archives. A tag can be moved to point at new assets; a checksum cannot |
+| Licence `Apache-2.0` | Read from `LICENSE` in each upstream tree at the pinned tag — not from the README, and not from memory |
+
+grype left the pending table by being replaced rather than resolved: RWA-0031 uses trivy
+and syft now, and nothing here names grype.
 
 ### Completing a pin
 
@@ -93,7 +109,7 @@ the middle segment, so `CKV_K8S_19` never matched.** `CKV_K8S_19`, `CKV_K8S_20` 
 side produces three false failures. The defect was recorded rather than fixed, because the
 job that carried it was deleted with the capability it served; this paragraph is that
 record now that the backlog item holding it has been closed and removed under the policy in
-[`backlog.yaml`](backlog.yaml).
+[`backlog.yaml`](../backlog.yaml).
 
 ## GitHub Actions pins
 

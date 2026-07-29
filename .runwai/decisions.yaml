@@ -87,7 +87,7 @@ decisions:
         avoids a `git submodule update --init` failure mode for the users least equipped to
         diagnose it.
       provenance_is_mandatory_either_way: >-
-        Every derived file is recorded in .runwai/provenance.md with repo, commit, licence
+        Every derived file is recorded in .runwai/docs/provenance.md with repo, commit, licence
         and derivation level (vendored, derived, structure, referenced). The field names
         match the upstream block in schemas/capability.schema.json so the two records can be
         merged later without a rewrite.
@@ -579,7 +579,11 @@ decisions:
       all. And an unpinned scanner is a non-deterministic control by definition — a binary
       on PATH is pinned by nothing.
     decision:
-      detect_secrets_keeps_the_hook: >-
+      # A key named for the scanner, not a value: detect-secrets' keyword detector
+      # reads `secrets...:` and cannot tell a decision's field name from a
+      # credential. Suppressed here with the reason, rather than in the baseline
+      # where nobody reviewing this file would see it.
+      detect_secrets_keeps_the_hook: >-  # pragma: allowlist secret
         It is `language: python` with additional_dependencies, so pre-commit installs it
         and `pre-commit install` remains the whole of setup. The version is pinned in the
         hook config where a reader can see it.
@@ -663,7 +667,7 @@ decisions:
         is the artefact the repository exists to hand the adopter (security-report.md).
         Anything that is runwAI's own record lives in .runwai/, identifiable by
         location. Applied immediately: report.md, the maintainer-facing self-check
-        readout, moves to .runwai/report.md. No tool read it at root, it was absent
+        readout, moves to .runwai/docs/report.md. No tool read it at root, it was absent
         from llms.txt because it was never adopter content, and beside
         security-report.md it was the most confusing pair a visitor could meet first.
       presentation: >-
@@ -691,7 +695,7 @@ decisions:
         one report, the one written for them.
       harder: >-
         The nanochat-derived pattern of a root report file no longer matches the
-        upstream placement it was lifted from; .runwai/provenance.md records the
+        upstream placement it was lifted from; .runwai/docs/provenance.md records the
         pattern, which survives the move, not the path.
       accepted_cost: >-
         The three toolchain configs still sit at the root doing nothing in this
@@ -888,3 +892,118 @@ decisions:
         Reorder STEAL.md with the taking path first and curation below. Rejected: that
         is the two-modes seam decision 11 just removed from AGENTS.md, reproduced in
         the other root file agents read cold.
+
+  - id: 13
+    title: The vulnerability database is an input, not a service
+    status: accepted
+    date: "2026-07-29"
+    context: >-
+      Backlog id_6 asked for CVE auditing, and a CVE scanner is normally the least
+      reproducible thing in a pipeline. The advisory database updates continuously, so the
+      same lockfile passes on Monday and fails on Tuesday with no commit in between. That
+      is a weather report, not a verdict, and it sits badly beside the determinism
+      invariant every other check here satisfies.
+
+
+      The tension is real rather than rhetorical. A database frozen for reproducibility is
+      a database going stale, and a stale advisory set is exactly the thing this check
+      exists to catch.
+    decision:
+      the_database_is_downloaded_and_named: >-
+        `make setup-audit-dbs` fetches a snapshot into `.audit-cache/`, and that is the
+        only network call the audit makes. Every scan runs `--skip-db-update
+        --offline-scan` against exactly what was downloaded. The snapshot's own timestamp
+        is recorded in `.audit-cache/audit.json` and printed in the report's Dependency
+        posture section.
+      staleness_is_visible_rather_than_prevented: >-
+        Nothing forces a refresh, and nothing pretends the snapshot is current. What the
+        report carries is the snapshot's date, so a reader can see how old the advisory
+        set is and a changed verdict can be attributed — the code moved, or the
+        advisories did. Freezing without saying so would be the dishonest half of this.
+      trivy_and_syft_over_per_ecosystem_tools: >-
+        The item proposed pip-audit, npm audit and cargo audit in parallel. One scanner
+        covering every ecosystem means one pin, one database, one output format, and a
+        project holding three ecosystems gets the same treatment as one holding one.
+        syft produces the bill of materials that RWA-0032 needs anyway.
+      it_reports_and_never_gates: >-
+        Not on the commit hook, and the item said so first. A CVE published overnight is
+        not a reason a commit cannot be saved, and the placement rule in AGENTS.md is that
+        a check goes where it can see its subject matter.
+    consequences:
+      easier: >-
+        The verdict is reproducible in the sense this repository means it: same lockfiles
+        plus same snapshot yields the same answer on any machine. RWA-0031 gets a real
+        mechanism instead of an unpinned grype that never ran, and RWA-0032's "made
+        available to consumers" is satisfied by a committed docs/dependencies.md rather
+        than by a CI artefact with a retention window.
+      harder: >-
+        Two setup targets instead of none, and a database of about a gigabyte on disk.
+        A first session on a project with no dependency manifests pays that for nothing,
+        which is why the download is separate from `make setup` rather than part of it.
+      accepted_cost: >-
+        A snapshot nobody refreshes reports on advisories nobody refreshed. The date in
+        the report is the mitigation, and it is a weaker one than a gate would be. Stated
+        rather than engineered around.
+    alternatives_considered:
+      - >-
+        Let trivy update the database on every scan. Rejected: it makes the check
+        non-deterministic in the one way the whole repository is built to refuse, and it
+        puts a network call inside a check that is documented as offline.
+      - >-
+        Commit the database. Rejected on size, and it is a rebuildable input rather than a
+        source file. What is committed is everything derived from it.
+
+  - id: 14
+    title: make doctor is not a control
+    status: accepted
+    date: "2026-07-29"
+    context: >-
+      Backlog id_8 asked for an environment parity check: declared variables against the
+      environment, pinned runtimes against what is on PATH, declared write targets against
+      the filesystem. It is deterministic, offline, and calls no model — it satisfies every
+      structural requirement `controls/registry.yaml` imposes.
+
+
+      Which is exactly why it was worth deciding rather than defaulting. Something that
+      passes the registry's structural tests is not thereby a control, and the registry's
+      count is the number the report leads with.
+    decision:
+      it_stays_out_of_the_registry: >-
+        `make doctor` is a reproducibility check, not a security one. A missing environment
+        variable is a fact about a machine; no ISM control is about it, and mapping it to
+        one — ISM-0400 on environment segregation was the tempting stretch — would be a
+        mapping written to justify a row rather than read from the text. Adding it would
+        raise "controls with a mechanism" by one without adding any coverage, which is the
+        failure mode MAINTAINERS.md names as a bad change.
+      it_still_ships_and_still_reports: >-
+        A Makefile target, a step in `make first-session`, and its own job in the posture
+        workflow. Being outside the registry costs it nothing an adopter can feel.
+      mise_is_the_remedy_not_the_engine: >-
+        The check parses `mise.toml`, `.mise.toml` and `.tool-versions` in bash rather than
+        shelling out, so it works on the machine most likely to be wrong — the one where
+        mise is not installed yet. `mise doctor` is invoked only when mise is present, and
+        only as a note that never touches the exit code: it reports on mise's own
+        installation, which is about the developer's machine rather than this project.
+      it_reads_names_and_never_values: >-
+        Including from .env. The check compares which variables have a value, never what
+        the value is, so nothing it prints or logs can be a credential.
+    consequences:
+      easier: >-
+        The control count keeps meaning one thing. An adopter's agent can say "your
+        environment is ready" or name exactly what is missing, without either claim
+        touching the security posture.
+      harder: >-
+        A useful check with no home in the registry has to be documented somewhere a
+        reader will find it: docs/setup.md says in as many words that it is not a control
+        and why.
+      accepted_cost: >-
+        The distinction is a judgement, and nothing enforces it. The next check that is
+        deterministic, offline and useful will pose the same question, and the answer has
+        to be argued again rather than looked up.
+    alternatives_considered:
+      - >-
+        Map it to ISM-0400, development, testing, staging and production environments are
+        segregated. Rejected on reading the text: that control is about environments being
+        separate from one another, not about one environment matching its own declaration.
+        It is already claimed by RWA-0005, and stretching it here is precisely the class of
+        error the verification discipline section exists to prevent.

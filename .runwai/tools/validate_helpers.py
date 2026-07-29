@@ -486,7 +486,7 @@ def check_llms_txt(path: Path, where: str, report: Report) -> None:
 
 
 def check_entry_points(root: Path, report: Report) -> None:
-    for rel in ("AGENTS.md", "llms.txt", "agents/README.md", ".runwai/provenance.md"):
+    for rel in ("AGENTS.md", "llms.txt", "agents/README.md", ".runwai/docs/provenance.md"):
         if not (root / rel).is_file():
             report.error(rel, "is missing")
 

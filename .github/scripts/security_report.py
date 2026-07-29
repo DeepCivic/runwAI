@@ -27,7 +27,8 @@ WHAT IT WILL NOT DO
 
 Usage:
     python3 .github/scripts/security_report.py [--repo-root PATH] [--findings FILE ...]
-                                               [--scan-scope TEXT] [--out PATH]
+                                               [--audit FILE] [--scan-scope TEXT]
+                                               [--out PATH]
 
 Exit codes:
     0  written (the normal case, including when scanners produced nothing)
@@ -98,6 +99,25 @@ def read_findings(paths: list[Path]) -> tuple[list[dict], list[str]]:
     return findings, notes
 
 
+def read_audit(path: Path | None) -> tuple[dict | None, list[str]]:
+    """Read audit.py's result JSON. Returns (audit, notes about what could not be read).
+
+    A missing file is a plain statement rather than a warning, and that asymmetry with
+    `--findings` is deliberate. CI always produces semgrep output, so its absence means
+    something broke. The dependency audit needs a database that is downloaded separately,
+    so "it did not run" is an ordinary state a local run reaches honestly.
+    """
+    if path is None:
+        return None, []
+    if not path.is_file():
+        return None, []
+    try:
+        return load_json(path), []
+    except (OSError, json.JSONDecodeError) as exc:
+        return None, [f"`{path}` could not be read ({type(exc).__name__}); the dependency "
+                      "section below is missing rather than clean."]
+
+
 def classify(root: Path) -> tuple[dict, dict]:
     """Bucket every ISM control by how much this repository can say about it."""
     index = load_json(root / "controls" / "ism-index.json")["controls"]
@@ -150,7 +170,7 @@ def mechanism_rows(root: Path) -> list[tuple[str, str, str]]:
 
 
 def build(root: Path, findings: list[dict], notes: list[str], scope: str,
-          scanners_ran: bool) -> str:
+          scanners_ran: bool, audit: dict | None) -> str:
     buckets, detail = classify(root)
     index = detail["index"]
     total = len(index)
@@ -222,6 +242,89 @@ def build(root: Path, findings: list[dict], notes: list[str], scope: str,
                 f"{len(findings) - FINDING_CAP} further findings are not listed. Run the "
                 "scanners locally for the full set — see `agents/running-the-checks.md`."
             )
+    add("")
+
+    # ---- dependency posture ------------------------------------------------
+    # Kept apart from the section above on purpose. Those findings are about code written
+    # here; these are about code imported from elsewhere, and a report that pooled them
+    # would let a clean codebase on a vulnerable dependency read as clean.
+    add("## Dependency posture")
+    add("")
+    if audit is None:
+        add(
+            "**No dependency audit output was supplied to this run.** Nothing here has "
+            "looked at the third-party packages this project depends on, which is not the "
+            "same as finding none. Run `make setup-audit-dbs` once, then `make audit`."
+        )
+    else:
+        ecosystems = audit.get("ecosystems") or []
+        audited = [e["name"] for e in ecosystems if e.get("status") == "audited"]
+        skipped = [e["name"] for e in ecosystems if e.get("status") != "audited"]
+        db = audit.get("database") or {}
+        problems = audit.get("problems") or []
+        dep_findings = audit.get("findings") or []
+
+        if problems:
+            for problem in problems:
+                add(f"> ⚠️ The dependency audit reported: {problem}")
+            add("")
+
+        if not audited:
+            add(
+                "**Not applicable.** No dependency manifest was found for any ecosystem "
+                "this audit covers, so nothing was scanned. A check with no subject "
+                "matter has found nothing, which is not the same as finding nothing wrong."
+            )
+        elif not dep_findings:
+            add(
+                f"No known vulnerabilities in {len(audited)} audited "
+                f"{'ecosystem' if len(audited) == 1 else 'ecosystems'} "
+                f"({', '.join(audited)}), across "
+                f"{audit.get('packages', 0)} packages. That means no advisory was recorded "
+                "against these versions in the database snapshot named below — not that "
+                "the packages are safe."
+            )
+        else:
+            counts: dict[str, int] = {}
+            for f in dep_findings:
+                counts[f["severity"]] = counts.get(f["severity"], 0) + 1
+            order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "UNKNOWN": 4}
+            summary = ", ".join(
+                f"{counts[s]} {s.lower()}" for s in sorted(counts, key=lambda s: order.get(s, 9))
+            )
+            add(f"{len(dep_findings)} known vulnerabilities ({summary}), most severe first.")
+            add("")
+            add("| Severity | Package | Advisory | Fixed in | Declared in |")
+            add("| :--- | :--- | :--- | :--- | :--- |")
+            for f in dep_findings[:FINDING_CAP]:
+                fixed = f.get("fixed") or "no fix published"
+                add(f"| {f['severity']} | `{f['package']}` {f.get('installed', '')} | "
+                    f"`{f['id']}` | {fixed} | `{f['target']}` |")
+            if len(dep_findings) > FINDING_CAP:
+                add("")
+                add(f"{len(dep_findings) - FINDING_CAP} further vulnerabilities are not "
+                    "listed. Run `make audit` for the full set.")
+
+        add("")
+        if skipped:
+            add(
+                f"**Not applicable:** {', '.join(skipped)}. No manifest for these was "
+                "found, so they were not scanned and are not a pass."
+            )
+            add("")
+        add(
+            f"Scanned with trivy {audit.get('trivy_version', 'unknown')} against a "
+            f"vulnerability database snapshot of {db.get('updated_at') or 'unknown'}. "
+            "The database is a pinned input rather than a live service, so the same "
+            "lockfiles and the same snapshot always yield this same verdict — and when a "
+            "verdict changes, the snapshot date says whether the code or the advisories "
+            "moved. The bill of materials is `docs/dependencies.md`."
+        )
+        add("")
+        add(
+            "**A dependency audit reports and blocks nothing.** It is not on the commit "
+            "hook: a CVE published overnight is not a reason a commit cannot be saved."
+        )
     add("")
 
     # ---- ISM position ------------------------------------------------------
@@ -308,6 +411,11 @@ def main() -> int:
         help="semgrep --json output. Repeatable. Missing files are reported, not ignored.",
     )
     parser.add_argument(
+        "--audit", default=None, type=Path,
+        help="audit.py result JSON. Absent means the dependency audit did not run, which "
+             "the report states rather than glossing over.",
+    )
+    parser.add_argument(
         "--scan-scope", default="not recorded",
         help="what the scanners looked at, so the report says which run produced it",
     )
@@ -324,8 +432,10 @@ def main() -> int:
         return 2
 
     findings, notes = read_findings(args.findings)
+    audit, audit_notes = read_audit(args.audit)
     try:
-        content = build(root, findings, notes, args.scan_scope, bool(args.findings))
+        content = build(root, findings, notes + audit_notes, args.scan_scope,
+                        bool(args.findings), audit)
     except (OSError, KeyError, json.JSONDecodeError, yaml.YAMLError) as exc:
         print(f"FATAL: could not build the report: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2

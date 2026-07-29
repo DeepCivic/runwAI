@@ -29,7 +29,7 @@ keeps its upstream licence and runwAI does not and cannot relicense it:
 | `agents/` | MIT | Structure derived upstream; [`agents/LICENSE-UPSTREAM`](agents/LICENSE-UPSTREAM) |
 | `controls/ism-snapshot.json`, `controls/ism-source.txt` | CC BY 4.0 | © Commonwealth of Australia. Attribution required |
 
-Per-item provenance is in [`.runwai/provenance.md`](.runwai/provenance.md) and in each
+Per-item provenance is in [`.runwai/docs/provenance.md`](.runwai/docs/provenance.md) and in each
 control's `implementation.provenance` in `controls/registry.yaml`.
 
 ## Do not take these

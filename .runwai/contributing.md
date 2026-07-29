@@ -75,7 +75,7 @@ Every control in `controls/registry.yaml` needs:
 
 - **Exactly pinned tools.** No `latest`, `*`, `^`, `~` or bare major tags. If you cannot
   confirm a version exists, set `install: unavailable` and **omit the version** — do not
-  guess. See [`.runwai/pinning.md`](pinning.md).
+  guess. See [`.runwai/docs/pinning.md`](docs/pinning.md).
 
 - **Honest `enforcement`.** If the tool's verdict can change between runs on identical
   input, it is `probabilistic` and cannot block unless you write a
@@ -152,7 +152,7 @@ it by hand. It is timestamp-free so that a diff means the tree actually changed.
 
 ## Vendoring for the helper layer
 
-Same discipline as a check, recorded in `.runwai/provenance.md` rather than a
+Same discipline as a check, recorded in `.runwai/docs/provenance.md` rather than a
 the control's `implementation.provenance`. The full procedure is in
 [`agents/skills/vendor-upstream-content/SKILL.md`](../agents/skills/vendor-upstream-content/SKILL.md).
 
@@ -180,4 +180,4 @@ all occur in practice.
   mechanism, and pretending otherwise is the failure this repository is about.
 - If a change alters what a control enforces, update the control's `notes` and
   `mapping_fidelity` in the same commit.
-- If a change resolves a pending pin, move its row in `.runwai/pinning.md`.
+- If a change resolves a pending pin, move its row in `.runwai/docs/pinning.md`.

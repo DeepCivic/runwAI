@@ -26,16 +26,17 @@ repos:
             controls/ism-index\.json
           )$
 
-      # --- RWA-0020, RWA-0021, RWA-0022: SAST on changed files ----------------
+      # --- RWA-0020, RWA-0021, RWA-0022, RWA-0027: SAST on changed files ------
       # --error is what makes this a gate. Without it semgrep reports findings and
       # exits zero, which is the most common way a scanner ends up installed but
       # not enforcing anything.
       - id: runwai-semgrep
-        name: "RWA-0020/0021/0022 SAST (ISM-1240, ISM-1276, ISM-2058)"
+        name: "RWA-0020/0021/0022/0027 SAST (ISM-1240, ISM-1276, ISM-2058, ISM-2016)"
         entry: >-
           semgrep scan --error --metrics=off --quiet
           --config controls/rules/injection.yaml
           --config controls/rules/deserialisation.yaml
+          --config controls/rules/path-traversal.yaml
         language: python
         additional_dependencies: ["semgrep==1.171.0"]
         types_or: [python, javascript, ts]
@@ -61,7 +62,7 @@ repos:
         files: ^controls/
 
       # The index joins the snapshot, the semantic tags and the source rationale. It is
-      # generated and committed, and deterministic for the same reason .runwai/report.md is, so a
+      # generated and committed, and deterministic for the same reason .runwai/docs/report.md is, so a
       # staleness check is meaningful rather than perpetually dirty.
       - id: runwai-ism-index
         name: "ISM semantic index is current"
@@ -103,7 +104,7 @@ repos:
             biome\.json|playwright\.config\.ts|promptfooconfig\.yaml
           )
 
-      # .runwai/report.md is generated and committed. It is timestamp-free by design,
+      # .runwai/docs/report.md is generated and committed. It is timestamp-free by design,
       # so a stale check is meaningful rather than perpetually dirty.
       - id: runwai-report
         name: "Generated report is current"

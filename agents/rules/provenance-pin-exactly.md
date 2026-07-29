@@ -42,5 +42,5 @@ unverified control ID: it looks like diligence and it is not.
 Enforced by: `.runwai/tools/validate_registry.py`, which rejects floating specifiers outright and
 errors if a tool marked `install: unavailable` still carries a version.
 
-Reference: [.runwai/pinning.md](../../.runwai/pinning.md),
+Reference: [.runwai/docs/pinning.md](../../.runwai/docs/pinning.md),
 [decision 1](../../.runwai/decisions.yaml)

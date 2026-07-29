@@ -11,10 +11,12 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 
 | | |
 | :--- | :--- |
-| Controls mapped | 35 (6 `direct`, 23 `partial`, 6 `supporting`) |
-| ISM release | June 2026 — **all 35 IDs verified**, 0 fabricated |
-| Controls with a mechanism behind them | 6 of 35. The rest are mapped with nothing running, and `docs/security-report.md` says so in those words |
-| Rule tests | 10 rules across 2 rulesets, each asserted on both a failing and a passing case |
+| Controls mapped | 36 (6 `direct`, 24 `partial`, 6 `supporting`) |
+| ISM release | June 2026 — **all 36 controls verified against the snapshot**, 0 fabricated IDs |
+| Controls with a mechanism behind them | 9 of 36. The rest are mapped with nothing running, and `docs/security-report.md` says so in those words |
+| Rule tests | 14 rules across 3 rulesets, each asserted on both a failing and a passing case |
+| Dependency audit | trivy 0.72.0 and syft 1.50.0, pinned by release checksum. Offline against a downloaded database snapshot; reports per ecosystem, `not applicable` where no manifest exists |
+| Environment check | `make doctor`, bash and coreutils only. Deliberately **not** a control: it checks reproducibility, not security, so it is absent from the registry |
 | AI helper layer | `AGENTS.md`, 11 agent rules, 1 skill — structure derived from upstream, licences verified |
 | Adopter toolchain configs | 3, live at the root. Unexercised here: runwAI has no JS/TS |
 | Vendored sources | 10, each pinned to a resolved 40-character commit SHA |
@@ -23,19 +25,24 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 
 ## Limits, deliberately visible
 
-**Most mappings are `partial`.** The ISM is not a CI specification. Of 35 controls only 6
+**Most mappings are `partial`.** The ISM is not a CI specification. Of 36 controls only 6
 are `direct` — the tool enforces exactly what the control requires. `partial` means it
 covers part of it; `supporting` means it produces evidence but does not satisfy the
 control. Only `direct` mappings should be described to an assessor as enforced. See
-[`../docs/ism-verification.md`](../docs/ism-verification.md).
+[`../../docs/ism-verification.md`](../../docs/ism-verification.md).
 
-**Eight tools are unpinned.** grype, cosign, trivy and hadolint ship as GitHub release
-binaries whose versions could not be confirmed where this was authored. They are recorded
-with **no version at all** rather than a guessed one — pinning a scanner to a version
-nobody checked is the same class of error as citing an unverified control ID. None of them
-runs anywhere yet, so no check depends on the missing pins. gitleaks was the ninth and is
-gone: keyhog replaced it at a resolved commit with its licence read from the upstream tree.
-See [`pinning.md`](pinning.md).
+**Six tools are unpinned.** cosign and hadolint ship as GitHub release binaries whose
+versions have not been confirmed; coverage, branch-protection-audit, codeowners-audit and
+lockfile-registry-audit name work nobody has written. All are recorded with **no version
+at all** rather than a guessed one — pinning a scanner to a version nobody checked is the
+same class of error as citing an unverified control ID. None of them runs anywhere, so no
+check depends on the missing pins.
+
+Two left the list by being resolved and one by being replaced. trivy and syft are now
+pinned to a version, a platform asset and a SHA-256 read from each release's own
+checksums file, because RWA-0031 needed them to actually run. grype is simply gone: it was
+named for the dependency-scanning leg and never ran, and trivy does that job now. gitleaks
+went the same way earlier, replaced by keyhog. See [`pinning.md`](pinning.md).
 
 **The AI helper layer is derived, not original.** `AGENTS.md`, `agents/` and the root
 toolchain configs are adapted from a small set of upstream projects, each recorded with
@@ -47,7 +54,7 @@ instead of sixty-two that were not.
 so nothing here runs Biome, Playwright or promptfoo: a mistake inside one of those configs
 fails no check in this repository. They ship live at the root regardless, because that is
 where the adopter's tools read them and a file nobody knows to copy is a file nobody uses
-([decision 2](decisions.yaml)). What is enforced is that
+([decision 2](../decisions.yaml)). What is enforced is that
 each parses, declares an exact version, and agrees with the version table in `README.md`;
 `playwright.config.ts` is additionally in scope for our own semgrep rulesets. Run them in a
 real project before relying on them.
@@ -59,7 +66,7 @@ registry self-check, ISM verification, the ISM index check, the helper-layer che
 report-freshness check alongside the secret scan — which makes saving your work the
 heaviest gate rather than the lightest. That is a gate placed in the wrong place, not a
 weakened one: nothing was moved after it failed. Rebalancing it is
-[`backlog.yaml`](backlog.yaml) id_5.
+[`backlog.yaml`](../backlog.yaml) id_5.
 
 ## Verification discipline
 

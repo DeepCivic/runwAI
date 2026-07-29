@@ -14,7 +14,7 @@ becomes yours as your agent adapts it.
 | :--- | :--- | :--- |
 | While you build | Nothing | No |
 | On commit | Secret scan and SAST on what you staged, plus structural self-checks | Yes — this is the only place anything stops |
-| On push and pull request | The same checks again, plus `docs/security-report.md` | No, never |
+| On push and pull request | The same checks again, plus the dependency audit, the environment check, and `docs/security-report.md` | No, never |
 
 **Nothing here prevents a merge.** The commit hook is the only thing that stops an action,
 and `git commit --no-verify` walks past it. CI reports. If you want a failing check to
@@ -32,11 +32,24 @@ to a security baseline?" and it blocks nothing, so it is safe to ignore until yo
 | RWA-0010 | `keyhog` 0.5.47, pinned, in CI | The whole tree and its reachable history, with far more detectors |
 | RWA-0003, RWA-0020, RWA-0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, RWA-0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
+| RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |
+| RWA-0031, RWA-0032 | `trivy` 0.72.0 and `syft` 1.50.0, pinned, in CI and on `make audit` | Known vulnerabilities in third-party packages, and the bill of materials at `docs/dependencies.md` |
 
-Ten rules. That is the whole of it, and it is deliberate — a first release defends a small
-surface honestly rather than a large one badly. Every other control in
-`controls/registry.yaml` is mapped with nothing running, and `docs/security-report.md` says so
-in those words.
+Fourteen rules and one dependency audit. That is the whole of it, and it is deliberate — a
+first release defends a small surface honestly rather than a large one badly. Every other
+control in `controls/registry.yaml` is mapped with nothing running, and
+`docs/security-report.md` says so in those words.
+
+The audit is reported under its own heading, apart from the code findings: a clean
+codebase on a vulnerable dependency is not secure, and the two have to be separable for
+the report to say so. It runs in CI and on demand, never on the commit hook, and it scans
+offline against a downloaded database snapshot whose date the report records — so the
+same lockfiles and the same snapshot always give the same verdict.
+
+`make doctor` sits beside them and is **not** a control. It compares the environment this
+project declares to the one it is running in; that is a reproducibility check, not a
+security one, so it is deliberately absent from `controls/registry.yaml`. Putting it there
+would inflate the coverage count without adding coverage.
 
 None of it is taken on trust: `python3 .github/scripts/verify.py` proves each rule catches
 its committed vulnerable examples and stays silent on the safe ones, and CI re-proves it on

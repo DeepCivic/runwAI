@@ -1,6 +1,6 @@
 # Security report
 
-_Generated 2026-07-28 14:04 UTC by `.github/scripts/security_report.py`. Do not edit by hand._
+_Generated 2026-07-29 14:52 UTC by `.github/scripts/security_report.py`. Do not edit by hand._
 
 **This is not a compliance claim, and must not be shown to an assessor as one.** It records which automated checks ran over this repository and what they found. The ISM governs a whole system — the people who run it, where it is hosted, who is allowed near it. A repository is a small part of that.
 
@@ -13,6 +13,9 @@ _Generated 2026-07-28 14:04 UTC by `.github/scripts/security_report.py`. Do not 
 | `RWA-0020` | Input validation and output encoding | pre-commit — `controls/rules/injection.yaml` |
 | `RWA-0021` | Parameterised queries, minimal database error disclosure | pre-commit — `controls/rules/injection.yaml` |
 | `RWA-0022` | Validate before deserialising | pre-commit — `controls/rules/deserialisation.yaml` |
+| `RWA-0027` | Path traversal and unsafe file operations | pre-commit — `controls/rules/path-traversal.yaml` |
+| `RWA-0031` | Consume SBOMs of third-party components | posture — `.github/scripts/audit.py` |
+| `RWA-0032` | Produce and publish an SBOM | posture — `.github/scripts/audit.py`, `docs/dependencies.md` |
 | `RWA-0074` | AI model storage format and inference rate limiting | pre-commit — `controls/rules/deserialisation.yaml` |
 
 Scanned: not recorded
@@ -21,15 +24,25 @@ Scanned: not recorded
 
 **No scanner output was supplied to this run.** This section reports nothing, which is not the same as nothing found. A report generated without its scanners is a coverage statement only.
 
+## Dependency posture
+
+No known vulnerabilities in 1 audited ecosystem (node), across 10 packages. That means no advisory was recorded against these versions in the database snapshot named below — not that the packages are safe.
+
+**Not applicable:** dotnet, go, java, php, python, ruby, rust. No manifest for these was found, so they were not scanned and are not a pass.
+
+Scanned with trivy 0.72.0 against a vulnerability database snapshot of 2026-07-29T13:35:00.267410209Z. The database is a pinned input rather than a live service, so the same lockfiles and the same snapshot always yield this same verdict — and when a verdict changes, the snapshot date says whether the code or the advisories moved. The bill of materials is `docs/dependencies.md`.
+
+**A dependency audit reports and blocks nothing.** It is not on the commit hook: a CVE published overnight is not a reason a commit cannot be saved.
+
 ## Where this sits against the ISM
 
 The June 2026 ISM has 1101 controls. This repository can say something about a small number of them.
 
 | | Controls | What it means |
 | :--- | ---: | :--- |
-| Has a check behind it | 10 | A pinned tool in this repository is wired to this control |
-| Mapped, nothing runs | 42 | Recorded as in scope, with no check behind it yet |
-| Unassessed | 702 | Evidence could live in code or infrastructure. Nothing here looks at it |
+| Has a check behind it | 13 | A pinned tool in this repository is wired to this control |
+| Mapped, nothing runs | 40 | Recorded as in scope, with no check behind it yet |
+| Unassessed | 701 | Evidence could live in code or infrastructure. Nothing here looks at it |
 | Out of scope | 347 | People, policy, premises and process. No repository can evidence these |
 
 **A check being wired is not a check having run.** The first row counts controls with a mechanism attached, not controls verified on this commit. A check whose subject matter is absent — no Python or JavaScript in the tree for the rules to read — has not run, and reads identically here to one that ran and found nothing. The column below says where each would run.
@@ -43,12 +56,15 @@ The June 2026 ISM has 1101 controls. This repository can say something about a s
 | ISM | Via | Where it runs | What the ISM asks for |
 | :--- | :--- | :--- | :--- |
 | `ISM-0402` | RWA-0003 | pre-commit | Software is comprehensively tested for vulnerabilities using SAST, DAST and SCA prior to its initial release, any subsequent release, and pe… |
-| `ISM-1240` | RWA-0020 | pre-commit | Validation and sanitisation are performed on all input received over the internet by software. |
+| `ISM-1240` | RWA-0020, RWA-0027 | pre-commit | Validation and sanitisation are performed on all input received over the internet by software. |
 | `ISM-1241` | RWA-0020 | pre-commit | Output encoding is performed on all output produced by web applications. |
 | `ISM-1276` | RWA-0021 | pre-commit | Parameterised queries or stored procedures, instead of dynamically generated queries, are used by software for database interactions. |
 | `ISM-1278` | RWA-0021 | pre-commit | Software is designed or configured to provide as little error information as possible about the structure of databases. |
+| `ISM-1730` | RWA-0032 | posture | A software bill of materials is produced and made available to consumers of software. |
+| `ISM-2016` | RWA-0027 | pre-commit | Validation and sanitisation are performed on all input received over a local network by software. |
 | `ISM-2028` | RWA-0003 | pre-commit | All software artefacts are tested to detect known weaknesses using static application security testing (SAST), dynamic application security … |
 | `ISM-2030` | RWA-0010 | pre-commit | Scanning is used during commits to identify plain text or encoded secrets and keys, which are then blocked from being stored in the authorit… |
+| `ISM-2054` | RWA-0031 | posture | If a software bill of materials is available for imported third-party software components, it is used during software development to ensure … |
 | `ISM-2058` | RWA-0022 | pre-commit | Data sources and serialised data inputs are validated before being deserialised. |
 | `ISM-2072` | RWA-0074 | pre-commit | AI models are stored in a non-executable file format that does not allow arbitrary code execution. |
 | `ISM-2090` | RWA-0074 | pre-commit | Rate limiting is applied to inference queries for AI models. |
@@ -74,7 +90,6 @@ Recorded as in scope with no mechanism behind them. Listed rather than hidden, b
 - `ISM-1604` (RWA-0050) — Functional separation between operating environments
 - `ISM-1605` (RWA-0050) — Functional separation between operating environments
 - `ISM-1606` (RWA-0051) — Functional separation between operating environments
-- `ISM-1730` (RWA-0032) — Software bill of materials
 - `ISM-1781` (RWA-0041) — Network encryption
 - `ISM-1811` (RWA-0042) — Performing and retaining backups
 - `ISM-1816` (RWA-0001) — Authoritative source for software
@@ -86,7 +101,6 @@ Recorded as in scope with no mechanism behind them. Listed rather than hidden, b
 - `ISM-2032` (RWA-0002) — Build solution
 - `ISM-2041` (RWA-0025) — Secure software development
 - `ISM-2044` (RWA-0011) — Secure software development
-- `ISM-2054` (RWA-0031) — Software bill of materials
 - `ISM-2055` (RWA-0035) — Software build provenance
 - `ISM-2056` (RWA-0036) — Software build provenance
 - `ISM-2057` (RWA-0024) — Software input handling

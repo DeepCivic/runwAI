@@ -14,7 +14,7 @@ Usage:
     python3 .runwai/tools/validate_registry.py [--repo-root PATH] [--strict]
 
 --strict additionally fails on warnings, which is what CI uses once the pending
-verification work in .runwai/pinning.md and docs/ism-verification.md is complete.
+verification work in .runwai/docs/pinning.md and docs/ism-verification.md is complete.
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ def check_tool(tool: dict, where: str, report: Report) -> None:
             report.warn(
                 where,
                 f"tool '{name}' is not pinned (install: unavailable), so any control "
-                "relying on it is not yet reproducible. See .runwai/pinning.md.",
+                "relying on it is not yet reproducible. See .runwai/docs/pinning.md.",
             )
         return
 

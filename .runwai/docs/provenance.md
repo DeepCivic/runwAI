@@ -7,7 +7,7 @@ that commit carried.
 This file replaces `docs/backlog-inventory.yaml`, a 62-entry research list in which no
 entry had been resolved and several were fabricated. Ten sources are recorded here
 instead of sixty-two, and each one is checked. Rationale in
-[decision 1](decisions.yaml).
+[decision 1](../decisions.yaml).
 
 ## How to read this
 

@@ -26,7 +26,7 @@ The self-checks need `pyyaml==6.0.3` and `jsonschema==4.26.0`, and they live in
 model. Same tree in, same verdict out.
 
 `--strict` turns warnings into failures. CI will move to it once the pending pins in
-`.runwai/pinning.md` are complete; until then warnings are expected and are not a broken
+`.runwai/docs/pinning.md` are complete; until then warnings are expected and are not a broken
 build.
 
 Reference: [.runwai/contributing.md](../../.runwai/contributing.md)

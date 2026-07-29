@@ -53,5 +53,5 @@ reaches any public repository even where `api.github.com` is scoped to this one.
 Enforced by: `.runwai/tools/validate_registry.py`, which rejects a non-SHA commit, missing upstream
 licence, or `vendored_files` without a `LICENSE-UPSTREAM`.
 
-Reference: [.runwai/provenance.md](../../.runwai/provenance.md),
+Reference: [.runwai/docs/provenance.md](../../.runwai/docs/provenance.md),
 [decision 1](../../.runwai/decisions.yaml)

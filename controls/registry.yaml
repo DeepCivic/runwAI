@@ -570,6 +570,68 @@ controls:
         File uploads or input are restricted to specific file types, with malicious
         content scanning occurring prior to file access, file execution or file storage.
 
+  - id: RWA-0027
+    ism_ids: [ISM-1240, ISM-2016]
+    title: Path traversal and unsafe file operations
+    description: >-
+      Flag file paths assembled by interpolation, and joined paths handed to a filesystem
+      call without canonicalisation, in Python and Node.
+    domain: appsec
+    mechanism: pre-commit
+    enforcement: deterministic
+    blocking: true
+    mapping_fidelity: partial
+    tools:
+      - name: semgrep
+        version: "1.171.0"
+        class: sast
+        install: pypi
+        verified_version: true
+    implementation:
+      gate: pre-commit
+      files:
+        - controls/rules/path-traversal.yaml
+      covers: >-
+        The filesystem sink class only. Both ISM IDs are about validating input in
+        general; these four rules see one way unvalidated input causes harm, at the point
+        it reaches a file API.
+      provenance:
+        origin: original
+        authored_by: ai-assisted
+        verified_on: "2026-07-29"
+    verification_status: verified
+    verification_source: controls/ism-snapshot.json
+    verified_on: "2026-07-29"
+    ism_text:
+      ISM-1240: >-
+        Validation and sanitisation are performed on all input received over the
+        internet by software.
+      ISM-2016: >-
+        Validation and sanitisation are performed on all input received over a local
+        network by software.
+    notes: >-
+      The fix, per language, because "canonicalise it" is not an instruction. Python:
+      os.path.realpath(candidate), then assert the result starts with the realpath of the
+      base directory; with pathlib, Path(candidate).resolve() then .is_relative_to(base).
+      Node: path.resolve(candidate), then assert it starts with path.resolve(base) plus
+      path.sep; fs.realpath additionally resolves symlinks and is stronger where the file
+      already exists. Resolving without then comparing to the base is not a fix — it
+      normalises the path and still opens whatever it names.
+
+
+      Partial, and the same limit as RWA-0020: "all input" is an absolute that sink
+      matching cannot verify. These rules match the shape of the defect where the path is
+      built — interpolated into a call, or joined and passed straight in — so a path
+      assembled several statements earlier, through a helper, or read from config is not
+      seen. Zip slip, symlink following and TOCTOU races are path-handling defects with a
+      different shape and none of them is covered. The rule file lists all of this, and
+      its false-positive classes, at the top.
+
+
+      ISM-2016 is claimed here rather than by RWA-0020 because it is otherwise unmapped
+      and the same rules answer it: a traversal segment is unvalidated input whether it
+      arrived over the internet or over a local network.
+
   # ---------------------------------------------------------------------------
   # Supply chain: SBOM, CBOM, provenance
   #
@@ -614,9 +676,28 @@ controls:
     blocking: false
     mapping_fidelity: partial
     tools:
-      - name: grype
+      - name: trivy
+        version: "0.72.0"
         class: sca
-        install: unavailable
+        install: github-release
+        verified_version: true
+      - name: syft
+        version: "1.50.0"
+        class: sbom
+        install: github-release
+        verified_version: true
+    implementation:
+      gate: posture
+      files:
+        - .github/scripts/audit.py
+      covers: >-
+        The scan leg. An SBOM is generated from this project's own lockfiles and checked
+        against a vulnerability database; an SBOM published by an upstream component is
+        not consumed, which is what the control's opening clause is about.
+      provenance:
+        origin: original
+        authored_by: ai-assisted
+        verified_on: "2026-07-29"
     verification_status: verified
     verification_source: controls/ism-snapshot.json
     verified_on: "2026-07-25"
@@ -625,6 +706,30 @@ controls:
         If a software bill of materials is available for imported third-party software
         components, it is used during software development to ensure such software
         components have no known vulnerabilities.
+    notes: >-
+      grype was named here with no version and nothing running. Replaced by trivy and syft,
+      both pinned to a release version whose artefact checksum is recorded in the Makefile
+      — a tag alone would let the asset behind it change. Both are Apache-2.0, read from
+      LICENSE in each upstream tree at the pinned tag.
+
+
+      Partial, and the gap is the control's first word. ISM-2054 is about an SBOM that came
+      *with* an imported component; `make audit` generates the SBOM itself with syft and
+      scans it with trivy. That answers the control's purpose — do the imported components
+      carry known vulnerabilities — without satisfying its precondition, so it stays
+      partial.
+
+
+      Determinism is bought explicitly. A CVE database that updates under you makes the
+      same lockfile pass on Monday and fail on Tuesday, so `make setup-audit-dbs`
+      downloads a snapshot and every scan runs `--skip-db-update --offline-scan` against
+      it. The snapshot's own timestamp is recorded in the report, which is what lets a
+      changed verdict be attributed to the code or to the advisories.
+
+
+      An ecosystem with no manifest in the tree reports `not applicable` by name, never as
+      a pass. This runs in CI and on demand — never on the commit hook, because a CVE
+      published overnight is not a reason a commit cannot be saved.
 
   - id: RWA-0032
     ism_ids: [ISM-1730]
@@ -638,11 +743,25 @@ controls:
     blocking: false
     mapping_fidelity: direct
     tools:
+      - name: syft
+        version: "1.50.0"
+        class: sbom
+        install: github-release
+        verified_version: true
       - name: cyclonedx-bom
         version: "7.3.1"
         class: sbom
         install: pypi
         verified_version: true
+    implementation:
+      gate: posture
+      files:
+        - .github/scripts/audit.py
+        - docs/dependencies.md
+      provenance:
+        origin: original
+        authored_by: ai-assisted
+        verified_on: "2026-07-29"
     verification_status: verified
     verification_source: controls/ism-snapshot.json
     verified_on: "2026-07-25"
@@ -653,6 +772,16 @@ controls:
     notes: >-
       Direct, and worth noting that "made available to consumers" is half the control.
       Generating an SBOM into a CI artefact that expires in 90 days does not satisfy it.
+      This is why docs/dependencies.md is committed rather than uploaded: a consumer
+      reading the repository has the bill of materials in front of them, at the commit it
+      describes, with no artefact to download and no retention window to outlive. The file
+      is timestamp-free for the same reason .runwai/docs/report.md is — a diff in it means
+      the dependency set actually changed.
+
+
+      cyclonedx-bom stays listed and stays unused. syft emits CycloneDX too; nothing here
+      currently writes that format, and the machine-readable artefact is the remaining
+      half of this leg.
 
   - id: RWA-0033
     ism_ids: [ISM-2082]
@@ -912,8 +1041,10 @@ controls:
     mapping_fidelity: direct
     tools:
       - name: trivy
+        version: "0.72.0"
         class: container-scan
-        install: unavailable
+        install: github-release
+        verified_version: true
     verification_status: verified
     verification_source: controls/ism-snapshot.json
     verified_on: "2026-07-25"
@@ -932,6 +1063,12 @@ controls:
       requires 48 hours for critical vulnerabilities in online services, ISM-1690 two
       weeks for non-critical. A container serving internet traffic falls under those
       timeframes, so the scanner threshold should be set from them rather than picked.
+
+
+      trivy now carries a pin, because RWA-0031 confirmed the release exists and adopted
+      it. That changes nothing about this control: no implementation block, so nothing
+      runs and the report still renders it as mapped. A pinned tool and a live check are
+      different claims, and only the second one belongs in the "has a check behind it" row.
 
   # ---------------------------------------------------------------------------
   # Cryptography

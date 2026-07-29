@@ -60,12 +60,15 @@ make first-session
 
 That runs the session's mechanical steps in order, each pinned to an exact version:
 `make setup` (install the toolchain), `make hook`, `make check` (everything, over the
-whole tree), `make verify` (prove the rules catch what they claim), `make report`. Run
-them individually when you want one. Or `/selfcheck`, which runs every check and reports
-what failed. The full list, with exit codes, is in
+whole tree), `make verify` (prove the rules catch what they claim), `make report`, then
+`make audit` (dependencies) and `make doctor` (environment), neither of which is allowed
+to abort the session. Run them individually when you want one. Or `/selfcheck`, which runs
+every check and reports what failed. The full list, with exit codes, is in
 [`agents/running-the-checks.md`](agents/running-the-checks.md). Every check is offline
-and deterministic — no network, no clock dependence, no model; `make setup` is the one
-step that touches the network.
+and deterministic — no network, no clock dependence, no model. Three targets touch the
+network and they are the only ones: `make setup`, and `make setup-audit-tools` and
+`make setup-audit-dbs`, which fetch the pinned dependency scanners and the vulnerability
+database the audit then runs against offline.
 
 </details>
 
@@ -103,11 +106,19 @@ is exactly why no template can switch it on for you, and why one that claims to 
 | RWA-0010 | `detect-secrets` at commit time, `keyhog` in CI | Credentials before they enter history, then the whole tree and its history afterwards |
 | RWA-0003, 0020, 0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, 0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
+| RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |
+| RWA-0031, 0032 | `trivy` and `syft`, in CI and on `make audit` | Known vulnerabilities in the packages you depend on, and the bill of materials listing them |
 
-**Ten rules, and that is the whole of it.** A first release defends a small surface
-honestly rather than a large one badly. Every other control in `controls/registry.yaml` is
-mapped with nothing running, and `docs/security-report.md` says exactly that rather than
-implying coverage.
+**Fourteen rules and one dependency audit, and that is the whole of it.** A first release
+defends a small surface honestly rather than a large one badly. Every other control in
+`controls/registry.yaml` is mapped with nothing running, and `docs/security-report.md`
+says exactly that rather than implying coverage.
+
+The rules read the code you wrote. The audit reads the packages it depends on, and the two
+are reported separately on purpose — clean code sitting on a vulnerable dependency is not
+secure, and a report that pooled them would let it look that way. It never blocks a
+commit, and it names every ecosystem it did not scan rather than counting silence as a
+pass.
 
 **And you do not have to take the ten on trust.** `python3 .github/scripts/verify.py`
 proves each rule fires on committed, deliberately vulnerable examples and stays silent on
@@ -194,12 +205,13 @@ tool — or its reader — already looks. What looks unusual is doing a job, and
 first session trims it to what your project actually needs.
 
 ```
-controls/           The control library: the registry, the ten semgrep rules and the
-                      fixtures asserting each one in both directions
+controls/           The control library: the registry, the fourteen semgrep rules and
+                      the fixtures asserting each one in both directions
 docs/               setup.md — how this project is set up, as built; your agent keeps
-                      it true — and security-report.md, your posture readout.
-                      Generated, blocks nothing. The artefact this repository
-                      exists to produce
+                      it true — security-report.md, your posture readout, and
+                      dependencies.md, the bill of materials. The last two are
+                      generated and block nothing; the report is the artefact this
+                      repository exists to produce
 Makefile            The first session's mechanical steps as pinned, deterministic
                       targets: `make first-session`
 AGENTS.md           Agent entry point — the obligations your agent reads unprompted
