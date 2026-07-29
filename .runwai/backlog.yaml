@@ -56,7 +56,7 @@ id_5:
        already public and must be rotated rather than deleted"
     - "Every check moved off the commit hook is verified as already running in
        .github/workflows/posture.yml, named job by named job, before it is removed"
-    - "Hook counts in .runwai/status.md and AGENTS.md's deletion instructions are corrected
+    - "Hook counts in .runwai/docs/status.md and AGENTS.md's deletion instructions are corrected
        in the same commit"
   not_enforceable: |
     Nothing mechanically checks that a check sits where it can see its subject matter. This
@@ -133,7 +133,7 @@ id_7:
     - "`verify.py` includes path traversal in its assertion suite, meeting the fixture floor
        of three vulnerable and one safe case per rule"
     - "The rule count is corrected wherever it is stated — README.md, docs/setup.md,
-       .runwai/status.md and .runwai/MAINTAINERS.md all say ten today"
+       .runwai/docs/status.md and .runwai/MAINTAINERS.md all say ten today"
     - "`/explain` remediation names the canonicalisation function per language (realpath,
        resolve)"
 

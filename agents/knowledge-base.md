@@ -61,7 +61,7 @@ git clone --depth 1 --filter=blob:none --sparse https://github.com/owner/repo /t
 git -C /tmp/x sparse-checkout set --no-cone '/LICENSE*' '/COPYING*'
 
 # 3. Copy what you need, and record repo + commit + licence in
-#    .runwai/provenance.md (or implementation.provenance in controls/registry.yaml).
+#    .runwai/docs/provenance.md (or implementation.provenance in controls/registry.yaml).
 ```
 
 Licence filenames vary. `LICENSE`, `LICENSE.md`, `LICENSE-APACHE`, `COPYING`, and the
@@ -121,7 +121,7 @@ If you cannot confirm a version, record none. See
 ## Why the inventory was deleted
 
 `docs/backlog-inventory.yaml` held 62 researched repository slugs, none resolved, several
-fabricated. It was replaced by `.runwai/provenance.md`: ten sources, each with a
+fabricated. It was replaced by `.runwai/docs/provenance.md`: ten sources, each with a
 resolved SHA and a licence read from the upstream tree.
 
 The lesson is worth keeping even though the file is gone — a long list of unverified

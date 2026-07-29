@@ -74,7 +74,7 @@ controls/tests/               Annotated fixtures asserting each rule both ways
   validate_registry.py          determinism invariant, pinning, provenance, overlap
   ism.py                        snapshot (once per release) and verify (every commit)
   validate_helpers.py           the AI helper layer, offline and stdlib-only
-  report.py                     aggregates gate results into .runwai/report.md
+  report.py                     aggregates gate results into .runwai/docs/report.md
 .runwai/decisions.yaml       Why the template is shaped this way
 .pre-commit-config.yaml       Local checks, the only ones that stop anything
 .semgrepignore                Excludes selftest fixtures, which are deliberately vulnerable
@@ -156,7 +156,7 @@ is review. Two controls should not vendor the same
 This intentionally overrides the earlier "lossless, no filtering" framing of the research
 inventory. Those two goals are incompatible; curation won, and the unfiltered list has since
 been retired outright — see [decision 1](../.runwai/decisions.yaml).
-What survives is `.runwai/provenance.md`: the sources actually used, each with a
+What survives is `.runwai/docs/provenance.md`: the sources actually used, each with a
 resolved commit and a verified licence.
 
 ## Verification status is explicit, never implied
@@ -167,7 +167,7 @@ status field, and both **default to unverified**. Nothing may claim `verified` w
 `verification_source` and a `verified_on` date; the validator enforces that.
 
 The same rule now applies to vendored helper content: an entry in
-`.runwai/provenance.md` may only record `resolved: true` once its commit SHA has
+`.runwai/docs/provenance.md` may only record `resolved: true` once its commit SHA has
 actually been resolved and its licence read from the upstream tree.
 
 Current state of each:
@@ -183,7 +183,7 @@ Current state of each:
   verifying them would have produced a well-attested list of things nobody was going to
   use. The ten sources the helper layer actually draws on were resolved to full commit
   SHAs over the git protocol and had their licences read from the upstream tree. See
-  `.runwai/provenance.md` and
+  `.runwai/docs/provenance.md` and
   [decision 1](../.runwai/decisions.yaml).
 
   Note the access shape this depends on, because it is not obvious: `api.github.com` is

@@ -10,7 +10,7 @@
 ## How this layer is organised
 
 Adapted from `calcom/cal.com` at `3894f37e` (MIT) — see
-[`../.runwai/provenance.md`](../.runwai/provenance.md).
+[`../.runwai/docs/provenance.md`](../.runwai/docs/provenance.md).
 
 The structure exists so that rules are **modular** rather than piled into one prompt:
 
@@ -96,7 +96,7 @@ does not claim the word.
 
 The layout of this directory is derived from `calcom/cal.com` at commit `3894f37e`, MIT
 licensed — see [`LICENSE-UPSTREAM`](LICENSE-UPSTREAM) and
-[`../.runwai/provenance.md`](../.runwai/provenance.md). Their rule set was
+[`../.runwai/docs/provenance.md`](../.runwai/docs/provenance.md). Their rule set was
 Prisma/tRPC/Next.js specific and does not appear here; what carried over is the structure.
 
 ## Adding a rule

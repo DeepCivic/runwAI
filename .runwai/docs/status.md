@@ -27,7 +27,7 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 are `direct` — the tool enforces exactly what the control requires. `partial` means it
 covers part of it; `supporting` means it produces evidence but does not satisfy the
 control. Only `direct` mappings should be described to an assessor as enforced. See
-[`../docs/ism-verification.md`](../docs/ism-verification.md).
+[`../../docs/ism-verification.md`](../../docs/ism-verification.md).
 
 **Eight tools are unpinned.** grype, cosign, trivy and hadolint ship as GitHub release
 binaries whose versions could not be confirmed where this was authored. They are recorded
@@ -47,7 +47,7 @@ instead of sixty-two that were not.
 so nothing here runs Biome, Playwright or promptfoo: a mistake inside one of those configs
 fails no check in this repository. They ship live at the root regardless, because that is
 where the adopter's tools read them and a file nobody knows to copy is a file nobody uses
-([decision 2](decisions.yaml)). What is enforced is that
+([decision 2](../decisions.yaml)). What is enforced is that
 each parses, declares an exact version, and agrees with the version table in `README.md`;
 `playwright.config.ts` is additionally in scope for our own semgrep rulesets. Run them in a
 real project before relying on them.
@@ -59,7 +59,7 @@ registry self-check, ISM verification, the ISM index check, the helper-layer che
 report-freshness check alongside the secret scan — which makes saving your work the
 heaviest gate rather than the lightest. That is a gate placed in the wrong place, not a
 weakened one: nothing was moved after it failed. Rebalancing it is
-[`backlog.yaml`](backlog.yaml) id_5.
+[`backlog.yaml`](../backlog.yaml) id_5.
 
 ## Verification discipline
 

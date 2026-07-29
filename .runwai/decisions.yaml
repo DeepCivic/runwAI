@@ -87,7 +87,7 @@ decisions:
         avoids a `git submodule update --init` failure mode for the users least equipped to
         diagnose it.
       provenance_is_mandatory_either_way: >-
-        Every derived file is recorded in .runwai/provenance.md with repo, commit, licence
+        Every derived file is recorded in .runwai/docs/provenance.md with repo, commit, licence
         and derivation level (vendored, derived, structure, referenced). The field names
         match the upstream block in schemas/capability.schema.json so the two records can be
         merged later without a rewrite.
@@ -663,7 +663,7 @@ decisions:
         is the artefact the repository exists to hand the adopter (security-report.md).
         Anything that is runwAI's own record lives in .runwai/, identifiable by
         location. Applied immediately: report.md, the maintainer-facing self-check
-        readout, moves to .runwai/report.md. No tool read it at root, it was absent
+        readout, moves to .runwai/docs/report.md. No tool read it at root, it was absent
         from llms.txt because it was never adopter content, and beside
         security-report.md it was the most confusing pair a visitor could meet first.
       presentation: >-
@@ -691,7 +691,7 @@ decisions:
         one report, the one written for them.
       harder: >-
         The nanochat-derived pattern of a root report file no longer matches the
-        upstream placement it was lifted from; .runwai/provenance.md records the
+        upstream placement it was lifted from; .runwai/docs/provenance.md records the
         pattern, which survives the move, not the path.
       accepted_cost: >-
         The three toolchain configs still sit at the root doing nothing in this

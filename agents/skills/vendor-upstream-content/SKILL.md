@@ -82,7 +82,7 @@ vendored_files:
 ...with the upstream licence text saved beside it as `LICENSE-UPSTREAM`.
 
 For helper-layer or template content, add a row to
-[`.runwai/provenance.md`](../../../.runwai/provenance.md) instead.
+[`.runwai/docs/provenance.md`](../../../.runwai/docs/provenance.md) instead.
 
 ### 5. Verify
 

@@ -93,7 +93,7 @@ the middle segment, so `CKV_K8S_19` never matched.** `CKV_K8S_19`, `CKV_K8S_20` 
 side produces three false failures. The defect was recorded rather than fixed, because the
 job that carried it was deleted with the capability it served; this paragraph is that
 record now that the backlog item holding it has been closed and removed under the policy in
-[`backlog.yaml`](backlog.yaml).
+[`backlog.yaml`](../backlog.yaml).
 
 ## GitHub Actions pins
 

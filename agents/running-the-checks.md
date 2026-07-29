@@ -55,7 +55,7 @@ Exit codes are uniform across all three:
 | 2 | Could not run — missing dependency or unreadable input. |
 
 Add `--strict` to treat warnings as failures. CI moves to `--strict` once the pending pins
-in `.runwai/pinning.md` are complete; until then, warnings are expected.
+in `.runwai/docs/pinning.md` are complete; until then, warnings are expected.
 
 ## The checks that stop something
 
@@ -138,11 +138,11 @@ where a checkout has no hooks. The `posture` workflow runs it on every push.
 ## The report
 
 ```bash
-python3 .runwai/tools/report.py                # writes .runwai/report.md
-python3 .runwai/tools/report.py --check        # fail if .runwai/report.md is stale
+python3 .runwai/tools/report.py                # writes .runwai/docs/report.md
+python3 .runwai/tools/report.py --check        # fail if .runwai/docs/report.md is stale
 ```
 
-`.runwai/report.md` is generated, committed, and deliberately **timestamp-free**: regenerating it
+`.runwai/docs/report.md` is generated, committed, and deliberately **timestamp-free**: regenerating it
 on an unchanged tree produces a byte-identical file. A report carrying a timestamp produces
 a diff on every run, so the diff stops carrying information and reviewers learn to ignore
 the file — the same trap the `posture` workflow's secret-scan step already documents.

@@ -97,7 +97,7 @@ decisions are not theirs.
 `.pre-commit-config.yaml` whose entry begins `python3 .runwai/tools/`, and the `selfcheck`
 and `python-sast` jobs in `.github/workflows/posture.yml`. Those validate runwAI's own
 structure, so removing them loses the user nothing, and the self-check readout
-`.runwai/report.md` goes with the directory itself. Leaving the hooks behind gives the
+`.runwai/docs/report.md` goes with the directory itself. Leaving the hooks behind gives the
 user a check that fails on a directory that is gone.
 
 **5. Write down what you did** in [`docs/setup.md`](docs/setup.md). It is the *adopting

@@ -9,9 +9,9 @@ This file is deliberately timestamp-free: regenerating it on an unchanged tree p
 | Check | Result | Summary |
 | :--- | :--- | :--- |
 | `.runwai/tools/validate_registry.py` | pass | runwai-selfcheck: 35 controls, 6 with a mechanism, 0 errors, 9 warnings |
-| `.runwai/tools/validate_helpers.py` | pass | runwai-helpers: 11 rules, 12 decisions, 3 root configs, 3 stealable, 132 links checked, 0 errors, 0 warnings |
+| `.runwai/tools/validate_helpers.py` | pass | runwai-helpers: 11 rules, 12 decisions, 3 root configs, 3 stealable, 133 links checked, 0 errors, 0 warnings |
 
-Warnings are expected while pins remain pending; they are reported rather than hidden. See `.runwai/pinning.md`.
+Warnings are expected while pins remain pending; they are reported rather than hidden. See `.runwai/docs/pinning.md`.
 
 ## Contents
 
@@ -23,7 +23,7 @@ Warnings are expected while pins remain pending; they are reported rather than h
 
 ## Vendored sources
 
-10 upstream sources, each resolved to a full commit SHA with its licence read from the upstream tree. Full detail in `.runwai/provenance.md`.
+10 upstream sources, each resolved to a full commit SHA with its licence read from the upstream tree. Full detail in `.runwai/docs/provenance.md`.
 
 | Source | Commit | Licence |
 | :--- | :--- | :--- |

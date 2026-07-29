@@ -133,8 +133,9 @@ biome.json, playwright.config.ts, promptfooconfig.yaml
 .runwai/tools/               The self-checks. Deterministic, offline, no LLM. Maintainer
                                 only — the template is not a Python project.
 .runwai/decisions.yaml       Why the template is shaped this way. Structured, not ADRs.
-.runwai/report.md            The self-check readout. Maintainer-facing, unlike
-                                docs/security-report.md. Generated; never edit
+.runwai/docs/                runwAI's own long-form record: provenance, pinning, status,
+                                and report.md, the self-check readout. Maintainer-facing,
+                                unlike docs/security-report.md. report.md is generated
 ```
 
 ## Verification discipline

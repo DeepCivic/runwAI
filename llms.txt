@@ -6,7 +6,7 @@
 > code — a model may advise, never adjudicate.
 
 runwAI is Apache-2.0. Vendored third-party content keeps its upstream licence, recorded
-per file in `.runwai/provenance.md`.
+per file in `.runwai/docs/provenance.md`.
 
 Two trees are easy to confuse. `AGENTS.md` and `agents/` are live and describe *this*
 repository, and an adopting project keeps them. `.runwai/` is the template's own
