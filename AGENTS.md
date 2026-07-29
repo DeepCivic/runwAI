@@ -62,9 +62,17 @@ make first-session
 That installs the pinned toolchain and the commit hook, runs every check once over the
 whole tree, proves the rules catch the committed vulnerable examples
 (`.github/scripts/verify.py` — the receipt they can hand to IT, whose failures come with
-fixes), and regenerates the report. The targets also run individually — `make check`,
-`make verify` — and each wraps exactly one command from
-[`agents/running-the-checks.md`](agents/running-the-checks.md), the canonical list.
+fixes), regenerates the report, then audits the dependencies and checks the environment.
+The targets also run individually — `make check`, `make verify` — and each wraps exactly
+one command from [`agents/running-the-checks.md`](agents/running-the-checks.md), the
+canonical list.
+
+`make audit` and `make doctor` run last and cannot abort the session: a dependency with a
+CVE and an unset variable are both facts about the world rather than reasons to stop
+setting up. The audit needs two networked setup steps first — `make setup-audit-tools`
+and `make setup-audit-dbs` — and until they have run it will say so rather than report a
+clean tree. Both are worth doing in the first session; the database is about a gigabyte,
+so say that before running it.
 
 The first full run may fail on files the template ships. Read the failure and fix or
 explain it — do not tell them to re-run with `--no-verify`. Then relay `verify.py`'s
@@ -133,7 +141,12 @@ otherwise discover at the worst moment:
 - **A green report is not compliance.** It means their code did not trip a set of automated
   checks. 36 of 1101 controls are mapped, most `partial`.
 - **A check with nothing to look at is *not applicable*, not a pass.** Absent Terraform is
-  not a finding and not a clean bill of health either.
+  not a finding and not a clean bill of health either. `make audit` names every ecosystem
+  it did not scan, and `make doctor` says so outright when a project declares no
+  environment requirements.
+- **A clean codebase on a vulnerable dependency is not secure.** The report keeps
+  **Dependency posture** separate from code findings for exactly that reason. Tell them
+  what `make audit` found in the same breath as the rest.
 - **They can ignore the control identifiers entirely** and the report still tells them what
   is checked and what is not.
 
