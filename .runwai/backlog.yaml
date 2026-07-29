@@ -1,9 +1,8 @@
 # runwAI development backlog.
 #
 # runwAI's own outstanding work. Not the adopting project's backlog, and not the
-# security backlog that TODO-10 will generate from scanner findings.
-#
-# README section.
+# security backlog that will generate from scanner findings. Delete backlog items
+# once they are completed
 
 # .runwai/backlog.yaml
 
@@ -106,3 +105,104 @@ id_4:
     - "security-report.md shows identical structure regardless of project language"
     - "Root directory contains ONLY relevant configs for detected language"
     - "ISM interpreter command provides language-appropriate remediation examples"
+
+id_5:
+  title: Known Vulnerable Dependencies (CVEs)
+  description: |
+    Add offline, deterministic CVE auditing across all detected package managers
+    - Implement `make audit` that runs `pip-audit`, `npm audit`, and `cargo audit` in parallel
+    - Cache the local vulnerability databases (`.audit-cache/`) to keep checks offline and reproducible
+    - Generate a dependency bill-of-materials (SBOM) in `docs/dependencies.md` during `first-session`
+    - Append audit results to `docs/security-report.md` under a new "Dependency Posture" section
+    - **Do not** wire this into the commit hook—run it in CI only to avoid blocking velocity
+        Solves: Current checks ignore the 50% of security risk that lives in third-party packages
+  priority: high
+  status: proposed
+  value: |
+    Catches known CVEs before they reach production, without requiring devs to monitor mailing lists
+    Keeps the "green report" honest—a secure codebase with a vulnerable dependency is not secure
+    Fully deterministic; same lockfile + same DB snapshot = same verdict forever
+    Works seamlessly with your polyglot/submodule architecture by auditing each submodule's lockfile
+  acceptance_criteria:
+    - "`make audit` runs successfully with zero network calls after an initial `make setup-audit-dbs`"
+    - "Each detected language's audit tool runs only if its lockfile exists (pipfile.lock, package-lock.json, Cargo.lock)"
+    - "The security report clearly separates dependency CVEs from code-level findings"
+    - "A failing audit does not abort `git commit` or `make first-session`—it only annotates the PR"
+    - "The agent can explain a specific CVE and suggest upgrade paths via `/explain CVE-2025-1234`"
+
+id_6:
+   title: Path Traversal / Unsafe File Operations
+   description: |
+    Add deterministic Semgrep rules to catch unsafe file path handling across all languages
+    - Implement two new controls in `controls/rules/path-traversal.yaml`:
+      - Rule A: Unsanitised user input passed to file system APIs (`open()`, `fs.readFileSync`, `std::fs::File::open`)
+      - Rule B: Missing path canonicalisation before `os.path.join` or `path.join`
+    - Create fixture test cases in `controls/fixtures/path/` with safe vs. vulnerable examples
+    - Extend `verify.py` to prove both rules fire correctly
+    - Explicitly ignore false-positive prone patterns (e.g., reading from a fixed `./config/` directory)
+    Solves: Current injection rules catch SQL/Shell/HTML but miss the simplest file-read exploits
+   priority: high
+   status: proposed
+   value: |
+    Path traversal is the #1 vulnerability after injection—and just as easy to catch mechanically
+    Applies to all languages equally, making it a perfect multi-language addition
+    Near-zero false positives when scoped to unsanitised variables from request/argument sources
+    Prevents "vibe coder" agents from accidentally writing `open(f"/var/{user}")` without a sanitisation step
+   acceptance_criteria:
+    - "New rules fire on deliberately vulnerable fixtures and stay silent on safe ones"
+    - "Rules cover Python (os.path.join, pathlib), Node (path.join, fs), and Rust (std::fs, std::path)"
+    - "`verify.py` includes path-traversal tests in its assertion suite"
+    - "The commit hook blocks commits containing newly detected path-traversal patterns"
+    - "Re mediation advice in `/explain` includes language-specific canonicalisation functions (realpath, resolve)"
+
+id_7:
+  title: Environment Variable & Runtime Parity (`make doctor`)
+  description: |
+    Add a deterministic environment sanity check that runs during `first-session` and CI setup
+    - Implement `scripts/doctor.py` (or shell) that:
+      - Reads a `.env.example` or `config.schema.json` and verifies all required vars are set
+      - Compares runtime versions (`python --version`, `node --version`, `rustc --version`) against pinned `.tool-versions` or `rust-toolchain.toml`
+      - Checks critical directory permissions (writable `logs/`, `data/`, `tmp/`)
+      - Flags unused environment variables (to catch drift from old configs)
+    - Wire into `make first-session` so the agent reports "Your environment is ready" or lists missing items
+    - Add a `make doctor` target for developers to self-audit their shell
+    Solves: The #1 cause of "works on my machine" in polyglot repos—missing env vars or wrong runtimes
+  priority: medium
+  status: proposed
+  value: |
+    Saves hours of debugging across teams—every developer sees the same deterministic environment report
+    Complements submodule architecture by checking each submodule's runtime independently
+    Fully offline and deterministic; no network calls, no model inference
+    Empowers the agent to proactively fix issues (e.g., "I see NODE_VERSION is missing, I'll use 20.x")
+  acceptance_criteria:
+    - "`make doctor` exits with a clear, human-readable pass/fail summary"
+    - "Missing required vars cause a non-zero exit code in CI (but do not block commits)"
+    - "The agent, during first-session, runs `make doctor` and offers to create missing .env files from .env.example"
+    - "Runtime version mismatches are reported with suggested upgrade commands"
+    - "The security report includes a 'Runtime Environment' row showing pass/fail status"
+
+id_8:
+  title: Inter-Submodule API Contract Breakage (Architectural Fit)
+  description: |
+    Add a deterministic contract test that validates API compatibility between submodules
+    - Implement `scripts/contract-check.py` that:
+      - Parses OpenAPI/AsyncAPI specs or protobuf definitions from each submodule
+      - Runs a set of example requests/responses (fixtures) from the consumer submodule against the producer's schema
+      - Flags mismatches: missing fields, type changes, status code changes
+    - Store contract fixtures in `tests/contracts/` (e.g., Python caller's mock JSON vs. Rust worker's actual response schema)
+    - Wire into CI as a non-blocking report (annotate PRs with "Contract breakage detected between submodule A and B")
+    - Optional: Use `pact` or `openapi-diff` but keep the toolchain pinned and offline where possible
+        Solves: Your specific polyglot/submodule maturity pain—silent breakage when a service changes its API shape
+  priority: medium
+  status: proposed
+  value: |
+    Catches integration failures at PR time rather than in production, reducing rollback fire drills
+    Fully deterministic; given two versions of a schema, the diff is a mechanical comparison
+    Keeps services decoupled—developers can change an API if they also update the consumer fixture in the same PR
+    Scales with your submodule architecture without requiring a full integration environment
+  acceptance_criteria:
+    - "`make contract-check` runs successfully and outputs a structured diff report"
+    - "A contract breakage does not block the commit hook (only PR annotation)"
+    - "The agent can explain a specific contract failure and suggest the exact field that changed"
+    - "Fixtures are versioned alongside submodule code, so breaking changes are intentional and reviewed"
+    - "The security report includes a 'Contract Posture' section that passes only if all submodule pairs align"
