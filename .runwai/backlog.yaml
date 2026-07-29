@@ -224,3 +224,57 @@ id_8:
     MAINTAINERS.md's change test rejects — it makes the report look broader without any
     control standing behind the row. `make doctor` printing its own verdict costs nothing
     and claims nothing.
+
+id_9:
+  title: Inter-service API contract checking
+  description: |
+    Add a deterministic contract check that validates API compatibility between components
+    that are versioned separately.
+    - Parse OpenAPI/AsyncAPI specs or protobuf definitions from each component
+    - Run the consumer's committed example requests and responses against the producer's
+      schema
+    - Flag mismatches: missing fields, type changes, status code changes
+    - Store contract fixtures alongside the code they describe, so a breaking change and its
+      fixture update land in the same commit
+    - Report in CI as an annotation, never as a commit-time gate
+
+    Solves: silent breakage when one component changes its API shape and the other finds out
+    in production.
+  priority: medium
+  status: proposed
+  value: |
+    Deterministic in the strict sense: given two schema versions, the diff is a mechanical
+    comparison with no judgement and no model.
+    Catches integration failures at review time rather than after deploy.
+    Keeps components decoupled — an API may change, provided the consumer's fixture changes
+    with it and someone reviews both.
+  acceptance_criteria:
+    - "`make contract-check` outputs a structured diff report"
+    - "A contract breakage annotates the run and does not block the commit hook"
+    - "A repository with one component, or no schemas, reports `not applicable` rather than
+       passing"
+    - "Any tool used (pact, openapi-diff) is pinned to an exact version, or recorded
+       `install: unavailable` with no version"
+  maintainer_note: |
+    Filed describing "your polyglot/submodule architecture". runwAI has no submodules and no
+    services — it is Python, YAML and Markdown — so this is a feature for the adopter's
+    project, not a description of this one. Reworded above to say so, because a backlog item
+    that describes a repository shape this repository does not have is the first step toward
+    a self-check that asserts something nobody has.
+
+    Same two carve-outs as id_8. Placement follows decision 3 — adopter-facing, so
+    `.github/scripts/`, not a new root `scripts/`. And the proposed "Contract Posture"
+    section in the security report is left out: contract drift is not an ISM control, and
+    the report's value is that every row in it has a mapped control behind it.
+
+    The remit question was raised and has been answered. This is the item furthest from the
+    two value streams MAINTAINERS.md names — AI coding scaffolding, and honest security
+    posture reporting — and API contract checking is neither. Raised on that basis; the
+    maintainer's ruling is that it stands. Recorded here rather than argued again: the item
+    is in scope by decision, not by a fit that was overlooked.
+
+    What that ruling does not waive is the discipline the item is held to. It reports and
+    does not gate, it is pinned or explicitly unpinned, it reports `not applicable` where it
+    has nothing to read, and it does not add a row to the security report — contract drift
+    is not an ISM control, and every row in that report has a mapped control behind it. A
+    widened remit is not a relaxed one.
