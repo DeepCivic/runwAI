@@ -3,6 +3,12 @@
 `runwai-social-preview.png` — 1280×640, the image GitHub shows when a link to this
 repository is unfurled in Slack, on X, or in a chat window.
 
+**This is runwAI's own branding, which is why it lives under `.runwai/`.** A project built
+from this template is not called runwAI and does not want this card; the directory goes
+when `.runwai/` goes, and takes six npm packages out of the adopter's bill of materials
+with it. If you want a card of your own, this is a working example to copy, not a file to
+edit in place.
+
 ## Uploading it is a setting at GitHub, not a file
 
 Committing the PNG does nothing on its own. Nothing in a repository can set its own social
@@ -16,7 +22,7 @@ GitHub's limits are 1 MB and a recommended 1280×640; this file is ~61 KB.
 ## Regenerating it
 
 ```bash
-cd .github/social-preview
+cd .runwai/social-preview
 npm install
 npx playwright install chromium
 npm run render

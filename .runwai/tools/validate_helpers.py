@@ -67,7 +67,16 @@ RULE_FILE = re.compile(r"^(?!_)([a-z0-9]+)-[a-z0-9-]+\.md$")
 # where two links still pointed at docs/adr/0001 months after TODO-11 moved that record to
 # .runwai/decisions/ — a confident cross-reference to a page that was not there, in the
 # document that explains the repository's own rules.
-LIVE_LINK_ROOTS = ("AGENTS.md", "llms.txt", "agents", "docs", ".runwai", "STEAL.md", ".steal")
+#
+# README.md is in the set because the first-session instructions promise it is: AGENTS.md
+# tells the setup agent that deleting the reuse layer means clearing every link `make check`
+# names, and README.md links into STEAL.md and .steal/ twice. Left out, the front door was
+# the one file where a deletion could leave a dangling link and the check would still say
+# PASSED — the worst place to have one, and a promise the tool was not keeping.
+LIVE_LINK_ROOTS = (
+    "AGENTS.md", "CLAUDE.md", "README.md", "llms.txt", "agents", "docs", ".runwai",
+    "STEAL.md", ".steal",
+)
 
 # A blessing under .steal/curation.md's protocol: a comment line whose whole purpose is the marker —
 # an optional comment leader in whatever syntax the host language uses, then STEAL:, then a
@@ -414,8 +423,24 @@ def check_steal(root: Path, report: Report, paths: list[Path] | None = None) -> 
     that touches nothing under .steal/ stops noticing that the manifest went wrong.
     """
     protocol = root / "STEAL.md"
+    steal_dir = root / ".steal"
     if not protocol.is_file():
-        report.error("STEAL.md", "is missing. It ships live at the root, beside LICENSE.")
+        # Removing the reuse layer is a legitimate outcome, not a failure. A closed-source
+        # repository has nobody to publish reusable units to, and AGENTS.md tells the setup
+        # agent to ask rather than assume. What is not legitimate is half of it: a protocol
+        # with no index, or an index with nothing governing it, is the confident-index
+        # failure the rest of this file exists to catch. So both gone is a decision, and one
+        # gone is an error — the same shape as check_root_configs, where an absent config is
+        # fine and a README row left behind is not.
+        if steal_dir.exists():
+            report.error(
+                "STEAL.md",
+                "is missing while .steal/ is still here. Removing the reuse layer means "
+                "removing both in one commit, plus their llms.txt entries and every link "
+                "into them — the link check above names any it finds, so run this again "
+                "and finish the list it prints. Keeping it means restoring STEAL.md, which "
+                "ships live at the root beside LICENSE.",
+            )
         return 0
 
     manifest = root / ".steal" / "manifest.md"

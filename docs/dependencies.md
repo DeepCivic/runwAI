@@ -12,12 +12,12 @@ This file is deliberately timestamp-free: regenerating it without changing a loc
 | `actions/setup-python` | v5 | github-action | not declared | `.github/workflows/posture.yml` |
 | `actions/upload-artifact` | v4 | github-action | not declared | `.github/workflows/posture.yml` |
 | `santhreal/keyhog` | v0.5.47 | github-action | not declared | `.github/workflows/posture.yml` |
-| `@fontsource/barlow-condensed` | 5.3.0 | npm | OFL-1.1 | `.github/social-preview/package-lock.json` |
-| `@fontsource/inclusive-sans` | 5.3.0 | npm | OFL-1.1 | `.github/social-preview/package-lock.json` |
-| `fsevents` | 2.3.2 | npm | MIT | `.github/social-preview/package-lock.json` |
-| `playwright` | 1.62.0 | npm | Apache-2.0 | `.github/social-preview/package-lock.json` |
-| `playwright-core` | 1.62.0 | npm | Apache-2.0 | `.github/social-preview/package-lock.json` |
-| `runwai-social-preview` | 0.0.0 | npm | not declared | `.github/social-preview/package-lock.json` |
+| `@fontsource/barlow-condensed` | 5.3.0 | npm | OFL-1.1 | `.runwai/social-preview/package-lock.json` |
+| `@fontsource/inclusive-sans` | 5.3.0 | npm | OFL-1.1 | `.runwai/social-preview/package-lock.json` |
+| `fsevents` | 2.3.2 | npm | MIT | `.runwai/social-preview/package-lock.json` |
+| `playwright` | 1.62.0 | npm | Apache-2.0 | `.runwai/social-preview/package-lock.json` |
+| `playwright-core` | 1.62.0 | npm | Apache-2.0 | `.runwai/social-preview/package-lock.json` |
+| `runwai-social-preview` | 0.0.0 | npm | not declared | `.runwai/social-preview/package-lock.json` |
 
 ---
 

@@ -71,6 +71,29 @@ Deleting one is three edits in the same commit: the file, its row in `README.md`
 toolchain table, and its entry in `llms.txt`. A self-check fails on any left behind, so you
 will be told rather than left with a dangling reference. Record the removal below.
 
+## The agent guide, and the bridge to it
+
+`AGENTS.md` is the canonical guide and the file every agent should read first. `CLAUDE.md`
+is one line — `@AGENTS.md` — because Claude Code reads that filename and does not read
+`AGENTS.md`; without the bridge, the guide is invisible to it. Keep the bridge as an import.
+Copying the guide's content into it would give you two files to keep in step, which is the
+drift the single canonical file exists to avoid. Claude-specific instructions go below the
+import.
+
+## The reuse layer
+
+`STEAL.md` and `.steal/` are a protocol for publishing units of code other people can lift:
+a file is blessed with an inert `STEAL:` comment, `.steal/manifest.md` indexes it, and a
+self-check fails the build when the two disagree. **Whether this repository has it is your
+call, and your agent is instructed to ask rather than assume** — it depends on whether you
+want anything here reused, which nothing in the tree can tell it.
+
+It ships present and inert: nothing is blessed until someone writes a marker, and it blocks
+nothing either way. Removing it means deleting both `STEAL.md` and `.steal/` in one commit,
+plus their entries in `llms.txt` and every link into them — `make check` names the links, so
+nobody has to remember them. The self-check treats both-gone as a decision and one-gone as an
+error, so a half-removal reports itself. Record the choice below.
+
 ## What was removed from the template
 
 Nothing yet. Record deletions here as your agent makes them, with a line saying why, so a

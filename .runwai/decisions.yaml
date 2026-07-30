@@ -1007,3 +1007,219 @@ decisions:
         separate from one another, not about one environment matching its own declaration.
         It is already claimed by RWA-0005, and stretching it here is precisely the class of
         error the verification discipline section exists to prevent.
+
+  - id: 15
+    title: Decision 9's root test, applied to the two files that were never re-examined
+    status: accepted
+    date: "2026-07-29"
+    context: >-
+      Decision 9 reduced the root rule to one test — a file sits at the root only when a
+      tool or a convention reads it there — and applied it to the file that prompted the
+      review, security-report.md. Two files were never put through it, because neither had
+      come up: .secrets.baseline at the root, and .github/social-preview/, which is not at
+      the root but is in the other directory an adopter inherits wholesale.
+
+
+      The maintainer's reading on review was that the root still looks busy and that
+      .secrets.baseline is the clearest case of a file nobody had asked the question about.
+    decision:
+      the_baseline_moves_to_controls: >-
+        detect-secrets' default filename is .secrets.baseline at the root, but this
+        repository does not rely on the default: .pre-commit-config.yaml passes
+        `--baseline controls/.secrets.baseline` explicitly. Nothing reads the path at the
+        root, so under decision 9 it has no root slot. controls/ is where it belongs on the
+        positive test rather than by elimination — it is RWA-0010's configuration, sitting
+        beside controls/rules/, which is the configuration of the other four.
+      the_social_preview_moves_to_runwai: >-
+        The card is runwAI's own branding. A project built from this template is not called
+        runwAI and will never unfurl this image, which makes it decision 8's membership
+        test in the direction that is easy to miss: not "does this serve maintainers" but
+        "does an adopter lose anything when .runwai/ is pruned". They lose nothing here, and
+        they gain the removal of six npm packages — two Fontsource faces, playwright and its
+        transitives — that docs/dependencies.md was listing as their dependencies because
+        the render script sat in .github/.
+      github_directory_is_not_a_synonym_for_maintainer: >-
+        .github/scripts/ stays where it is. Backlog id_1's placement rule already says
+        verify.py is adopter-facing and belongs there; the workflows and the report
+        generators are the adopter's too. What moved is the one thing in that directory
+        that was about runwAI rather than about the repository runwAI becomes.
+    consequences:
+      easier: >-
+        The root listing loses an entry, and the adopter's bill of materials loses its only
+        six npm rows — a template whose SBOM advertises fonts for a logo the adopter is
+        about to delete was miscounting what they depend on. Both moves are the existing
+        rules applied, not new rules, so neither adds a test to argue about.
+      harder: >-
+        Anyone who knows detect-secrets expects .secrets.baseline at the root and will not
+        find it there. The pre-commit entry names the path, MAINTAINERS.md's structure map
+        carries a line saying why, and a regenerated baseline written with the default flag
+        would land at the root and be silently ignored.
+      accepted_cost: >-
+        docs/dependencies.md had to be regenerated for a path change that altered no
+        package, no version and no licence. That is the same one-commit coupling every path
+        move here has carried, and it is cheaper than a generated file that disagrees with
+        the tree.
+    alternatives_considered:
+      - >-
+        Leave .secrets.baseline at the root on the convention clause of decision 9. Rejected
+        on the facts: the clause is about a convention that *reads* the path — AGENTS.md,
+        llms.txt, LICENSE — and detect-secrets is being told where to look. A filename most
+        repositories happen to put at the root is recognition, not a read.
+      - >-
+        Move the social preview to .runwai/docs/. Rejected: it is a small build with a
+        lockfile, a renderer and an output, not a document, and burying a package.json
+        inside a documentation directory is how the audit finds it and nobody else does.
+      - >-
+        Delete the social preview and set the card by hand at GitHub. Rejected: the PNG is a
+        build output with a pinned, reproducible input, and that reproducibility is the
+        whole reason the directory exists rather than an image someone once exported.
+
+  - id: 16
+    title: What the AGENTS.md audit was right about, and what it was wrong about
+    status: accepted
+    date: "2026-07-29"
+    context: >-
+      An external audit of root AGENTS.md (.runwai/docs/) benchmarked the file against
+      published AGENTS.md guidance and produced twelve prioritised recommendations. Its
+      reading of the file's strengths was accurate and its three top-priority fixes were
+      not all adoptable, so the triage is recorded rather than the report treated as a
+      work list. Two of its findings were checked against primary sources before being
+      accepted or rejected; one turned out to be the most valuable thing in it.
+    decision:
+      the_claude_md_bridge_is_the_real_finding: >-
+        Ranked eighth of twelve, and it was a live defect. Anthropic's memory documentation
+        states plainly that Claude Code reads CLAUDE.md and does not read AGENTS.md, and
+        names the `@AGENTS.md` import as the supported bridge. This repository shipped
+        .claude/commands/ adapters for Claude Code while its entire guide was unreachable
+        by it. CLAUDE.md is now that one-line import, and holds no content of its own for
+        the same reason the slash-command adapters hold none.
+      structure_over_prose_is_adopted: >-
+        "While you build" is now Always / Ask first / Never, which is MAINTAINERS.md's
+        existing shape rather than the audit's imported one, and the scattered never-edit
+        rules are consolidated into a "Don't touch" table. Both were fair: eight rules in
+        one prose paragraph is a list someone declined to write. Definitions the audit
+        asked for are inline now — deterministic as same input, same output, no model, no
+        network, no clock; "large" as a dependency, a control's scope, the Makefile or
+        .pre-commit-config.yaml, or more than about three files.
+      the_inline_command_table_is_adopted_only_as_an_index: >-
+        The audit's highest-priority fix was a full command table in AGENTS.md, against the
+        file's stated reason for delegating. The complaint underneath it was real — an agent
+        reading only AGENTS.md saw exactly one command — so there is now a target table with
+        no flags and no exit codes, and a line saying the canonical page is canonical. The
+        table the audit supplied is itself the argument for that limit: it labelled
+        `pre-commit run --all-files` as stopping a commit, which it does not, and its
+        "Don't touch" sample cited `.runwai/report.md`, a path that has not existed since
+        decision 8. A second command surface drifted inside the document recommending it.
+      removing_the_coverage_numbers_is_rejected: >-
+        The audit asked for "36 of 1101 controls are mapped, most partial" to come out of
+        AGENTS.md as product documentation, keeping only "do not claim coverage the checks
+        do not provide". The number *is* the mechanism; an unquantified "limited coverage"
+        is the vague claim it exists to replace, and honest coverage is the second core
+        principle in MAINTAINERS.md. The instruction now says to state the numbers. The
+        audit also misquoted them as 35, which is the failure mode in miniature.
+      the_readme_duplication_is_deliberate_and_stays: >-
+        Recommendation 5 asked for the first-session steps and the merge-blocking messaging
+        to be cut from AGENTS.md in favour of pointers. The two copies are in different
+        registers on purpose: AGENTS.md gives the agent its instructions, README.md gives
+        the human the checklist to hold the agent to, under the heading "so you can tell
+        whether your agent actually did it". The audit's own section 3.1 notices this in its
+        last row and recommends removal anyway. MAINTAINERS.md now names the coupling so the
+        two are kept in step rather than deduplicated.
+      nested_agents_md_files_are_rejected: >-
+        Recommendation 10 asked for AGENTS.md files under controls/ and agents/. Everything
+        in this tree ships to an adopter, so three files would be three files to rewrite in
+        step 7 and three more chances to leave one describing a template. agents/README.md
+        already indexes that layer. AGENTS.md now states the absence and calls adding one a
+        decision, which is the part the audit was right about: silence read as an oversight.
+      lint_commands_for_configs_nothing_here_runs_are_rejected: >-
+        Recommendation 3 asked for `npx @biomejs/biome check .` in AGENTS.md. runwAI has no
+        JS or TS, the config may be deleted in step 3, and documenting a command for a file
+        that may not exist is the confident-index failure this repository refuses. The file
+        says instead that the configs are unexercised here and to run them the way the
+        adopter's project does.
+    consequences:
+      easier: >-
+        Claude Code now reads the guide at all, which is a larger correction than any of the
+        eleven recommendations ranked above it. An agent reading only AGENTS.md can name the
+        targets, knows which paths are generated, and has thresholds instead of adjectives.
+      harder: >-
+        The target table is a second place a target name appears, so a renamed target is now
+        two edits. That is the cost the delegation rule was avoiding, accepted for eight rows
+        of names with no flags in them.
+      accepted_cost: >-
+        AGENTS.md is about 307 lines against the 200 Anthropic's guidance suggests. Roughly
+        127 of those are the first-session section, which step 7 deletes at the end of the
+        only session that reads it, so the file an adopter actually keeps is around 180 —
+        under the limit for every session after the first, and over it for the one session
+        where the instructions are the point. That is the right way round, but it is a
+        judgement rather than a measurement, and prose was tightened rather than cut to
+        reach it.
+    alternatives_considered:
+      - >-
+        Treat the report as a work list and implement all twelve. Rejected on reading it: two
+        recommendations contradict recorded decisions with no new argument, one would remove
+        the honesty mechanism the project exists for, and the sample content in the
+        highest-priority one contains a stale path and a wrong claim about what stops a
+        commit. An audit is evidence, not an instruction.
+      - >-
+        Reject the report wholesale because its own examples do not check out. Rejected: the
+        CLAUDE.md finding was correct, verifiable against a primary source, and had been
+        missed by every session in this repository. The scoring was wrong, not the finding.
+
+  - id: 17
+    title: The adopter is asked about the reuse layer, not assumed out of it
+    status: accepted
+    date: "2026-07-29"
+    context: >-
+      AGENTS.md's first session told the setup agent to offer deleting .runwai/ and to delete
+      unneeded root configs, and said nothing at all about STEAL.md and .steal/. The
+      maintainer's objection was that silence there defaults to a guess: the layer reads like
+      template furniture, so an agent tidying up removes it, and an adopter who did want to
+      publish reusable code never knew there was a protocol for it.
+
+
+      Checking the code made it worse than an omission. check_steal in validate_helpers.py
+      errored outright on a missing STEAL.md, so an adopter who *did* want it gone got a red
+      build and no clean way to comply. The instruction to ask had no honest yes-remove path
+      to offer.
+    decision:
+      the_agent_asks_in_the_users_terms: >-
+        A first-session step of its own, phrased as "do you want other people to be able to
+        reuse pieces of this?" rather than as a question about a file. Three answers with
+        three actions: keep both and it becomes theirs to curate; delete both in one commit
+        with the llms.txt entries and README references; or, undecided, keep it, because it
+        is inert until someone writes a marker and removing it later is one commit.
+      both_gone_is_a_decision_one_gone_is_an_error: >-
+        check_steal now errors on a missing STEAL.md only when .steal/ is still present. The
+        shape is check_root_configs', where an absent config is a legitimate deletion and a
+        README row left behind is the failure — a check that cannot tell a completed removal
+        from a broken one teaches its user to switch it off.
+      the_default_stays_present: >-
+        Shipping it absent would invert the problem: an adopter who wanted the protocol would
+        have to know it existed to ask for it, which is the "you shouldn't need to know what
+        to ask for" failure stated as a principle in MAINTAINERS.md.
+    consequences:
+      easier: >-
+        The one part of the tree whose value is a fact about the adopter's intentions is now
+        settled by asking them. Removal is a supported outcome with a check that confirms it
+        was completed rather than abandoned halfway.
+      harder: >-
+        The first session is one question longer, against the one-step onboarding obligation.
+        It is a question with a plain-language answer and a stated default, which is the form
+        that obligation permits.
+      accepted_cost: >-
+        A retained manifest still carries runwAI's five rows and the prose arguing why the
+        list is short — true of the files an adopter inherits, and theirs to rewrite as they
+        bless their own. Curating someone else's index is a worse first impression than an
+        empty one, and it is not yet solved.
+    alternatives_considered:
+      - >-
+        Add STEAL.md and .steal/ to the step-3 root-configs table. Rejected: that table is
+        "delete it when nothing here uses it", a question about the tree. This one is a
+        question about the adopter's intentions, and collapsing the two would get it answered
+        by inspection rather than by asking.
+      - >-
+        Empty the manifest on adoption, leaving the protocol with no rows. Rejected for now:
+        the five rows describe files the adopter inherits and still has, so the index is true
+        on day one, and an empty table teaches the protocol less well than a populated one.
+        Recorded as the accepted cost above rather than settled.
