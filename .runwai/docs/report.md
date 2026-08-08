@@ -9,7 +9,7 @@ This file is deliberately timestamp-free: regenerating it on an unchanged tree p
 | Check | Result | Summary |
 | :--- | :--- | :--- |
 | `.runwai/tools/validate_registry.py` | pass | runwai-selfcheck: 36 controls, 9 with a mechanism, 0 errors, 7 warnings |
-| `.runwai/tools/validate_helpers.py` | pass | runwai-helpers: 11 rules, 17 decisions, 3 root configs, 5 stealable, 156 links checked, 0 errors, 0 warnings |
+| `.runwai/tools/validate_helpers.py` | pass | runwai-helpers: 12 rules, 18 decisions, 3 root configs, 5 stealable, 165 links checked, 0 errors, 0 warnings |
 
 Warnings are expected while pins remain pending; they are reported rather than hidden. See `.runwai/docs/pinning.md`.
 
@@ -17,9 +17,9 @@ Warnings are expected while pins remain pending; they are reported rather than h
 
 | Item | Count |
 | :--- | ---: |
-| Agent rules | 11 |
+| Agent rules | 12 |
 | Agent skills | 1 |
-| Template decisions recorded | 17 |
+| Template decisions recorded | 18 |
 
 ## Vendored sources
 

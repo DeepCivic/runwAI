@@ -33,7 +33,7 @@ to a security baseline?" and it blocks nothing, so it is safe to ignore until yo
 | RWA-0003, RWA-0020, RWA-0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, RWA-0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
 | RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |
-| RWA-0031, RWA-0032 | `trivy` 0.72.0 and `syft` 1.50.0, pinned, in CI and on `make audit` | Known vulnerabilities in third-party packages, and the bill of materials at `docs/dependencies.md` |
+| RWA-0031, RWA-0032 | `trivy` 0.72.0 and `syft` 1.50.0, pinned, in CI and on `make audit` — **off by default locally** | Known vulnerabilities in third-party packages, and the bill of materials at `docs/dependencies.md` |
 
 Fourteen rules and one dependency audit. That is the whole of it, and it is deliberate — a
 first release defends a small surface honestly rather than a large one badly. Every other
@@ -51,6 +51,25 @@ that blocks the vulnerability database still produces `docs/dependencies.md`; th
 then says a scan did not run, in those words, rather than showing an empty finding list
 that reads like a clean result.
 
+**It is also the one check that is off by default here.** `make setup` binds every other
+tool into `.venv/`, but `trivy` and `syft` are release binaries rather than packages, and
+the advisory database is about a gigabyte from a registry many corporate networks block —
+so whether the audit can run is a fact about your machine, and `make first-session` does
+not assume it. It prints `NOT RUN` with what that leaves unknown and the command that turns
+it on:
+
+```bash
+make setup-audit-tools && make setup-audit-dbs && make audit
+```
+
+Naming any of those is the opt-in, and `make first-session CHECK_MODE=full` attempts the
+audit inline. CI is unaffected — a runner has the architecture, the egress and the disk, so
+`.github/workflows/posture.yml` installs the scanners and downloads the database on every
+push. **Off by default is a statement about the machine, never about the risk:** until the
+audit runs, your dependency posture is unknown rather than clean, and
+`docs/security-report.md` says so under **Dependency posture**. The rule that decides which
+checks are treated this way is `agents/rules/ci-check-modes.md`.
+
 ## Where the toolchain is installed
 
 `make setup` installs the pinned tools into `.venv/` in this directory rather than into the
@@ -58,11 +77,12 @@ machine's Python. That is not a style preference: installing globally fails outr
 Debian and Ubuntu images, either because a distribution-managed package cannot be replaced
 or because pip refuses to touch an externally-managed environment, and both failures land
 on the first command of the first session where they are least interpretable. Every `make`
-target puts `.venv/bin` on `PATH` itself. To run the commands in
-`agents/running-the-checks.md` by hand, do it once per shell:
+target puts `.venv/bin` on `PATH` itself — and `.audit-cache/bin`, where the two audit
+binaries land, for the same reason. To run the commands in `agents/running-the-checks.md` by
+hand, do it once per shell:
 
 ```bash
-export PATH="$PWD/.venv/bin:$PATH"
+export PATH="$PWD/.venv/bin:$PWD/.audit-cache/bin:$PATH"
 ```
 
 `.venv/` is gitignored and disposable — the pins that decide its contents live in the

@@ -1223,3 +1223,91 @@ decisions:
         the five rows describe files the adopter inherits and still has, so the index is true
         on day one, and an empty table teaches the protocol less well than a populated one.
         Recorded as the accepted cost above rather than settled.
+
+  - id: 18
+    title: A check runs by default only if its tooling binds to .venv/
+    status: accepted
+    date: "2026-08-08"
+    context: >-
+      An adopter reported that the documented dependency-audit sequence fails when run
+      verbatim: agents/running-the-checks.md put `export PATH="$PWD/.audit-cache/bin:$PATH"`
+      after `make setup-audit-dbs`, but that target is trivy downloading trivy's own
+      database, so it exited 2 with "trivy is not installed" — advising the target the reader
+      had just run. The Makefile put .venv/bin on PATH for every recipe and had never done
+      the same for .audit-cache/bin.
+
+
+      Fixing the ordering exposed the larger question behind it. `make first-session` ran
+      `make audit || true`, and on a machine without the scanners — which is every machine
+      until someone runs two more targets, one of which pulls about a gigabyte — that is an
+      exit 2 discarded by `|| true`. The adopter saw a step that ran and a session that
+      continued, and was told nothing about their dependency posture being unmeasured. An
+      absent check and a clean check produced the same silence, which is the coverage lie
+      this repository exists to refuse, arriving through the door of a convenience.
+    decision:
+      the_venv_test_decides_the_mode: >-
+        A check is on by default when `make setup` can bind its tooling to .venv/. pip pins
+        semgrep, detect-secrets and pre-commit into the project's own environment, so those
+        run everywhere; doctor needs no install at all and passes trivially. A check whose
+        tool cannot be bound that way is environment-constrained and off by default. The test
+        is mechanical on purpose — the alternative criterion is how important the check is,
+        and importance is exactly the argument that keeps a constrained check switched on
+        until it fails on a third of the machines that adopt the template.
+      two_checks_qualify_today: >-
+        The dependency audit — trivy and syft are architecture-specific release binaries, and
+        the database is ~1 GB from a container registry that corporate and cloud networks
+        routinely block — and reproducing keyhog locally, a Rust binary installed by piping a
+        script to a shell. Both were already installed outside .venv/, which is what made the
+        classification a description rather than a new rule.
+      off_is_louder_than_the_swallowed_exit_code: >-
+        CHECK_MODE=default makes first-session print what did not run, what that leaves
+        unknown, and the one command that turns it on; docs/security-report.md states the
+        same under Dependency posture. This is the condition on the whole decision: an "off
+        by default" that reduced what the reader is told would be a weakening wearing a
+        design decision as a costume.
+      naming_the_target_is_the_opt_in: >-
+        `make audit` always runs when asked for. CHECK_MODE governs only whether the default
+        session attempts it, so nothing is unreachable and no second command has to be
+        learned to undo the default.
+      ci_is_unaffected: >-
+        A runner has the architecture, the egress and the disk, so posture.yml installs the
+        scanners and downloads the database as ordinary steps on every push. The reason for
+        the local default is the adopter's laptop and their employer's proxy, and neither is
+        a property of a runner.
+    consequences:
+      easier: >-
+        The documented sequence now works verbatim, because every make target sees
+        .audit-cache/bin the way it already saw .venv/bin. A first session on a restricted
+        network produces a plain statement about what is unknown instead of a discarded exit
+        code, and a new check has a one-answer test for where it belongs rather than a
+        judgement to re-argue.
+      harder: >-
+        A default session no longer produces docs/dependencies.md, so an adopter who never
+        opts in has no bill of materials either. That was already true in practice — the SBOM
+        needs syft, which the same two targets install — but it is now true by design and has
+        to be said rather than discovered.
+      accepted_cost: >-
+        Off by default is one more thing the adopter can leave undone, and a notice is a
+        weaker mechanism than a check that runs. The mitigation is that the notice states the
+        gap in the terms that matter to them — you do not know whether your dependencies
+        carry known vulnerabilities — rather than naming a target that failed.
+    alternatives_considered:
+      - >-
+        Fix only the ordering in agents/running-the-checks.md, as the report suggested. Correct
+        and insufficient: the same reader still meets `make audit` failing inside
+        first-session, and the prose fix leaves the Makefile inconsistent with itself about
+        which directories a recipe can see.
+      - >-
+        Put the two audit setup targets into `make setup`. Rejected on decision 13's ground:
+        a gigabyte downloaded during the first command of the first session, for a project
+        that may hold no dependency manifests at all.
+      - >-
+        Leave `make audit || true` in first-session and improve audit.py's message. Rejected:
+        the message was already reasonable and was never the problem. `|| true` discards the
+        exit code, so the run reads as a step that completed, and no wording inside a
+        discarded result changes what the session as a whole appears to have established.
+      - >-
+        Express the mode as an environment variable read by the scripts themselves, so it
+        applies outside make. Rejected as more surface for no gain here: a mode that can be
+        set invisibly in a shell is a verdict whose scope a reader cannot see, and the
+        constrained checks are all invoked through make targets today.

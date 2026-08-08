@@ -86,13 +86,28 @@ make first-session
 That installs the pinned toolchain and the commit hook, runs every check once over the
 whole tree, proves the rules catch the committed vulnerable examples
 (`.github/scripts/verify.py` — the receipt they can hand to IT, whose failures come with
-fixes), regenerates the report, then audits the dependencies and checks the environment.
+fixes), checks the environment, and regenerates the report.
 
-`make audit` and `make doctor` run last and cannot abort the session: a dependency with a
-CVE and an unset variable are facts about the world, not reasons to stop setting up. The
-audit needs `make setup-audit-tools` and `make setup-audit-dbs` first, and until they have
-run it says so rather than reporting a clean tree. Both are worth doing now — the database
-is about a gigabyte, so say that before running it.
+`make doctor` runs last and cannot abort the session: an unset variable is a fact about the
+world, not a reason to stop setting up.
+
+**The dependency audit does not run, and you have to tell them so.** It is
+*environment-constrained* — `trivy` and `syft` are release binaries that cannot be installed
+into `.venv/` alongside everything else, and the advisory database is about a gigabyte over
+a network many employers block — so it is off by default. The session prints `NOT RUN` and
+the command that turns it on. **Relay that as a gap in what they know, not as a step that
+was skipped:** they have no information about whether the packages they depend on carry
+known vulnerabilities, which is not the same as knowing they carry none.
+
+It is worth doing now, and it is one command once per machine:
+
+```bash
+make setup-audit-tools && make setup-audit-dbs && make audit
+```
+
+Say the gigabyte before running it. The full taxonomy — which checks are constrained and
+why the `.venv/` test decides it — is under **Check modes** in
+[`agents/running-the-checks.md`](agents/running-the-checks.md).
 
 **If the database download fails, that is not the end of the audit.** Some corporate and
 cloud networks block the registry it comes from. The audit still produces the bill of
@@ -242,6 +257,10 @@ discover at the worst moment:
   not a finding and not a clean bill of health either. `make audit` names every ecosystem
   it did not scan, and `make doctor` says so outright when a project declares no
   environment requirements.
+- **A check that is off by default has measured nothing.** The dependency audit is
+  environment-constrained and does not run unless they turn it on, so until they do, their
+  dependency posture is *unknown* rather than clean. Same distinction as `not applicable`,
+  and it is the one most likely to be misread as good news.
 - **A clean codebase on a vulnerable dependency is not secure.** The report keeps
   **Dependency posture** separate from code findings for exactly that reason. Tell them
   what `make audit` found in the same breath as the rest.
@@ -255,20 +274,30 @@ its flags, its exit codes and what it covers. **That file is canonical and this 
 an index** — a command listed in four files is a command corrected in four files, so nothing
 here restates a flag. Read it when you need to run anything not in this table.
 
-| Target | What it does | Needs the network? |
-| :--- | :--- | :--- |
-| `make first-session` | All of the below, in order | Yes, via `setup` |
-| `make setup` | Install the pinned toolchain | Yes — the only one that does |
-| `make hook` | Install the commit hook | No |
-| `make check` | Every commit-time check, over the whole tree | No |
-| `make verify` | Prove the rules catch their committed examples | No |
-| `make audit` | Scan dependencies, write the bill of materials | No, after its two setup targets |
-| `make doctor` | Compare the declared environment to the real one | No |
-| `make report` | Regenerate `docs/security-report.md` | No |
+| Target | What it does | Needs the network? | On by default? |
+| :--- | :--- | :--- | :--- |
+| `make first-session` | Every default-mode target below, in order | Yes, via `setup` | — |
+| `make setup` | Install the pinned toolchain into `.venv/` | Yes — the only check-time one that does | Yes |
+| `make hook` | Install the commit hook | No | Yes |
+| `make check` | Every commit-time check, over the whole tree | No | Yes |
+| `make verify` | Prove the rules catch their committed examples | No | Yes |
+| `make doctor` | Compare the declared environment to the real one | No | Yes |
+| `make report` | Regenerate `docs/security-report.md` | No | Yes |
+| `make audit` | Scan dependencies, write the bill of materials | No, after its two setup targets | **No** — environment-constrained |
 
 The `Makefile` wraps that page and adds no command of its own. **`make check` is the whole
 suite — there is no `make test` and no `make lint`**, and guessing at one is how a session
 ends up reporting a target it never ran.
+
+**Check modes.** A check is on by default when `make setup` can bind its tooling to
+`.venv/`. The dependency audit cannot — `trivy` and `syft` are release binaries — so it is
+off by default and `make first-session` reports it as `NOT RUN` with the command that turns
+it on. `make first-session CHECK_MODE=full` attempts it inline; running `make audit` by name
+always works. **Off by default is a statement about the machine, never about the risk**, and
+a check that is off has measured nothing rather than found nothing. The full taxonomy is
+under **Check modes** in [`agents/running-the-checks.md`](agents/running-the-checks.md), and
+the rule that decides it is
+[`agents/rules/ci-check-modes.md`](agents/rules/ci-check-modes.md).
 
 **Tests.** The rule fixtures are in [`controls/tests/`](controls/tests/), a floor of three
 vulnerable and one safe case per rule so an untested rule cannot pass silently, and
@@ -295,6 +324,10 @@ out of the way. What still holds:
   or a bare major tag.
 - Report `not applicable` distinctly from a pass. **Never fail a project for lacking
   subject matter it was never going to have.**
+- Decide a new check's mode by whether `make setup` can bind its tooling to `.venv/`. If it
+  can, the check is on by default; if it needs a release binary, a large download or a
+  network many employers block, it is off by default and must say what it left unmeasured.
+  The rule is [`agents/rules/ci-check-modes.md`](agents/rules/ci-check-modes.md).
 - Add a `STEAL:` marker's row to `.steal/manifest.md` in the same commit — the protocol is
   [`.steal/curation.md`](.steal/curation.md), and a self-check fails on a blessed file with
   no row. Skip this if the reuse layer was removed in step 5.

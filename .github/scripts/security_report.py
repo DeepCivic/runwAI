@@ -254,8 +254,23 @@ def build(root: Path, findings: list[dict], notes: list[str], scope: str,
         add(
             "**No dependency audit output was supplied to this run.** Nothing here has "
             "looked at the third-party packages this project depends on, which is not the "
-            "same as finding none. Run `make setup-audit-dbs` once, then `make audit`."
+            "same as finding none."
         )
+        add("")
+        # The usual reason is not breakage: the audit is environment-constrained and off by
+        # default locally, so this is the state an ordinary first session reaches. Naming
+        # that keeps the sentence above from reading as a fault the reader has to diagnose,
+        # and gives them the whole opt-in rather than the one target that needs the other
+        # two to have run first.
+        add(
+            "The dependency audit is off by default because its scanners are release "
+            "binaries that cannot be installed into `.venv/` with the rest of the "
+            "toolchain. Turn it on once per machine:"
+        )
+        add("")
+        add("```bash")
+        add("make setup-audit-tools && make setup-audit-dbs && make audit")
+        add("```")
     else:
         ecosystems = audit.get("ecosystems") or []
         audited = [e["name"] for e in ecosystems if e.get("status") == "audited"]
