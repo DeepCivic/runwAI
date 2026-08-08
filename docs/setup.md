@@ -46,6 +46,30 @@ the report to say so. It runs in CI and on demand, never on the commit hook, and
 offline against a downloaded database snapshot whose date the report records — so the
 same lockfiles and the same snapshot always give the same verdict.
 
+Its two halves fail independently. The bill of materials needs `syft` alone, so a network
+that blocks the vulnerability database still produces `docs/dependencies.md`; the report
+then says a scan did not run, in those words, rather than showing an empty finding list
+that reads like a clean result.
+
+## Where the toolchain is installed
+
+`make setup` installs the pinned tools into `.venv/` in this directory rather than into the
+machine's Python. That is not a style preference: installing globally fails outright on
+Debian and Ubuntu images, either because a distribution-managed package cannot be replaced
+or because pip refuses to touch an externally-managed environment, and both failures land
+on the first command of the first session where they are least interpretable. Every `make`
+target puts `.venv/bin` on `PATH` itself. To run the commands in
+`agents/running-the-checks.md` by hand, do it once per shell:
+
+```bash
+export PATH="$PWD/.venv/bin:$PATH"
+```
+
+`.venv/` is gitignored and disposable — the pins that decide its contents live in the
+`Makefile`. Deleting it breaks the installed commit hook until `make setup && make hook`
+runs again. The targets still work with no venv at all, which is how CI runs them with its
+pins installed globally.
+
 `make doctor` sits beside them and is **not** a control. It compares the environment this
 project declares to the one it is running in; that is a reproducibility check, not a
 security one, so it is deliberately absent from `controls/registry.yaml`. Putting it there

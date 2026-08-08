@@ -7,3 +7,9 @@
 # the Dependency posture section of docs/security-report.md, which records the snapshot
 # date so a verdict can still be traced to the database that produced it.
 .audit-cache/
+
+# The pinned toolchain, installed by `make setup`. Not committed for the same reasons: it
+# is a rebuildable input rather than a source file, it holds third-party code, and one
+# command recreates it. The pins that decide its contents are in the Makefile, which is
+# committed — so the environment is disposable and the versions are not.
+.venv/

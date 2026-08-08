@@ -15,6 +15,27 @@
 
 PYTHON ?= python3
 
+# The toolchain installs into a project-local virtual environment rather than into the
+# machine's Python. Two separate failures made `make setup` — the first command of the
+# first session — die on the Linux images most adopters actually run:
+#
+#   * a distro-installed package pip cannot replace, because apt's copy carries no RECORD
+#     file ("Cannot uninstall PyYAML 6.0.1"); and
+#   * PEP 668's externally-managed marker, which refuses the install outright wherever
+#     `python3` is the distribution's own.
+#
+# Neither message is one a non-technical user can act on, and the usual workaround —
+# `--break-system-packages`, or dropping the version pin to get past it — un-pins a
+# scanner and takes the determinism guarantee with it. A venv fixes both, and nothing
+# outside this directory is touched.
+#
+# .venv/bin goes on PATH for every recipe rather than being spelled out per target,
+# because verify.py locates its scanners with shutil.which rather than through $(PYTHON).
+# Prepending a directory that does not exist is a no-op, so this stays correct in CI,
+# which installs its pins globally and never runs `make setup`.
+VENV ?= .venv
+export PATH := $(CURDIR)/$(VENV)/bin:$(PATH)
+
 # The dependency scanners ship as release binaries rather than packages, so the pin has
 # to name a version, a platform and a checksum. Pinning to the tag alone would trust
 # whatever the release assets are today; the checksum is what makes the install
@@ -53,8 +74,24 @@ first-session: setup hook check verify
 	@$(MAKE) --no-print-directory doctor || true
 	@$(MAKE) --no-print-directory report
 
-setup: ## Install the pinned toolchain (the one step that needs the network)
-	$(PYTHON) -m pip install pre-commit==4.6.1 semgrep==1.171.0 detect-secrets==1.5.0 pyyaml==6.0.3
+setup: ## Install the pinned toolchain into .venv/ (the one step that needs the network)
+	@set -eu; \
+	if [ ! -x "$(VENV)/bin/python" ]; then \
+	  "$(PYTHON)" -m venv "$(VENV)" || { \
+	    echo ""; \
+	    echo "Could not create the $(VENV)/ environment."; \
+	    echo "On Debian and Ubuntu the venv module is packaged separately from Python."; \
+	    echo "Install it, then run 'make setup' again:"; \
+	    echo "    sudo apt install python3-venv"; \
+	    exit 2; \
+	  }; \
+	fi; \
+	"$(VENV)/bin/python" -m pip install \
+	  pre-commit==4.6.1 semgrep==1.171.0 detect-secrets==1.5.0 pyyaml==6.0.3
+	@echo ""
+	@echo "Toolchain installed in $(VENV)/. Every make target finds it without being told."
+	@echo "To run the commands in agents/running-the-checks.md by hand, put it on PATH once:"
+	@echo "    export PATH=\"\$$PWD/$(VENV)/bin:\$$PATH\""
 
 hook: ## Install the commit hook — the only thing here that ever stops an action
 	pre-commit install

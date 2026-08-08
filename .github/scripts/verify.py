@@ -170,7 +170,13 @@ def main() -> int:
     total_ok = sum(c["ok"] for c in rules.values())
 
     if shutil.which("semgrep") is None:
-        missing.append(f"semgrep: pip install semgrep=={pins.get('semgrep', '<pinned>')}")
+        # `make setup` rather than a bare pip install: it installs the pin into .venv/,
+        # which is the only form that works on a distro-managed Python. A remedy line that
+        # fails when followed is worse than none — it teaches the reader the check is broken.
+        missing.append(
+            f"semgrep: make setup  (installs semgrep=={pins.get('semgrep', '<pinned>')}), "
+            'then: export PATH="$PWD/.venv/bin:$PATH"'
+        )
         out += ["Rule receipts:", "  COULD NOT RUN  semgrep is not installed", ""]
     else:
         version = run(["semgrep", "--version"], root)[1].strip().splitlines()[-1]
@@ -228,7 +234,9 @@ def main() -> int:
         out.append(f"  PASS  {detail}")
     elif verdict == "missing":
         missing.append(
-            f"detect-secrets: pip install detect-secrets=={pins.get('detect-secrets', '<pinned>')}"
+            f"detect-secrets: make setup  (installs "
+            f"detect-secrets=={pins.get('detect-secrets', '<pinned>')}), "
+            'then: export PATH="$PWD/.venv/bin:$PATH"'
         )
         out.append(f"  COULD NOT RUN  {detail}")
     else:
@@ -246,7 +254,7 @@ def main() -> int:
             failed.append("commit hook")
             out.append(
                 "  FAIL  not installed — nothing will run when you commit.\n"
-                "        Install it: pip install pre-commit==4.6.1 && pre-commit install"
+                "        Install it: make setup && make hook"
             )
         out.append("")
 

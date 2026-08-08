@@ -38,7 +38,9 @@ So you can tell whether your agent actually did it. It should, without further p
 2. Run `make first-session` — install the commit hook, run every check once over
    everything, and prove the checks catch what they claim
 3. Ask what you are building, then delete the root configs you do not need
-4. Offer to delete `.runwai/`, the maintainers' directory, and prune what refers to it
+4. Offer to delete `.runwai/`, the maintainers' directory, and prune what refers to it —
+   including telling you, before deleting, that some of the rules it ships stop being
+   mechanically enforced when it goes
 5. **Ask whether you want other people to be able to reuse pieces of this**, and keep or
    remove `STEAL.md` and `.steal/` on your answer — not on its own guess
 6. Record what it did in [`docs/setup.md`](docs/setup.md)
@@ -71,6 +73,11 @@ and deterministic — no network, no clock dependence, no model. Three targets t
 network and they are the only ones: `make setup`, and `make setup-audit-tools` and
 `make setup-audit-dbs`, which fetch the pinned dependency scanners and the vulnerability
 database the audit then runs against offline.
+
+`make setup` installs into a `.venv/` folder inside the project rather than into your
+machine's Python, so setting this up changes nothing else on your computer and every
+`make` target finds it without being told. To run the underlying commands by hand, put it
+on your `PATH` once per shell with `export PATH="$PWD/.venv/bin:$PATH"`.
 
 </details>
 
