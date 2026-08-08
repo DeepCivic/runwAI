@@ -398,8 +398,12 @@ def main() -> int:
     # It is written on every path below, including "nothing to scan": a committed bill of
     # materials still listing packages from a directory somebody deleted is worse than an
     # empty one, because it is confidently wrong rather than visibly empty.
+    # Written only when syft actually produced a result. An empty package list from a
+    # working syft is a fact and gets written; an empty list from a syft that failed is the
+    # absence of a fact, and overwriting a committed bill of materials with it would
+    # destroy a good artefact on a transient scanner error.
     packages, sbom_problems = sbom(root, cache)
-    if have_syft:
+    if not sbom_problems:
         write_sbom_markdown(sbom_md, packages, result["syft_version"] or "unavailable")
     result["packages"] = len(packages)
     result["problems"] = list(sbom_problems)

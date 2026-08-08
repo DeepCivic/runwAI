@@ -84,8 +84,8 @@ id_10:
        adopter-facing/maintainer-facing line is drawn at what each tool reads"
     - "validate_registry.py, ism.py and validate_helpers.py run from .github/scripts/, and
        every invocation moves with them: .pre-commit-config.yaml, posture.yml, the Makefile,
-       agents/running-the-checks.md, the six agents/rules/ files that cite them as
-       'Enforced by:', MAINTAINERS.md and .claude/commands/"
+       agents/running-the-checks.md, the six files under agents/rules/ that cite them as
+       'Enforced by:' (five rules plus _template.md), MAINTAINERS.md and .claude/commands/"
     - "Deleting .runwai/ leaves a tree where `make check` passes with no edits to any tool —
        validate_helpers reports the absent decisions log and provenance page as a completed
        deletion rather than an error"

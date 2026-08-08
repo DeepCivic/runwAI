@@ -26,11 +26,12 @@ the one case that needs saying so once per shell:
 export PATH="$PWD/.venv/bin:$PATH"          # or: source .venv/bin/activate
 ```
 
-Without it, `python3 .github/scripts/security_report.py` runs against whatever Python is
-on the machine and fails on a missing `pyyaml` — the environment is the thing that carries
-the pins. Two consequences worth knowing: deleting `.venv/` breaks the installed commit
-hook until `make setup && make hook` runs again, and `make` still works without a venv at
-all, which is how CI runs these targets with its pins installed globally.
+Without it these commands run against whatever Python is on the machine, which carries
+whichever versions that machine happens to have rather than the pinned ones — and for the
+scanners, usually nothing at all. Two consequences worth knowing: deleting `.venv/` breaks
+the installed commit hook until `make setup && make hook` runs again, and the `make`
+targets still work with no venv present, which is how CI runs them with its pins installed
+globally.
 
 The self-checks additionally need `pyyaml==6.0.3` and `jsonschema==4.26.0`; `pre-commit`
 installs both into its own hook environments, so the hook needs nothing extra.
