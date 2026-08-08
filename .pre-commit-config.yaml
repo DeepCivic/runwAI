@@ -7,7 +7,12 @@
 # Every hook pins an exact version. An unpinned scanner is a non-deterministic
 # control: its ruleset can change under you and silently alter verdicts.
 #
-# Install:  pip install pre-commit==4.6.1 && pre-commit install
+# Install:  make setup && make hook
+#
+# `make setup` installs pre-commit==4.6.1 into .venv/ rather than into the machine's
+# Python. Installing it globally fails on the Linux images most adopters run — see the
+# comment above `VENV` in the Makefile — and the failure lands on the first command of
+# the first session, where it is least interpretable.
 minimum_pre_commit_version: "4.0.0"
 
 repos:

@@ -14,11 +14,27 @@ depends on the clock or the network — that is a property of the design, not a 
 ## Setup
 
 ```bash
-pip install pre-commit==4.6.1
-pre-commit install
+make setup                                  # the pinned toolchain, into .venv/
+make hook                                   # pre-commit install
 ```
 
-The self-checks additionally need `pyyaml==6.0.3` and `jsonschema==4.26.0`.
+**The toolchain installs into `.venv/`, not into the machine's Python**, and every `make`
+target puts `.venv/bin` on `PATH` for you. Running the commands on this page by hand is
+the one case that needs saying so once per shell:
+
+```bash
+export PATH="$PWD/.venv/bin:$PATH"          # or: source .venv/bin/activate
+```
+
+Without it these commands run against whatever Python is on the machine, which carries
+whichever versions that machine happens to have rather than the pinned ones — and for the
+scanners, usually nothing at all. Two consequences worth knowing: deleting `.venv/` breaks
+the installed commit hook until `make setup && make hook` runs again, and the `make`
+targets still work with no venv present, which is how CI runs them with its pins installed
+globally.
+
+The self-checks additionally need `pyyaml==6.0.3` and `jsonschema==4.26.0`; `pre-commit`
+installs both into its own hook environments, so the hook needs nothing extra.
 
 The adopter-facing steps are also `Makefile` targets — `make first-session`, or `setup`,
 `hook`, `check`, `verify`, `audit`, `doctor` and `report` individually. The Makefile wraps
@@ -129,9 +145,13 @@ then pass it to the action's `baseline` input.
 ## The verification receipts
 
 ```bash
-pip install semgrep==1.171.0 detect-secrets==1.5.0    # the pinned scanners it drives
+make setup                                            # the pinned scanners it drives
 python3 .github/scripts/verify.py                     # prove the checks catch what they claim
 ```
+
+It finds `semgrep` and `detect-secrets-hook` on `PATH` rather than importing them, which is
+why the `export PATH` line under **Setup** matters here specifically: without it the
+receipts report `COULD NOT RUN` for scanners that are installed a directory away.
 
 Adopter-facing, stdlib-only, offline. Runs every active rule against the committed
 fixtures in both directions, twice (identical verdicts required); asserts the fixture
@@ -158,6 +178,13 @@ Writes `docs/dependencies.md` (the bill of materials, committed and timestamp-fr
 `.audit-cache/audit.json` (the result the security report reads). Exit codes follow the
 house convention above: `0` clean **or nothing to audit**, `1` known vulnerabilities, `2`
 a scanner or the database is missing.
+
+**The two legs fail independently.** The bill of materials needs `syft` and nothing else —
+no database, no network — so a machine that cannot download the database still writes
+`docs/dependencies.md` and reports `NO VULNERABILITY SCAN` for the other half. The result
+JSON carries a `scan` field (`ran`, `not applicable`, `could not run`) so the report states
+which happened instead of inferring it from an empty finding list, which looks identical to
+a clean one.
 
 An ecosystem with no manifest in the tree reports `not applicable` by name, never as a
 pass. **This is not on the commit hook and must not be put there** — a CVE published

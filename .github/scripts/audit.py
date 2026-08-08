@@ -30,6 +30,11 @@ WHAT IT WILL NOT DO
     not nothing wrong.
   * Guess when it cannot run. A missing scanner or a missing database exits 2 and says what
     to install or which target to run, rather than reporting a clean tree.
+  * Lose one control to the other's failure. The two legs are independent: the bill of
+    materials (RWA-0032) needs syft alone, the vulnerability scan (RWA-0031) needs trivy
+    and the database. A network that blocks the database still produces the SBOM, and the
+    `scan` field in the JSON records which of the two actually ran, so a scan that never
+    happened cannot read as a clean one.
 
 Stdlib only; shells out to the pinned scanners. Their versions live in the Makefile, which
 is where the install happens, so there is one source of truth for the pins.
@@ -315,15 +320,29 @@ def main() -> int:
     out_json = args.out or (cache / "audit.json")
     sbom_md = args.sbom or (root / "docs" / "dependencies.md")
 
-    if shutil.which("trivy") is None:
+    # The two scanners are checked separately because they answer separate questions and
+    # fail for separate reasons. Requiring trivy before syft would run meant a machine that
+    # can reach GitHub's releases but not the database registry produced neither the scan
+    # nor the bill of materials, when only the scan depends on the registry.
+    have_trivy = shutil.which("trivy") is not None
+    have_syft = shutil.which("syft") is not None
+
+    if not have_trivy and not have_syft:
         print(
-            "COULD NOT RUN: trivy is not installed.\n"
-            "  Install the pinned version with: make setup-audit-tools",
+            "COULD NOT RUN: neither trivy nor syft is installed.\n"
+            "  Install the pinned versions with: make setup-audit-tools",
             file=sys.stderr,
         )
         return 2
 
     if args.setup:
+        if not have_trivy:
+            print(
+                "COULD NOT RUN: trivy is not installed, and the database is trivy's.\n"
+                "  Install the pinned versions with: make setup-audit-tools",
+                file=sys.stderr,
+            )
+            return 2
         cache.mkdir(parents=True, exist_ok=True)
         code, out = run(["trivy", "fs", "--download-db-only", "--cache-dir", str(cache)], root)
         if code != 0:
@@ -341,8 +360,13 @@ def main() -> int:
     snapshot = db_snapshot(cache)
     result = {
         "database": snapshot,
-        "trivy_version": tool_version("trivy", root),
-        "syft_version": tool_version("syft", root) if shutil.which("syft") else None,
+        "trivy_version": tool_version("trivy", root) if have_trivy else None,
+        "syft_version": tool_version("syft", root) if have_syft else None,
+        # Recorded rather than inferred. The report used to decide "no known
+        # vulnerabilities" from an empty findings list, which reads identically whether the
+        # scan ran and found nothing or never ran at all — the exact coverage lie this
+        # repository exists to refuse. One field removes the ambiguity for every reader.
+        "scan": "could not run",
         "ecosystems": [
             {
                 "name": eco,
@@ -363,15 +387,52 @@ def main() -> int:
         print("\n".join(lines))
         return code
 
+    # --- the bill of materials, produced before and independently of the scan ----------
+    #
+    # RWA-0032 is "generate an SBOM and publish it to consumers". It needs syft and nothing
+    # else — no vulnerability database, no network, no trivy — so it is produced first and
+    # its failure is recorded separately. This used to run only after the database check
+    # had passed, which meant a host that blocks the database download cost both controls
+    # when it should only ever have cost RWA-0031.
+    #
+    # It is written on every path below, including "nothing to scan": a committed bill of
+    # materials still listing packages from a directory somebody deleted is worse than an
+    # empty one, because it is confidently wrong rather than visibly empty.
+    # Written only when syft actually produced a result. An empty package list from a
+    # working syft is a fact and gets written; an empty list from a syft that failed is the
+    # absence of a fact, and overwriting a committed bill of materials with it would
+    # destroy a good artefact on a transient scanner error.
+    packages, sbom_problems = sbom(root, cache)
+    if not sbom_problems:
+        write_sbom_markdown(sbom_md, packages, result["syft_version"] or "unavailable")
+    result["packages"] = len(packages)
+    result["problems"] = list(sbom_problems)
+
+    def sbom_lines() -> list[str]:
+        if sbom_problems:
+            return [f"  {p}" for p in sbom_problems]
+        return [f"  Bill of materials: {len(packages)} packages written to {sbom_md}."]
+
     if not applicable:
         # Not a pass. Nothing was audited because there was nothing to audit, and the two
         # have to read differently or the report is describing a check that never ran.
+        result["scan"] = "not applicable"
         return emit(0, [
             "Dependency audit: NOT APPLICABLE.",
             f"  No dependency manifest was found for any of the {len(ECOSYSTEMS)} "
             "ecosystems this audit covers,",
             "  so nothing was scanned. That is not the same as a clean scan.",
+            *sbom_lines(),
             f"  Wrote {out_json}.",
+        ])
+
+    if not have_trivy:
+        result["problems"].append("trivy is not installed, so no vulnerability scan ran")
+        return emit(2, [
+            "Dependency audit: NO VULNERABILITY SCAN.",
+            "  trivy is not installed, so nothing was compared against the advisories.",
+            "  Install the pinned scanners with: make setup-audit-tools",
+            *sbom_lines(),
         ])
 
     if snapshot is None:
@@ -379,20 +440,18 @@ def main() -> int:
             "the vulnerability database is absent, so no scan ran"
         )
         return emit(2, [
-            "Dependency audit: COULD NOT RUN.",
+            "Dependency audit: NO VULNERABILITY SCAN.",
             f"  No vulnerability database in {cache.name}/, and this audit never fetches "
             "one mid-scan —",
             "  the database is a pinned input, not an ambient service.",
             "  Download it once with: make setup-audit-dbs",
+            *sbom_lines(),
         ])
 
     findings, problems = scan(root, cache)
-    packages, sbom_problems = sbom(root, cache)
     result["findings"] = findings
-    result["packages"] = len(packages)
     result["problems"] = problems + sbom_problems
-
-    write_sbom_markdown(sbom_md, packages, result["syft_version"] or "unavailable")
+    result["scan"] = "could not run" if problems else "ran"
 
     lines: list[str] = []
     audited = ", ".join(sorted(applicable))
@@ -430,10 +489,7 @@ def main() -> int:
     lines.append(f"  Audited: {audited}. Not applicable: {', '.join(skipped) or 'none'}.")
     lines.append(f"  Database snapshot {snapshot.get('updated_at', 'unknown')}, "
                  f"trivy {result['trivy_version']}.")
-    if sbom_problems:
-        lines += [f"  {p}" for p in sbom_problems]
-    else:
-        lines.append(f"  {len(packages)} packages written to {sbom_md}.")
+    lines += sbom_lines()
     lines.append("  This audit reports. It is not on the commit hook and blocks nothing.")
     return emit(code, lines)
 

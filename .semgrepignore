@@ -26,6 +26,12 @@ controls/ism-index.json
 # would otherwise try to read all of it.
 .audit-cache/
 
+# The toolchain `make setup` installs. Gitignored, so semgrep already skips it — named
+# here for the same reason .audit-cache/ is, because a run with --no-git-ignore would
+# otherwise scan several thousand files of third-party code and report on scanners rather
+# than on this repository.
+.venv/
+
 # .runwai/ holds runwAI's own development record — backlog, decisions, provenance. That
 # is documentation about building the template, not code shipped by it.
 #

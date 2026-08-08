@@ -269,11 +269,27 @@ def build(root: Path, findings: list[dict], notes: list[str], scope: str,
                 add(f"> ⚠️ The dependency audit reported: {problem}")
             add("")
 
+        # "ran" | "not applicable" | "could not run", recorded by audit.py rather than
+        # inferred here. An empty findings list reads identically whether the scan ran and
+        # found nothing or never ran at all, and this section resolving that ambiguity the
+        # optimistic way is exactly the flattering document this report refuses to be.
+        # Older output without the field falls back to the problems list.
+        scan_state = audit.get("scan") or ("could not run" if problems else "ran")
+
         if not audited:
             add(
                 "**Not applicable.** No dependency manifest was found for any ecosystem "
                 "this audit covers, so nothing was scanned. A check with no subject "
                 "matter has found nothing, which is not the same as finding nothing wrong."
+            )
+        elif scan_state != "ran":
+            add(
+                f"**No vulnerability scan ran.** {len(audited)} "
+                f"{'ecosystem has' if len(audited) == 1 else 'ecosystems have'} manifests "
+                f"here ({', '.join(audited)}) and none of them was compared against the "
+                "advisories, for the reason given above. **This is not a clean result — "
+                "it is no result.** Nothing in this section says whether these dependencies "
+                "carry known vulnerabilities."
             )
         elif not dep_findings:
             add(
@@ -312,14 +328,36 @@ def build(root: Path, findings: list[dict], notes: list[str], scope: str,
                 "found, so they were not scanned and are not a pass."
             )
             add("")
-        add(
-            f"Scanned with trivy {audit.get('trivy_version', 'unknown')} against a "
-            f"vulnerability database snapshot of {db.get('updated_at') or 'unknown'}. "
-            "The database is a pinned input rather than a live service, so the same "
-            "lockfiles and the same snapshot always yield this same verdict — and when a "
-            "verdict changes, the snapshot date says whether the code or the advisories "
-            "moved. The bill of materials is `docs/dependencies.md`."
-        )
+        if scan_state == "ran":
+            add(
+                f"Scanned with trivy {audit.get('trivy_version', 'unknown')} against a "
+                f"vulnerability database snapshot of {db.get('updated_at') or 'unknown'}. "
+                "The database is a pinned input rather than a live service, so the same "
+                "lockfiles and the same snapshot always yield this same verdict — and when "
+                "a verdict changes, the snapshot date says whether the code or the "
+                "advisories moved."
+            )
+        else:
+            # The SBOM and the scan fail independently, so this says which one you have.
+            # Claiming a snapshot date for a scan that did not happen would attach a
+            # provenance trail to a verdict that was never reached.
+            add(
+                "No database snapshot is recorded, because no scan was run against one."
+            )
+        add("")
+        packages = audit.get("packages", 0)
+        if packages:
+            add(
+                f"The bill of materials is `docs/dependencies.md`: {packages} packages, "
+                "produced by syft, which needs neither the database nor the network. It is "
+                "generated independently of the scan above, so it is present even when the "
+                "scan could not run — an inventory of what is here, not a claim about it."
+            )
+        else:
+            add(
+                "No bill of materials was produced. `docs/dependencies.md`, if it is "
+                "present, describes an earlier run rather than this one."
+            )
         add("")
         add(
             "**A dependency audit reports and blocks nothing.** It is not on the commit "

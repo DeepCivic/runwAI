@@ -38,8 +38,21 @@ non-technical. They will not know that `biome.json` at the root is theirs to edi
 delete, that a check can be irrelevant to them, or that a passing build is not compliance —
 so **they cannot prompt you to check those things. Doing it unprompted is your job.**
 
-Three obligations follow, and they outrank convenience:
+Four obligations follow, and they outrank convenience:
 
+- **Put it to them as a decision, not as a diagnosis.** Default to the register a product
+  owner works in: what the choice costs, what it buys, what happens if they do nothing, and
+  which option you would take and why. A tool name, a rule ID or a config key is the
+  evidence for a recommendation, never the recommendation itself — "your dependency scanner
+  could not reach its database, so you have a list of what you depend on but no idea whether
+  any of it is vulnerable; the fix is one command on a network that allows it" is the same
+  fact as an exit code, in a form they can act on.
+
+  **This is about register, never about withholding.** Give them the full technical detail
+  the moment they ask for it, and never round a risk down to keep the summary tidy — a
+  simplification that costs them an accurate belief about their security posture is the
+  failure this whole repository is built to refuse. If plain language and precision genuinely
+  conflict, choose precision and then explain it.
 - **Volunteer the security implication, in plain language, without being asked.** If a
   change touches authentication, secrets, user data, network exposure or a dependency, say
   so in a sentence they can act on. Never make understanding the consequence depend on them
@@ -81,6 +94,13 @@ audit needs `make setup-audit-tools` and `make setup-audit-dbs` first, and until
 run it says so rather than reporting a clean tree. Both are worth doing now — the database
 is about a gigabyte, so say that before running it.
 
+**If the database download fails, that is not the end of the audit.** Some corporate and
+cloud networks block the registry it comes from. The audit still produces the bill of
+materials — that half needs no database and no network — and reports plainly that no
+vulnerability scan ran. Relay both halves: they have an inventory of their dependencies,
+and they do not yet know whether any of them carries a known vulnerability. Do not let the
+second sentence go unsaid because the first one sounds like success.
+
 The first full run may fail on files the template ships. Read the failure and fix or
 explain it — never tell them to re-run with `--no-verify`. Then relay `verify.py`'s verdict
 in a sentence.
@@ -103,6 +123,21 @@ remove its row from the toolchain table in `README.md`, and remove its entry fro
 on purpose. `validate_helpers.py` fails on any of the three left behind — a documented file
 that is not there is exactly the confident-index failure it exists to catch.
 
+**Two of those three configs are JavaScript tools, and that is an accident of the template
+rather than a description of their project.** Once you know what they are building, say
+which of the fourteen rules will actually fire on their code, because "a few classes of
+injection" means different things to different projects:
+
+| If they are building | The rules that will earn their keep |
+| :--- | :--- |
+| A Python or ML project | **Pickle-backed model loading** — `torch.load` without `weights_only=True`, and `joblib.load` — plus `pickle.load` and `yaml.load` without `SafeLoader`. A model file is executable code in these formats: loading a checkpoint someone else produced runs whatever they put in it |
+| A web application or API | SQL built by string concatenation, shell commands built from request data, and paths joined from user input without resolution |
+| Anything that calls a model | The above, and the guardrails in [`agents/knowledge/llm-security-guardrails.md`](agents/knowledge/llm-security-guardrails.md) |
+
+Say this unprompted. Someone shipping a model-training pipeline will not think to ask
+whether loading a checkpoint is a security question, and it is the one this repository is
+best placed to answer for them.
+
 **4. Offer to delete `.runwai/`.** It is the template's own record — the maintainer guide,
 backlog, decisions, provenance, pinning status, and the social preview card for a
 repository that is no longer this one — and it is about building runwAI, not about building
@@ -110,12 +145,45 @@ with it. Nothing in their project depends on it. **Do not read it in this mode, 
 cite it to the user:** runwAI's outstanding work is not their backlog and its decisions are
 not theirs.
 
-**If you delete it, prune what calls into it in the same commit** — the five hooks in
-`.pre-commit-config.yaml` whose entry begins `python3 .runwai/tools/`, and the `selfcheck`
-and `python-sast` jobs in `.github/workflows/posture.yml`. Those validate runwAI's own
-structure, so removing them loses the user nothing, and the self-check readout
-`.runwai/docs/report.md` goes with the directory itself. Leaving the hooks behind gives the
-user a check that fails on a directory that is gone.
+**If you delete it, prune what calls into it in the same commit.** Leaving any of these
+behind gives the user a check that fails on a directory that is gone — and the list is
+longer than the hooks, so work through all five:
+
+1. **The five hooks in `.pre-commit-config.yaml`** whose entry begins
+   `python3 .runwai/tools/`.
+2. **The `selfcheck` job in `.github/workflows/posture.yml`.** It validates runwAI's own
+   structure, so removing it loses the user nothing.
+3. **The `Regenerate the ISM semantic index` step inside the `security-report` job**, which
+   calls `.runwai/tools/ism.py`. This one is easy to miss and expensive to miss: it sits in
+   the middle of the job that produces the report, so leaving it behind breaks the artefact
+   this repository exists to produce.
+4. **`python-sast` needs retargeting, not deleting.** It runs
+   `bandit -r .runwai/tools/ .github/scripts/ -ll`, and the second path survives the
+   deletion — that is real coverage of Python the user keeps, and it is where their own
+   Python most likely lands. Drop the first path and leave the job.
+5. **Regenerate `docs/dependencies.md` with `make audit`.** Every npm row in it comes from
+   `.runwai/social-preview/`, so after the deletion the committed bill of materials
+   describes packages that are no longer here. If the audit cannot run on their machine,
+   say so rather than leaving a file that is confidently wrong.
+
+The self-check readout `.runwai/docs/report.md` goes with the directory itself and needs
+nothing further.
+
+**Then sweep the links by hand, because nothing is left to sweep them for you.** The
+deletion breaks roughly twenty Markdown links from files the user keeps — `agents/rules/`,
+`agents/knowledge-base.md`, `docs/architecture.md` and `STEAL.md` among them. The link
+checker that would normally catch these is `.runwai/tools/validate_helpers.py`, which the
+deletion removes, so run `rg '\.runwai' -l` over the tree afterwards and fix every file it
+names. **Do not reach for `make check` here** — it cannot help once the tool is gone, and
+believing it can is how a tree ends up with twenty confident links to nothing.
+
+**Say one thing out loud to the user.** Five rule files under `agents/rules/`, and this
+guide's own *one invariant*, name `.runwai/tools/validate_registry.py` as the thing that
+mechanically enforces them — the rule against putting a model in a control's decision path
+most of all. Delete it and those claims are no longer true: the rules still describe how to
+build safely, but nothing checks them. That is a real reduction in what this repository
+does for them, it is theirs to accept or decline, and it is not something they can be
+expected to work out from a directory listing. Tell them before you delete, not after.
 
 **5. Ask about the reuse layer — [`STEAL.md`](STEAL.md) and
 [`.steal/`](.steal/curation.md) — and do not decide it for them.** Unlike `.runwai/`, this
