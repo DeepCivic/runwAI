@@ -329,8 +329,11 @@ def main() -> int:
 
     if not have_trivy and not have_syft:
         print(
-            "COULD NOT RUN: neither trivy nor syft is installed.\n"
-            "  Install the pinned versions with: make setup-audit-tools",
+            "COULD NOT RUN: neither trivy nor syft is on PATH.\n"
+            "  Install the pinned versions with: make setup-audit-tools\n"
+            "  If you have already run that, they are in .audit-cache/bin/ and this was\n"
+            "  invoked without it on PATH. Use `make audit`, which adds it, or run:\n"
+            '    export PATH="$PWD/.audit-cache/bin:$PATH"',
             file=sys.stderr,
         )
         return 2
@@ -338,8 +341,12 @@ def main() -> int:
     if args.setup:
         if not have_trivy:
             print(
-                "COULD NOT RUN: trivy is not installed, and the database is trivy's.\n"
-                "  Install the pinned versions with: make setup-audit-tools",
+                "COULD NOT RUN: trivy is not on PATH, and the database is trivy's.\n"
+                "  Install the pinned versions with: make setup-audit-tools\n"
+                "  If you have already run that, they are in .audit-cache/bin/ and this\n"
+                "  was invoked without it on PATH. Use `make setup-audit-dbs`, which adds\n"
+                "  it, or run:\n"
+                '    export PATH="$PWD/.audit-cache/bin:$PATH"',
                 file=sys.stderr,
             )
             return 2

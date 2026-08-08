@@ -15,9 +15,9 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 | ISM release | June 2026 — **all 36 controls verified against the snapshot**, 0 fabricated IDs |
 | Controls with a mechanism behind them | 9 of 36. The rest are mapped with nothing running, and `docs/security-report.md` says so in those words |
 | Rule tests | 14 rules across 3 rulesets, each asserted on both a failing and a passing case |
-| Dependency audit | trivy 0.72.0 and syft 1.50.0, pinned by release checksum. Offline against a downloaded database snapshot; reports per ecosystem, `not applicable` where no manifest exists |
+| Dependency audit | trivy 0.72.0 and syft 1.50.0, pinned by release checksum. Offline against a downloaded database snapshot; reports per ecosystem, `not applicable` where no manifest exists. Environment-constrained, so **off by default** locally (decision 18) and unconditional in CI |
 | Environment check | `make doctor`, bash and coreutils only. Deliberately **not** a control: it checks reproducibility, not security, so it is absent from the registry |
-| AI helper layer | `AGENTS.md`, 11 agent rules, 1 skill — structure derived from upstream, licences verified |
+| AI helper layer | `AGENTS.md`, 12 agent rules, 1 skill — structure derived from upstream, licences verified |
 | Adopter toolchain configs | 3, live at the root. Unexercised here: runwAI has no JS/TS |
 | Vendored sources | 10, each pinned to a resolved 40-character commit SHA |
 | Where checks run | `pre-commit` locally, which is the only thing that stops anything and is bypassable; `posture` in CI, which reports. No merge gate, by design |

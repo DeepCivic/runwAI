@@ -34,7 +34,39 @@ PYTHON ?= python3
 # Prepending a directory that does not exist is a no-op, so this stays correct in CI,
 # which installs its pins globally and never runs `make setup`.
 VENV ?= .venv
-export PATH := $(CURDIR)/$(VENV)/bin:$(PATH)
+# .audit-cache/bin is on PATH here for the same reason .venv/bin is, and it was missing:
+# `setup-audit-tools` installs trivy and syft there, and every target that needs them —
+# `setup-audit-dbs` and `audit` — could not see them. Run verbatim, the documented order
+# exited 2 with "trivy is not installed", advising the target the reader had just run.
+# A directory that does not exist is a no-op to prepend, so this stays correct before
+# the tools are installed and in CI, which installs its own.
+AUDIT_BIN ?= .audit-cache/bin
+export PATH := $(CURDIR)/$(VENV)/bin:$(CURDIR)/$(AUDIT_BIN):$(PATH)
+
+# --- check mode ----------------------------------------------------------------------
+#
+# A check runs by default when `make setup` can bind its tooling to .venv/. That is the
+# whole test, and it is mechanical rather than a judgement: pre-commit, semgrep,
+# detect-secrets and pyyaml are packages, so pip pins them into the project's own
+# environment and they run on every session, on any machine, with nothing else arranged.
+#
+# The dependency audit cannot be bound that way. trivy and syft are architecture-specific
+# release binaries rather than packages — which is why they have their own install target
+# and their own directory — and the advisory database is about a gigabyte from a container
+# registry that corporate and cloud networks routinely block. A check whose tooling cannot
+# live in .venv/ is environment-constrained, and environment-constrained means off by
+# default: the machine decides whether it can run, so the session must not assume it did.
+#
+# Off is not quiet. `first-session` prints what did not run, what that leaves unknown, and
+# the command that turns it on — replacing an exit code that `|| true` swallowed, which
+# read as a failed step rather than as an unmade measurement. Nothing here is a gate being
+# moved after it went red: the audit blocks nothing, has never blocked anything, and is
+# louder in default mode than it was before.
+#
+#   make first-session                 the venv-bound set; the audit reports NOT RUN
+#   make first-session CHECK_MODE=full the same, with the audit attempted inline
+#   make audit                         always runs when named — naming it is the opt-in
+CHECK_MODE ?= default
 
 # The dependency scanners ship as release binaries rather than packages, so the pin has
 # to name a version, a platform and a checksum. Pinning to the tag alone would trust
@@ -57,7 +89,6 @@ TRIVY_SHA256_amd64 ?= bbb64b9695866ce4a7a8f5c9592002c5961cab378577fa3f8a040df362
 TRIVY_SHA256_arm64 ?= 2ca2c023109c2db6b2b77366b6717291452d4531167377d95c79547f0c8e3467 # pragma: allowlist secret
 SYFT_SHA256_amd64 ?= bf7b29ff57f06da30918266a0e1c2885a8f99784798d1bdb1628886aa015d788 # pragma: allowlist secret
 SYFT_SHA256_arm64 ?= 887c57cbcc2d0e8c5c110a4571a3fc7150058b24d74f993ee4663516e5c8ce86 # pragma: allowlist secret
-AUDIT_BIN ?= .audit-cache/bin
 
 .PHONY: first-session setup hook check verify report audit doctor \
         setup-audit-tools setup-audit-dbs
@@ -66,11 +97,29 @@ AUDIT_BIN ?= .audit-cache/bin
 # session cannot be expected to have got right yet — a dependency with a CVE, an unset
 # environment variable — and neither is a reason to stop setting up.
 #
-# `report` runs after `audit` and not before, because it reads what the audit wrote. The
+# doctor stays on by default: bash and coreutils are not installed into anything, so it
+# binds to the machine trivially and runs everywhere. The audit is the one check in this
+# file that fails the .venv/ test above, so it is the one the mode gates.
+#
+# `report` runs after the audit and not before, because it reads what the audit wrote. The
 # other order produced a report whose Dependency posture section said no audit output was
-# supplied, immediately after one had been.
+# supplied, immediately after one had been. In default mode nothing was supplied and the
+# report says exactly that, which is the true statement.
 first-session: setup hook check verify
-	@$(MAKE) --no-print-directory audit || true
+	@if [ "$(CHECK_MODE)" = "full" ]; then \
+	  $(MAKE) --no-print-directory audit || true; \
+	else \
+	  printf '%s\n' \
+	    "Dependency audit: NOT RUN — environment-constrained, so it is off by default." \
+	    "  It needs trivy and syft, which are release binaries rather than packages and" \
+	    "  cannot be installed into .venv/, plus about a gigabyte of vulnerability" \
+	    "  database over the network." \
+	    "  So you do not yet know whether the packages you depend on carry known" \
+	    "  vulnerabilities. That is not the same as knowing they carry none." \
+	    "  Turn it on — once per machine, then it stays available:" \
+	    "      make setup-audit-tools && make setup-audit-dbs && make audit" \
+	    "  Or run this whole session with it:  make first-session CHECK_MODE=full"; \
+	fi
 	@$(MAKE) --no-print-directory doctor || true
 	@$(MAKE) --no-print-directory report
 
@@ -102,7 +151,7 @@ check: ## Run every commit-time check, over the whole tree rather than staged fi
 verify: ## Prove each rule catches its committed vulnerable examples — the receipt for IT
 	$(PYTHON) .github/scripts/verify.py
 
-audit: ## Scan dependencies for known CVEs and write the SBOM (offline; reports, never blocks)
+audit: ## Scan dependencies for known CVEs and write the SBOM (environment-constrained; off by default in first-session)
 	$(PYTHON) .github/scripts/audit.py
 
 doctor: ## Compare the declared environment to the actual one (reports, never blocks)
@@ -141,7 +190,9 @@ setup-audit-tools: ## Install trivy and syft at the pinned versions, checksum-ve
 	tar -xzf "$$tmp/syft.tgz" -C "$(AUDIT_BIN)" syft; \
 	rm -rf "$$tmp"; \
 	echo "trivy $(TRIVY_VERSION) and syft $(SYFT_VERSION) installed in $(AUDIT_BIN)/."; \
-	echo "Add it to PATH:  export PATH=\"\$$PWD/$(AUDIT_BIN):\$$PATH\""
+	echo "Every make target finds them without being told. To run the underlying"; \
+	echo "commands by hand, put them on PATH once per shell:"; \
+	echo "    export PATH=\"\$$PWD/$(AUDIT_BIN):\$$PATH\""
 
 setup-audit-dbs: ## Download the vulnerability database once (the only network call `audit` needs)
 	$(PYTHON) .github/scripts/audit.py --setup

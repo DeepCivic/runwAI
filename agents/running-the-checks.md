@@ -11,6 +11,50 @@ are shell commands. See "Two layers" in [README.md](README.md) for how those rel
 Every command here is offline and deterministic. None of them calls a model, and none
 depends on the clock or the network — that is a property of the design, not a coincidence.
 
+## Check modes
+
+**A check runs by default when `make setup` can bind its tooling to `.venv/`.** That is the
+whole test, and it is deliberately mechanical rather than a judgement about how important a
+check is. `pre-commit`, `semgrep`, `detect-secrets` and `pyyaml` are Python packages, so pip
+pins them into the project's own environment and they run on every session on any machine.
+Bash and coreutils are not installed into anything, so `doctor` binds trivially and runs
+everywhere too.
+
+**A check whose tooling cannot be bound that way is environment-constrained, and
+environment-constrained means off by default.** Whether it can run at all is a fact about
+the machine — its architecture, its network egress, a gigabyte of free disk — so a session
+must not assume it ran.
+
+| Mode | What it covers | How it runs |
+| :--- | :--- | :--- |
+| `default` | Everything venv-bound or install-free: the commit hook, `check`, `verify`, `doctor`, `report`, the self-checks | `make first-session`, or any target by name |
+| `full` | The above, plus the environment-constrained checks | `make first-session CHECK_MODE=full`, or the constrained target by name |
+
+Two checks are environment-constrained today, and both fail the `.venv/` test for the same
+reason — the tool is a compiled binary from a release page, not a package:
+
+| Check | Why it cannot bind to `.venv/` | Opt in with |
+| :--- | :--- | :--- |
+| The dependency audit | `trivy` and `syft` are architecture-specific release binaries, and the advisory database is ~1 GB from a container registry that corporate and cloud networks routinely block | `make setup-audit-tools && make setup-audit-dbs && make audit` |
+| `keyhog` locally | A Rust binary installed by piping a script to a shell; its own pre-commit hook is `language: system` for exactly this reason | The install line under **Secret scanning** below. CI runs it from the tool's own pinned action |
+
+**Off by default never means quiet, and it never means passing.** `make first-session`
+prints what did not run, what that leaves unknown, and the command that turns it on;
+`docs/security-report.md` states that no dependency audit output was supplied to the run.
+A check that is off has measured nothing, which is a different thing from having found
+nothing — the same distinction this repository draws between `not applicable` and a pass.
+
+**Naming a constrained target is itself the opt-in.** `make audit` always runs when you ask
+for it; `CHECK_MODE` governs only whether the default session attempts it. And nothing here
+is a gate that moved after it went red — see
+[`agents/rules/ci-check-modes.md`](rules/ci-check-modes.md) for the line between designing
+where a check runs and weakening one that failed.
+
+**CI is unaffected and runs the constrained checks unconditionally.** A GitHub runner has
+the architecture, the egress and the disk, so the constraint does not apply there — see
+`.github/workflows/posture.yml`, which installs the scanners and downloads the database as
+ordinary steps.
+
 ## Setup
 
 ```bash
@@ -42,8 +86,10 @@ the commands on this page and adds none of its own, so this list stays canonical
 
 The dependency scanners are release binaries rather than packages, so they have their own
 setup targets — `setup-audit-tools` and `setup-audit-dbs`, both networked, both described
-under **The dependency audit** below. `make first-session` runs `audit` and `doctor` last
-and does not let either abort the session.
+under **The dependency audit** below. Being binaries is also why the audit is
+environment-constrained and off by default; see **Check modes** above. `make first-session`
+runs `doctor` last and does not let it abort the session, and reports the audit as `NOT RUN`
+unless `CHECK_MODE=full`.
 
 ## The self-checks
 
@@ -118,7 +164,9 @@ Two tools, split by where each can honestly run. `detect-secrets` is the commit 
 comes with `pre-commit`, so there is nothing extra to install. `keyhog` runs in CI only.
 
 To reproduce the CI scan locally you have to install keyhog first — it is a Rust binary,
-not a pip package, and its own pre-commit hook is `language: system` for that reason:
+not a pip package, and its own pre-commit hook is `language: system` for that reason. That
+makes the local scan environment-constrained under **Check modes** above: nothing runs it
+for you, and running it is the opt-in.
 
 ```bash
 curl -fsSL https://santh.dev/keyhog/install.sh | sh   # read it before you run it
@@ -163,6 +211,11 @@ where a checkout has no hooks. The `posture` workflow runs it on every push.
 
 ## The dependency audit
 
+**Environment-constrained, so off by default** — its two scanners are release binaries that
+cannot be installed into `.venv/`. `make first-session` reports it as `NOT RUN` rather than
+attempting it; running any of the three commands below is the opt-in, and
+`make first-session CHECK_MODE=full` attempts it inline. See **Check modes** above.
+
 Two networked setup steps, then an offline scan. The database is an input rather than an
 ambient service, which is what makes the verdict reproducible: refresh it and you know a
 changed verdict came from the advisories, not the code.
@@ -170,8 +223,17 @@ changed verdict came from the advisories, not the code.
 ```bash
 make setup-audit-tools       # trivy 0.72.0 and syft 1.50.0, checksum-verified
 make setup-audit-dbs         # the vulnerability database, once (~1 GB in .audit-cache/)
-export PATH="$PWD/.audit-cache/bin:$PATH"
 make audit                   # offline from here: --skip-db-update --offline-scan
+```
+
+`setup-audit-tools` installs into `.audit-cache/bin/`, and every `make` target puts that
+directory on `PATH` for you — the same arrangement as `.venv/bin` under **Setup** above.
+Running these three by hand needs it saying once per shell, and the `export` belongs
+**before** `setup-audit-dbs` rather than after, because that step is trivy downloading
+trivy's own database:
+
+```bash
+export PATH="$PWD/.audit-cache/bin:$PATH"   # before setup-audit-dbs, not after
 ```
 
 Writes `docs/dependencies.md` (the bill of materials, committed and timestamp-free) and

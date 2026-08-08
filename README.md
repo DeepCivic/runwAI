@@ -47,7 +47,8 @@ So you can tell whether your agent actually did it. It should, without further p
 7. **Rewrite `AGENTS.md` to describe your project rather than this template**, and say that
    it has
 8. Tell you — unprompted — that nothing here can block a merge, that a green report is not
-   compliance, and that you can ignore the control identifiers entirely
+   compliance, that the dependency audit did **not** run and what one command turns it on,
+   and that you can ignore the control identifiers entirely
 
 If it did none of that and simply waited for instructions, say *"follow the first-session
 steps in `AGENTS.md`"*. Needing to ask is a defect here; the fallback should not be
@@ -64,20 +65,32 @@ make first-session
 
 That runs the session's mechanical steps in order, each pinned to an exact version:
 `make setup` (install the toolchain), `make hook`, `make check` (everything, over the
-whole tree), `make verify` (prove the rules catch what they claim), `make report`, then
-`make audit` (dependencies) and `make doctor` (environment), neither of which is allowed
-to abort the session. Run them individually when you want one. Or `/selfcheck`, which runs
-every check and reports what failed. The full list, with exit codes, is in
+whole tree), `make verify` (prove the rules catch what they claim), `make doctor`
+(environment, and not allowed to abort the session), then `make report`. Run them
+individually when you want one. Or `/selfcheck`, which runs every check and reports what
+failed. The full list, with exit codes, is in
 [`agents/running-the-checks.md`](agents/running-the-checks.md). Every check is offline
 and deterministic — no network, no clock dependence, no model. Three targets touch the
 network and they are the only ones: `make setup`, and `make setup-audit-tools` and
 `make setup-audit-dbs`, which fetch the pinned dependency scanners and the vulnerability
 database the audit then runs against offline.
 
+**One check is missing from that list on purpose.** `make audit` — which asks whether the
+packages you depend on carry known vulnerabilities — needs two programs that cannot be
+installed alongside everything else, and about a gigabyte of vulnerability database from a
+network some employers block. So it is **off by default**, and the first session tells you
+so rather than quietly skipping it. Until you run it your dependency posture is *unknown*,
+which is not the same as clean. Turning it on is one command, once per machine:
+
+```bash
+make setup-audit-tools && make setup-audit-dbs && make audit
+```
+
 `make setup` installs into a `.venv/` folder inside the project rather than into your
 machine's Python, so setting this up changes nothing else on your computer and every
-`make` target finds it without being told. To run the underlying commands by hand, put it
-on your `PATH` once per shell with `export PATH="$PWD/.venv/bin:$PATH"`.
+`make` target finds it without being told — including the two audit programs above, which
+land in `.audit-cache/bin/`. To run the underlying commands by hand, put them on your
+`PATH` once per shell with `export PATH="$PWD/.venv/bin:$PWD/.audit-cache/bin:$PATH"`.
 
 </details>
 
@@ -116,7 +129,7 @@ is exactly why no template can switch it on for you, and why one that claims to 
 | RWA-0003, 0020, 0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, 0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
 | RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |
-| RWA-0031, 0032 | `trivy` and `syft`, in CI and on `make audit` | Known vulnerabilities in the packages you depend on, and the bill of materials listing them |
+| RWA-0031, 0032 | `trivy` and `syft`, in CI and on `make audit` — off by default locally | Known vulnerabilities in the packages you depend on, and the bill of materials listing them |
 
 **Fourteen rules and one dependency audit, and that is the whole of it.** A first release
 defends a small surface honestly rather than a large one badly. Every other control in
@@ -127,7 +140,8 @@ The rules read the code you wrote. The audit reads the packages it depends on, a
 are reported separately on purpose — clean code sitting on a vulnerable dependency is not
 secure, and a report that pooled them would let it look that way. It never blocks a
 commit, and it names every ecosystem it did not scan rather than counting silence as a
-pass.
+pass. It runs on every push in CI, where the machine can always support it; locally it is
+off until you turn it on, and the report says so rather than leaving the section blank.
 
 **And you do not have to take the fourteen on trust.** `python3 .github/scripts/verify.py`
 proves each rule fires on committed, deliberately vulnerable examples and stays silent on

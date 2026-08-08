@@ -52,6 +52,8 @@ filename prefix.
 ### CI (HIGH)
 
 - [ci-never-weaken-a-gate](rules/ci-never-weaken-a-gate.md) — fix the finding, not the check
+- [ci-check-modes](rules/ci-check-modes.md) — a check runs by default only if its tooling
+  binds to `.venv/`; anything else is off by default and says so
 
 ### Reference (LOW)
 
