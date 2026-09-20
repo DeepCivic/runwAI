@@ -125,7 +125,7 @@ is exactly why no template can switch it on for you, and why one that claims to 
 
 | Control | Mechanism | Covers |
 | :--- | :--- | :--- |
-| RWA-0010 | `detect-secrets` at commit time, `keyhog` in CI | Credentials before they enter history, then the whole tree and its history afterwards |
+| RWA-0010 | `detect-secrets` at commit time, and over the whole tree in CI | Credentials before they enter history, then every tracked file on each push |
 | RWA-0003, 0020, 0021 | `controls/rules/injection.yaml` | SQL, shell and HTML sink injection |
 | RWA-0022, 0074 | `controls/rules/deserialisation.yaml` | pickle, marshal, unsafe YAML, `eval`, pickled model loading |
 | RWA-0027 | `controls/rules/path-traversal.yaml` | File paths built by interpolation, and joined paths opened without canonicalisation |

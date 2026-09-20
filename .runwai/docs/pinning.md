@@ -8,14 +8,12 @@ bare major tags).
 
 ## Verified pins
 
-These versions were confirmed to exist at the time of writing. Everything except keyhog,
-trivy and syft is installed from PyPI directly rather than through third-party marketplace
-actions, which keeps the trusted surface to one registry and the pins reviewable in one
-place.
+These versions were confirmed to exist at the time of writing. Everything except trivy and
+syft is installed from PyPI directly rather than through third-party marketplace actions,
+which keeps the trusted surface to one registry and the pins reviewable in one place.
 
 | Tool | Version | Class | Controls |
 | :--- | :--- | :--- | :--- |
-| keyhog | 0.5.47 | secret-scan | RWA-0010 |
 | trivy | 0.72.0 | sca, container-scan | RWA-0031, 0051 |
 | syft | 1.50.0 | sbom | RWA-0031, 0032 |
 | semgrep | 1.171.0 | sast | RWA-0002, 0003, 0011, 0012, 0020–0026, 0041, 0060, 0061, 0073, 0074 |
@@ -28,25 +26,15 @@ place.
 | presidio-analyzer | 2.2.364 | pii-filter | RWA-0071 |
 | garak | 0.15.1 | ai-fuzz | RWA-0070 |
 
-### How the keyhog pin was verified, and what could not be
+### Secret scanning is detect-secrets alone
 
-keyhog is the one entry not installed from PyPI, so its receipt is recorded rather than
-assumed. It replaced gitleaks, which sat in the pending table below for the life of the
-template because its release list was unreachable from here.
-
-| Claim | How it was checked |
-| :--- | :--- |
-| Repository | `santhreal/keyhog`, per the `repository` field in the upstream `Cargo.toml`. `santhsecurity/keyhog` resolves to the same HEAD, so it is a rename, not a second publisher |
-| Version `0.5.47` | `version` in `Cargo.toml` at HEAD, matching tag `v0.5.47` |
-| Commit | Tag `v0.5.47` resolves to `19bb6b0945584ff28341e4fd5e7a32c1b90602c7`. Lightweight tag, so that is the commit, and it is what `.github/workflows/posture.yml` pins |
-| Licence `MIT OR Apache-2.0` | Read from `LICENSE`, `LICENSE-MIT` and `LICENSE-APACHE` in a sparse checkout of that tree — not from the README, and not from memory |
-
-**`cargo install keyhog` is documented upstream and is NOT verified here.** `crates.io`
-refuses `CONNECT` from this environment with a 403, so the crate's existence and version
-could not be confirmed the way the PyPI pins above were. That is a limit of where this was
-authored, not a finding about the crate — but an unchecked claim does not go in a pinning
-table, so the GitHub Action pin, resolved over the git protocol, is what ships. Anyone with
-crates.io reachable can confirm it and add the row.
+RWA-0010 is enforced by detect-secrets, pinned in the table above, on the commit hook and
+again over the whole tree in the CI `secrets` job. keyhog was carried here for a while as
+the CI scanner — a Rust binary pinned to the commit behind `v0.5.47` — and was removed: it
+was one more thing baked into the template, and running one tool at one version in both
+places means the local and CI verdicts cannot diverge. The cost of the removal is the
+reachable-history walk keyhog did and detect-secrets does not, recorded in the RWA-0010
+registry note and in [`decisions.yaml`](../decisions.yaml) (decision 19, superseding 7).
 
 ## Pending verification
 
@@ -67,7 +55,7 @@ as citing an unverified control ID.
 ### How the trivy and syft pins were verified
 
 Neither is on PyPI, so both receipts are recorded rather than assumed — the same discipline
-the keyhog row above gets, and for the same reason.
+every non-PyPI pin gets, and for the same reason.
 
 | Claim | How it was checked |
 | :--- | :--- |

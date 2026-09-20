@@ -21,7 +21,7 @@ under a blanket claim is how the fidelity split below shipped wrong and stayed w
 | Adopter toolchain configs | 3, live at the root. Unexercised here: runwAI has no JS/TS |
 | Vendored sources | 10, each pinned to a resolved 40-character commit SHA |
 | Where checks run | `pre-commit` locally, which is the only thing that stops anything and is bypassable; `posture` in CI, which reports. No merge gate, by design |
-| Secret scanning | Two tools by design: detect-secrets on the commit hook, keyhog 0.5.47 in CI over the tree and reachable history. Live verification off |
+| Secret scanning | detect-secrets, pinned, on the commit hook and again over the whole tree in the CI `secrets` job. No reachable-history walk — that leg of RWA-0010 is unmapped and the registry note says so |
 
 ## Limits, deliberately visible
 
@@ -42,7 +42,8 @@ Two left the list by being resolved and one by being replaced. trivy and syft ar
 pinned to a version, a platform asset and a SHA-256 read from each release's own
 checksums file, because RWA-0031 needed them to actually run. grype is simply gone: it was
 named for the dependency-scanning leg and never ran, and trivy does that job now. gitleaks
-went the same way earlier, replaced by keyhog. See [`pinning.md`](pinning.md).
+went the same way earlier, replaced by keyhog — and keyhog has since been removed too,
+leaving detect-secrets as the sole secret scanner. See [`pinning.md`](pinning.md).
 
 **The AI helper layer is derived, not original.** `AGENTS.md`, `agents/` and the root
 toolchain configs are adapted from a small set of upstream projects, each recorded with
