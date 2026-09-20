@@ -259,87 +259,37 @@ jobs:
   secrets:
     name: "Secret scan (RWA-0010 / ISM-2030)"
     runs-on: ubuntu-latest
-    # KeyHog scans here; detect-secrets stays on the commit hook. Two scanners rather than
-    # one is deliberate and the split is not arbitrary:
+    # detect-secrets runs here too, over the whole tree rather than only staged files. It is
+    # the same tool, the same pinned version and the same baseline as the commit hook in
+    # .pre-commit-config.yaml, so the local and CI verdicts cannot diverge: this is the wider
+    # net (every tracked file, not just what one commit staged), not a different scanner
+    # asking a different question. It catches a secret in a file that reached the tree behind
+    # `git commit --no-verify`.
     #
-    #   * detect-secrets is `language: python` in .pre-commit-config.yaml, so pre-commit
-    #     installs it itself and setup stays one command. KeyHog's own hook is
-    #     `language: system` — it runs whatever binary is on PATH, which means an install
-    #     step for the adopter and a scanner whose version nothing pins. Neither is
-    #     acceptable on the hook, and both are fine on a runner we control.
-    #   * A runner can afford the wider scan. KeyHog carries far more detectors than
-    #     detect-secrets' plugin set and walks reachable history, not just tracked files.
-    #
-    # The cost, stated plainly: the local and CI verdicts can now differ, because two
-    # different tools with two different corpora are asking the question. A commit that
-    # passes the hook can still be flagged here. That is the trade — CI is the wider net,
-    # not a re-run of the hook.
+    # What this job does NOT do: walk reachable git history. detect-secrets scans working-tree
+    # files, not the commit graph, so a credential committed and later deleted is not caught.
+    # That leg of RWA-0010 is unmapped, and the registry note for RWA-0010 states it plainly
+    # rather than leaving an empty result to read as a clean one.
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          # --git-history walks only the ancestry present in the clone, and checkout
-          # defaults to fetch-depth 1. Without this the history pass silently narrows to a
-          # single commit and reports a clean scan of almost nothing.
-          fetch-depth: 0
+          python-version: "3.11"
 
-      # Pinned to the full commit SHA behind v0.5.47, not the `@v0` tag the README
-      # suggests: a major tag moves, and a scanner that can change under you is a
-      # non-deterministic control. This is the tool's own action, from the repository that
-      # publishes the binary, so it is not a third-party wrapper around someone else's
-      # scanner — which is the trusted-surface concern this file's header is about.
-      #
-      # Licence MIT OR Apache-2.0, read from LICENSE-MIT and LICENSE-APACHE in the upstream
-      # tree at this commit. Permissive, so nothing propagates to an adopter.
-      - name: KeyHog (working tree)
-        uses: santhreal/keyhog@19bb6b0945584ff28341e4fd5e7a32c1b90602c7 # v0.5.47
-        with:
-          path: .
-          # Lower than the action's `high` default. A leaked credential graded medium is
-          # still a leaked credential, and this repository would rather triage noise than
-          # discover the floor was set above the finding.
-          severity: medium
-          format: sarif
-          # OFF, and it must stay off. --verify sends candidate secrets to vendor APIs to
-          # see which are live. That makes the check non-deterministic — the verdict
-          # depends on a third party's state at scan time — and it turns a scanner into an
-          # egress path for the very material it just found.
-          verify: 'false'
-          # Code Scanning upload needs `security-events: write`, and this workflow is
-          # `contents: read`. A template must not widen its own permissions for a feature
-          # an adopter's repository may not even have enabled; the SARIF is kept as an
-          # artifact below instead.
-          upload-sarif: 'false'
-          fail-on-findings: 'true'
-          # Explicit rather than `auto`: autoroute picks a backend from what the runner
-          # happens to have, and a check that selects its own engine per machine is not
-          # reproducible. cpu is the one that is always present.
-          backend: cpu
+      # Pinned to the version the commit hook installs via additional_dependencies, so one
+      # tool at one version decides this control in both places. An unpinned scanner is a
+      # non-deterministic control: its detector set can change under you and alter verdicts.
+      - name: Install detect-secrets
+        run: pip install detect-secrets==1.5.0
 
-      # The action scans the working tree. History is a separate pass, and it is the one
-      # that catches a credential committed behind `--no-verify` and removed later.
-      #
-      # The action installs keyhog onto PATH, so the CLI is available here. If that ever
-      # stops being true this fails loudly rather than skipping: a secret scan that
-      # silently does not run is indistinguishable from one that found nothing.
-      - name: KeyHog (reachable history)
+      # detect-secrets-hook takes an explicit file list and exits non-zero on any secret not
+      # already recorded in the baseline — exactly what the commit hook does, run across every
+      # tracked file. The three exclusions mirror the hook's `exclude` in
+      # .pre-commit-config.yaml: the baseline carries its own hashed findings, and the two ISM
+      # JSON files are large government text that would add only entropy noise.
+      - name: detect-secrets (whole tree)
         run: |
           set -euo pipefail
-          command -v keyhog >/dev/null 2>&1 || {
-            echo "::error title=KeyHog::keyhog is not on PATH after the action step, so the history scan did not run."
-            exit 1
-          }
-          keyhog scan --git-history . --backend cpu --severity medium --format sarif \
-            --output keyhog-history.sarif
-
-      # Runs even when a scan failed: the report of what was found is most useful exactly
-      # when the job is red.
-      - name: Upload the SARIF reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: keyhog-sarif
-          path: |
-            *.sarif
-            keyhog-history.sarif
-          if-no-files-found: warn
-          retention-days: 90
+          git ls-files -z \
+            | grep -zvE '^(controls/\.secrets\.baseline|controls/ism-snapshot\.json|controls/ism-index\.json)$' \
+            | xargs -0 --no-run-if-empty detect-secrets-hook --baseline controls/.secrets.baseline

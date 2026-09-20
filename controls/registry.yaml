@@ -247,11 +247,6 @@ controls:
         class: secret-scan
         install: pypi
         verified_version: true
-      - name: keyhog
-        version: "0.5.47"
-        class: secret-scan
-        install: github-action
-        verified_version: true
     implementation:
       gate: pre-commit
       provenance:
@@ -269,16 +264,16 @@ controls:
     notes: >-
       The cleanest direct mapping in the registry: the control names the mechanism
       (scanning during commits) and the outcome (blocked), which is exactly what a
-      pre-commit hook plus a CI re-scan does. Note it says blocked, not reported.
+      pre-commit hook does. Note it says blocked, not reported.
 
-      Two scanners, split by where each can honestly run. detect-secrets is the commit
-      hook, because pre-commit installs it itself and setup stays one command. keyhog is
-      the CI scan, where a runner can install a pinned binary: more detectors than
-      detect-secrets' plugin set, and it walks reachable history rather than tracked files
-      alone. Its own pre-commit hook is `language: system`, which would mean an install
-      step for the adopter and an unpinned binary deciding a control — so it stays out of
-      the hook. keyhog's --verify is off and stays off: it sends candidates to vendor APIs,
-      which is both non-deterministic and an egress path for found material.
+      One tool, detect-secrets, at one pinned version in two places, so the verdicts cannot
+      diverge. The commit hook is the only place a secret is blocked; `--no-verify` walks
+      past it. The CI `secrets` job re-scans every tracked file rather than only what one
+      commit staged — the wider net that still catches a secret in a file that reached the
+      tree behind `--no-verify`. Neither pass walks reachable git history, because
+      detect-secrets scans working-tree files and not the commit graph: a credential
+      committed and later deleted is not caught, so that leg of the control is unmapped.
+      Stated here rather than left for an empty result to read as a clean one.
 
   - id: RWA-0011
     ism_ids: [ISM-2044]

@@ -30,13 +30,12 @@ must not assume it ran.
 | `default` | Everything venv-bound or install-free: the commit hook, `check`, `verify`, `doctor`, `report`, the self-checks | `make first-session`, or any target by name |
 | `full` | The above, plus the environment-constrained checks | `make first-session CHECK_MODE=full`, or the constrained target by name |
 
-Two checks are environment-constrained today, and both fail the `.venv/` test for the same
-reason — the tool is a compiled binary from a release page, not a package:
+One check is environment-constrained today, and it fails the `.venv/` test because its tools
+are compiled binaries from a release page, not packages:
 
 | Check | Why it cannot bind to `.venv/` | Opt in with |
 | :--- | :--- | :--- |
 | The dependency audit | `trivy` and `syft` are architecture-specific release binaries, and the advisory database is ~1 GB from a container registry that corporate and cloud networks routinely block | `make setup-audit-tools && make setup-audit-dbs && make audit` |
-| `keyhog` locally | A Rust binary installed by piping a script to a shell; its own pre-commit hook is `language: system` for exactly this reason | The install line under **Secret scanning** below. CI runs it from the tool's own pinned action |
 
 **Off by default never means quiet, and it never means passing.** `make first-session`
 prints what did not run, what that leaves unknown, and the command that turns it on;
@@ -160,35 +159,34 @@ findings to JSON for the report instead.
 
 ## Secret scanning
 
-Two tools, split by where each can honestly run. `detect-secrets` is the commit hook and
-comes with `pre-commit`, so there is nothing extra to install. `keyhog` runs in CI only.
+One tool, `detect-secrets`, in two places. It is `language: python` in
+`.pre-commit-config.yaml` with `detect-secrets==1.5.0` in `additional_dependencies`, so
+`pre-commit` installs it and there is nothing extra to set up.
 
-To reproduce the CI scan locally you have to install keyhog first — it is a Rust binary,
-not a pip package, and its own pre-commit hook is `language: system` for that reason. That
-makes the local scan environment-constrained under **Check modes** above: nothing runs it
-for you, and running it is the opt-in.
+- **Commit hook** — `detect-secrets-hook --baseline controls/.secrets.baseline` over the
+  staged files. This is the only place a secret is *blocked*, and `--no-verify` walks past it.
+- **CI** — the `secrets` job in `.github/workflows/posture.yml` runs the same tool, version
+  and baseline over every tracked file, not just what one commit staged. Same corpus, so the
+  local and CI verdicts cannot diverge; wider reach, so a secret in a file that arrived
+  behind `--no-verify` is still caught on the next push.
 
-```bash
-curl -fsSL https://santh.dev/keyhog/install.sh | sh   # read it before you run it
-keyhog scan . --backend cpu --severity medium         # what CI scans: the working tree
-keyhog scan --git-history . --backend cpu --severity medium   # and reachable history
-```
+Neither pass walks reachable git history, so a credential committed and later deleted is not
+caught. That leg of RWA-0010 is unmapped, and the registry note for RWA-0010 says so.
 
-Exit codes are keyhog's own, and differ from everything else here: `0` clean, `1` findings,
-`2` user error, `3` system error, `10` a credential verified live, `13` coverage incomplete.
-
-**Do not pass `--verify`.** It calls vendor APIs to check which found credentials still
-work. That makes the verdict depend on a third party's state at scan time, and it sends
-candidate secrets off the machine — a scanner that exfiltrates what it finds is not a
-control. It is off by default and CI sets it off explicitly.
-
-If a run is noisy, record what is there rather than lowering the floor:
+To reproduce the CI scan locally, over the whole tree:
 
 ```bash
-keyhog scan . --create-baseline keyhog-baseline.json
+git ls-files -z \
+  | grep -zvE '^(controls/\.secrets\.baseline|controls/ism-snapshot\.json|controls/ism-index\.json)$' \
+  | xargs -0 detect-secrets-hook --baseline controls/.secrets.baseline
 ```
 
-then pass it to the action's `baseline` input.
+If a run is noisy, record what is there in the baseline rather than lowering the floor, then
+review and commit the updated baseline:
+
+```bash
+detect-secrets scan --baseline controls/.secrets.baseline
+```
 
 ## The verification receipts
 

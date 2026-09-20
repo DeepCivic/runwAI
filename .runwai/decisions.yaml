@@ -551,7 +551,8 @@ decisions:
 
   - id: 7
     title: Two secret scanners, split by where each can honestly run
-    status: accepted
+    status: superseded
+    superseded_by: 19
     date: "2026-07-26"
     context: >-
       RWA-0010 named detect-secrets, pinned and running, and gitleaks, which had no version
@@ -1258,7 +1259,8 @@ decisions:
         the database is ~1 GB from a container registry that corporate and cloud networks
         routinely block — and reproducing keyhog locally, a Rust binary installed by piping a
         script to a shell. Both were already installed outside .venv/, which is what made the
-        classification a description rather than a new rule.
+        classification a description rather than a new rule. (Decision 19 later removed keyhog;
+        the dependency audit is the only environment-constrained check now.)
       off_is_louder_than_the_swallowed_exit_code: >-
         CHECK_MODE=default makes first-session print what did not run, what that leaves
         unknown, and the one command that turns it on; docs/security-report.md states the
@@ -1311,3 +1313,64 @@ decisions:
         applies outside make. Rejected as more surface for no gain here: a mode that can be
         set invisibly in a shell is a verdict whose scope a reader cannot see, and the
         constrained checks are all invoked through make targets today.
+
+  - id: 19
+    title: One secret scanner — keyhog removed, detect-secrets runs in CI too
+    status: accepted
+    date: "2026-09-20"
+    supersedes: 7
+    context: >-
+      Decision 7 split secret scanning across two tools: detect-secrets on the commit hook,
+      and keyhog in CI for a wider detector corpus and a reachable-history walk. That was
+      one more thing baked into the template — a second scanner, referenced as a
+      third-party GitHub Action pinned to a commit SHA, with its own exit-code table, its
+      own baseline format, and a local-reproduction path that piped a shell installer for a
+      Rust binary. The maintainer's call was to stop carrying it.
+
+
+      The cost decision 7 accepted was already the sharp one: two corpora meant the local
+      hook and the CI job could disagree, so a commit could pass locally and be flagged on
+      push. Removing keyhog removes that divergence by construction.
+    decision:
+      detect_secrets_runs_in_both_places: >-
+        The CI `secrets` job now runs detect-secrets over every tracked file, at the same
+        pinned version and against the same controls/.secrets.baseline the commit hook uses.
+        One tool at one version in both places, so the verdicts cannot diverge; CI is the
+        wider net only in reach — the whole tree rather than one commit's staged files —
+        which still catches a secret in a file that arrived behind `git commit --no-verify`.
+      the_history_walk_is_the_admitted_loss: >-
+        detect-secrets scans working-tree files, not the commit graph, so the reachable-
+        history pass keyhog did is gone: a credential committed and later deleted is no
+        longer caught. That leg of RWA-0010 is now unmapped, and it is stated as such in the
+        RWA-0010 registry note, in docs/setup.md, in status.md and in running-the-checks.md,
+        rather than left for an empty CI result to read as a clean history.
+      determinism_is_simpler_now: >-
+        keyhog's `--verify`, `--backend cpu` and severity-floor arguments existed to keep a
+        second tool deterministic. None is needed once the tool is gone. detect-secrets is
+        `language: python` with a pinned additional_dependency, so it was never the
+        onboarding or PATH-pinning problem keyhog's `language: system` hook was.
+    consequences:
+      easier: >-
+        One secret scanner, one baseline, one version to bump, and local and CI verdicts
+        that agree by construction. The dependency audit is now the only environment-
+        constrained check, so the Check-modes table in running-the-checks.md lists one row
+        rather than two.
+      harder: >-
+        No reachable-history scan anywhere in the repository. A secret force-pushed and then
+        removed within history is caught by neither the hook nor CI. An adopter who needs
+        that coverage has to add a history-walking scanner back deliberately.
+      also: >-
+        The keyhog rows leave docs/dependencies.md (a github-action the SBOM parsed out of
+        the workflow) and .runwai/docs/pinning.md's verified-pins table on regeneration and
+        edit respectively; decision 7 is marked superseded rather than deleted, because the
+        log records why the template was shaped a given way, including the shapes it left.
+    alternatives_considered:
+      - >-
+        Keep keyhog but make it opt-in rather than baked in. Rejected: an off-by-default
+        secret scanner in CI has measured nothing until someone turns it on, which is the
+        "off is not clean" trap this repository refuses — and it keeps the two-corpus
+        divergence for whoever does enable it.
+      - >-
+        Replace keyhog with another history-walking scanner (gitleaks, trufflehog). Rejected
+        as scope: the maintainer asked to remove keyhog, not to re-litigate which second
+        scanner to carry. Adding one back is a deliberate future decision, not this one.
