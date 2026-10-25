@@ -58,14 +58,15 @@ somewhere — every file ships in the place its tool already looks for it.
 
 ## Toolchain configs for what you build
 
-- [biome.json](biome.json): Formatting and linting for JavaScript and TypeScript, written against Biome 2.5.5
+- [biome.json](biome.json): Formatting and linting for JavaScript and TypeScript, written against Biome 2.6.3
 - [playwright.config.ts](playwright.config.ts): E2E config shaped for streaming responses, written against Playwright 1.62.0
-- [promptfooconfig.yaml](promptfooconfig.yaml): Deterministic evals for prompts and agent tools, written against promptfoo 0.121.19
+- [promptfooconfig.yaml](promptfooconfig.yaml): Deterministic evals for prompts and agent tools, written against promptfoo 0.125.0
 
 ## Optional
 
 - [agents/knowledge/llm-security-guardrails.md](agents/knowledge/llm-security-guardrails.md): Guardrails for LLM-integrated code, keyed to OWASP LLM01–LLM10
 - [agents/knowledge/explaining-a-control.md](agents/knowledge/explaining-a-control.md): How an agent explains a control in plain language, grounded in the registry
+- [agents/knowledge/recording-decisions.md](agents/knowledge/recording-decisions.md): How to choose between a decisions file and ADRs, and how to write either
 - [agents/running-the-checks.md](agents/running-the-checks.md): The canonical command list — self-checks, scans, exit codes
 - [agents/knowledge-base.md](agents/knowledge-base.md): Vendoring workflow, licence families, network access shape
 - [docs/ism-verification.md](docs/ism-verification.md): Control verification method and status

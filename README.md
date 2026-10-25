@@ -43,10 +43,13 @@ So you can tell whether your agent actually did it. It should, without further p
    mechanically enforced when it goes
 5. **Ask whether you want other people to be able to reuse pieces of this**, and keep or
    remove `STEAL.md` and `.steal/` on your answer — not on its own guess
-6. Record what it did in [`docs/setup.md`](docs/setup.md)
-7. **Rewrite `AGENTS.md` to describe your project rather than this template**, and say that
+6. **Ask how you want to keep a record of your decisions** — one `docs/decisions.yaml` file
+   or a folder of ADRs — help you choose from your situation, and create the one you pick
+   (or none, if you decline)
+7. Record what it did in [`docs/setup.md`](docs/setup.md)
+8. **Rewrite `AGENTS.md` to describe your project rather than this template**, and say that
    it has
-8. Tell you — unprompted — that nothing here can block a merge, that a green report is not
+9. Tell you — unprompted — that nothing here can block a merge, that a green report is not
    compliance, that the dependency audit did **not** run and what one command turns it on,
    and that you can ignore the control identifiers entirely
 
@@ -208,9 +211,9 @@ compromise.
 
 | File | Package | Version | Licence |
 | :--- | :--- | :--- | :--- |
-| `biome.json` | `@biomejs/biome` | 2.5.5 | MIT OR Apache-2.0 |
+| `biome.json` | `@biomejs/biome` | 2.6.3 | MIT OR Apache-2.0 |
 | `playwright.config.ts` | `@playwright/test` | 1.62.0 | Apache-2.0 |
-| `promptfooconfig.yaml` | `promptfoo` | 0.121.19 | MIT |
+| `promptfooconfig.yaml` | `promptfoo` | 0.125.0 | MIT |
 
 Pin those exact versions when you install them. The version above is the one each file was
 *written against*, not a claim that newer releases are incompatible — check the upstream

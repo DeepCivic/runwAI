@@ -34,7 +34,7 @@ Three levels of derivation are distinguished, because they carry different oblig
 
 ## Sources
 
-All ten were resolved on 2026-07-25 by `git ls-remote` and a blob-filtered sparse clone.
+All ten were resolved on 2026-07-25 (the OWASP row was re-resolved to its successor repository on 2026-10-25) by `git ls-remote` and a blob-filtered sparse clone.
 Licences were read from each upstream tree, not assumed.
 
 | repo | commit | license | derivation | what we took |
@@ -48,11 +48,12 @@ Licences were read from each upstream tree, not assumed.
 | `karpathy/nanochat` | `92d63d4e8bb4df75c3b71618f31ddde2378b2bcd` | MIT | structure | The `report.md` pattern: one generated Markdown file summarising a run |
 | `vercel/ai` | `eb16508fc79aa18f7132852126446db69d3b1b70` | Apache-2.0 | structure | Playwright configuration shaped for streaming responses |
 | `promptfoo/promptfoo` | `b16373873b095ab5abb00dbd57fd10e864d3f6fe` | MIT | referenced | `promptfooconfig.yaml` is our own file against their published schema |
-| `OWASP/www-project-top-10-for-large-language-model-applications` | `020595761a4b7b0c3f9cf01a0457b78f9f1e7f9c` | **CC-BY-SA-4.0** | referenced | Category identifiers LLM01–LLM10 only |
+| `GenAI-Security-Project/GenAI-LLM-Top10` | `9253e38ade58e959b531c0c5c9a4842272c9cd0e` | **CC-BY-SA-4.0** (stated in the README; no LICENSE file in the tree) | referenced | Category identifiers LLM01–LLM10 of the 2026 edition only. Successor to the repository below, re-resolved 2026-10-25 |
+| `OWASP/www-project-top-10-for-large-language-model-applications` | `020595761a4b7b0c3f9cf01a0457b78f9f1e7f9c` | **CC-BY-SA-4.0** | referenced | Superseded: the 2023-style identifiers we first cited. The repository is now a legacy archive that points to the one above |
 
 ### The OWASP licence constrains what we may copy
 
-The OWASP LLM Top 10 is **CC BY-SA 4.0** — share-alike. Copying its prose would place a
+The OWASP LLM Top 10 (2026 edition) is **CC BY-SA 4.0** — share-alike. Copying its prose would place a
 copyleft obligation on the file that received it, and by extension on anyone who adopts
 this template. `agents/knowledge/llm-security-guardrails.md` therefore cites the category
 identifiers and links to the source, and every sentence around them is ours. That is a

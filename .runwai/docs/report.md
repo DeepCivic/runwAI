@@ -9,7 +9,7 @@ This file is deliberately timestamp-free: regenerating it on an unchanged tree p
 | Check | Result | Summary |
 | :--- | :--- | :--- |
 | `.runwai/tools/validate_registry.py` | pass | runwai-selfcheck: 36 controls, 9 with a mechanism, 0 errors, 7 warnings |
-| `.runwai/tools/validate_helpers.py` | pass | runwai-helpers: 12 rules, 19 decisions, 3 root configs, 5 stealable, 166 links checked, 0 errors, 0 warnings |
+| `.runwai/tools/validate_helpers.py` | pass | runwai-helpers: 12 rules, 20 decisions, 3 root configs, 5 stealable, 170 links checked, 0 errors, 0 warnings |
 
 Warnings are expected while pins remain pending; they are reported rather than hidden. See `.runwai/docs/pinning.md`.
 
@@ -19,11 +19,11 @@ Warnings are expected while pins remain pending; they are reported rather than h
 | :--- | ---: |
 | Agent rules | 12 |
 | Agent skills | 1 |
-| Template decisions recorded | 19 |
+| Template decisions recorded | 20 |
 
 ## Vendored sources
 
-10 upstream sources, each resolved to a full commit SHA with its licence read from the upstream tree. Full detail in `.runwai/docs/provenance.md`.
+11 upstream sources, each resolved to a full commit SHA with its licence read from the upstream tree. Full detail in `.runwai/docs/provenance.md`.
 
 | Source | Commit | Licence |
 | :--- | :--- | :--- |
@@ -36,6 +36,7 @@ Warnings are expected while pins remain pending; they are reported rather than h
 | `karpathy/nanochat` | `92d63d4e8bb4` | MIT |
 | `vercel/ai` | `eb16508fc79a` | Apache-2.0 |
 | `promptfoo/promptfoo` | `b16373873b09` | MIT |
+| `GenAI-Security-Project/GenAI-LLM-Top10` | `9253e38ade58` | CC-BY-SA-4.0 (stated in the README; no LICENSE file in the tree) |
 | `OWASP/www-project-top-10-for-large-language-model-applications` | `020595761a4b` | CC-BY-SA-4.0 |
 
 ---

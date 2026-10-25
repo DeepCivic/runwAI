@@ -137,6 +137,15 @@ plus their entries in `llms.txt` and every link into them — `make check` names
 nobody has to remember them. The self-check treats both-gone as a decision and one-gone as an
 error, so a half-removal reports itself. Record the choice below.
 
+## The decision log
+
+**Not chosen yet.** Your agent is instructed to help you pick one of two shapes in the first
+session and to create only that one: a single `docs/decisions.yaml`, or a folder of
+numbered ADRs at `docs/adr/`. Neither ships, because a log inherited from the template would
+describe a debate you were never part of. The guide it works from is
+[`agents/knowledge/recording-decisions.md`](../agents/knowledge/recording-decisions.md).
+Record the choice, and the reason, here.
+
 ## What was removed from the template
 
 Nothing yet. Record deletions here as your agent makes them, with a line saying why, so a

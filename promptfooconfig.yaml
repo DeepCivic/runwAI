@@ -3,7 +3,7 @@
 # This ships live, in the place promptfoo looks for it. Nothing copies it anywhere: edit it
 # in place as your project grows a prompt surface. Pin promptfoo to an exact version:
 #
-#     npm install --save-dev promptfoo@0.121.19     # MIT
+#     npm install --save-dev promptfoo@0.125.0     # MIT
 #
 # Then:  npx promptfoo eval -c promptfooconfig.yaml
 #
