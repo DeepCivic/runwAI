@@ -1410,7 +1410,8 @@ decisions:
         which is live and is what the setup step points at.
       exactly_one: >-
         Two logs are two sources of truth for the same question, so the guide says to keep
-        one and to record the choice in docs/setup.md.
+        one and to record the choice in docs/setup.md. An adopter may decline a log; the
+        agent then creates nothing and records that instead.
     consequences:
       easier: >-
         An adopter's decisions have somewhere to live from the first commit, in the shape

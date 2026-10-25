@@ -29,7 +29,8 @@ decisions file**: it costs less to keep up, and moving to ADRs later is a mechan
 conversion of each record into a file. Say which you would take and why, then do what they
 choose. Record the choice in `docs/setup.md`.
 
-Keep exactly one. Two logs is two sources of truth for the same question.
+Keep exactly one. Two logs is two sources of truth for the same question. If they decline a
+log altogether, create neither and record that in `docs/setup.md`.
 
 ## What counts as a decision
 

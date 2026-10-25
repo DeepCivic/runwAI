@@ -45,6 +45,7 @@ So you can tell whether your agent actually did it. It should, without further p
    remove `STEAL.md` and `.steal/` on your answer — not on its own guess
 6. **Ask how you want to keep a record of your decisions** — one `docs/decisions.yaml` file
    or a folder of ADRs — help you choose from your situation, and create the one you pick
+   (or none, if you decline)
 7. Record what it did in [`docs/setup.md`](docs/setup.md)
 8. **Rewrite `AGENTS.md` to describe your project rather than this template**, and say that
    it has

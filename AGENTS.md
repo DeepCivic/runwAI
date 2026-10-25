@@ -228,7 +228,8 @@ Do not ask "ADR or YAML?" — they will not know. Load
 three questions to them in their own terms (how many people review changes, who outside the
 team will read why, how many decisions to expect), and give your recommendation. If they
 are unsure, recommend the decisions file; it costs less to keep and converts to ADRs later.
-Create exactly one. From then on, write a record when a choice between real alternatives is
+Create exactly one. If they decline a log altogether, create nothing and record that in
+`docs/setup.md`. From then on, write a record when a choice between real alternatives is
 made, and never edit an old record to match the present.
 
 **7. Write down what you did** in [`docs/setup.md`](docs/setup.md). It is the *adopting
