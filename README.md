@@ -210,9 +210,9 @@ compromise.
 
 | File | Package | Version | Licence |
 | :--- | :--- | :--- | :--- |
-| `biome.json` | `@biomejs/biome` | 2.5.5 | MIT OR Apache-2.0 |
+| `biome.json` | `@biomejs/biome` | 2.6.3 | MIT OR Apache-2.0 |
 | `playwright.config.ts` | `@playwright/test` | 1.62.0 | Apache-2.0 |
-| `promptfooconfig.yaml` | `promptfoo` | 0.121.19 | MIT |
+| `promptfooconfig.yaml` | `promptfoo` | 0.125.0 | MIT |
 
 Pin those exact versions when you install them. The version above is the one each file was
 *written against*, not a claim that newer releases are incompatible — check the upstream

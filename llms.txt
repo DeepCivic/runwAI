@@ -58,9 +58,9 @@ somewhere — every file ships in the place its tool already looks for it.
 
 ## Toolchain configs for what you build
 
-- [biome.json](biome.json): Formatting and linting for JavaScript and TypeScript, written against Biome 2.5.5
+- [biome.json](biome.json): Formatting and linting for JavaScript and TypeScript, written against Biome 2.6.3
 - [playwright.config.ts](playwright.config.ts): E2E config shaped for streaming responses, written against Playwright 1.62.0
-- [promptfooconfig.yaml](promptfooconfig.yaml): Deterministic evals for prompts and agent tools, written against promptfoo 0.121.19
+- [promptfooconfig.yaml](promptfooconfig.yaml): Deterministic evals for prompts and agent tools, written against promptfoo 0.125.0
 
 ## Optional
 

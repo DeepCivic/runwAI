@@ -1,6 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
-  "//": "Ships live: this is your project's Biome config, already in the place Biome looks for it. Written against @biomejs/biome 2.5.5 (MIT OR Apache-2.0) — pin that exact version in package.json, because an unpinned formatter is a rule that can change under you. runwAI itself is Python, YAML and Markdown, so nothing here lints this repository; adapt the rules to what you are building rather than copying the file somewhere else.",
+  "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -18,10 +17,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsoleLog": "warn"
+        "noConsole": "warn"
       },
       "security": {
         "noDangerouslySetInnerHtml": "error",
