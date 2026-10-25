@@ -1,10 +1,10 @@
 # runwAI development decisions.
 #
 # Why the template is shaped the way it is, argued by the people who built it. Not the
-# adopting project's decisions: a project built from runwAI starts its own log at
-# docs/adr/, empty, numbered from 0001. A decision log inherited from someone else's
-# repository describes a debate its reader was never part of, and the numbering makes their
-# own first decision look like a footnote to ours.
+# adopting project's decisions: a project built from runwAI starts its own log, empty, in
+# the shape its first session chooses (decision 20). A decision log inherited from someone
+# else's repository describes a debate its reader was never part of, and the numbering
+# makes their own first decision look like a footnote to ours.
 #
 # Structured for the same reason backlog.yaml is: the readers are a maintainer and an agent,
 # and neither needs a document format. Nothing in .runwai/ owes the template's conventions

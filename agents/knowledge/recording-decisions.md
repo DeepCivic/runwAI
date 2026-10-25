@@ -51,12 +51,20 @@ reused or renumbered.
 
 ## The decisions file
 
-Create it at setup, with only the header, so the first real record is number 1.
+Create it at setup with only the header and an empty list, so the first real record is
+number 1 and nothing in the file describes a decision nobody made:
 
 ```yaml
 # Why this project is the way it is. One record per decision; newest last.
 # id: stable, never reused    status: accepted | superseded | withdrawn
 version: 1
+decisions: []
+```
+
+When the first decision is made, replace `[]` with the list and append each record in this
+shape:
+
+```yaml
 decisions:
   - id: 1
     title: One line, naming the choice
