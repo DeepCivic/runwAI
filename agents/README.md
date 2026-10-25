@@ -73,6 +73,9 @@ filename prefix.
   `/explain RWA-XXXX`: grounded in the registry, plain language first, ISM detail
   hidden until asked
 
+- [recording-decisions](knowledge/recording-decisions.md) — choosing between a decisions
+  file and ADRs, and writing either
+
 ## Two layers
 
 Everything an agent needs exists once, here, in a vendor-neutral form. On top of that sit

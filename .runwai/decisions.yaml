@@ -249,6 +249,11 @@ decisions:
     title: The maintainer's tree owes the template nothing
     status: accepted
     date: "2026-07-26"
+    amends: >-
+      Decision 20 (2026-10-25) replaced "docs/adr/ remains the adopter's log, empty and
+      numbered from 0001" with a choice: the adopter's agent helps them pick a decisions file
+      or ADRs, and creates only the one chosen. docs/adr/ never shipped, so nothing was
+      removed; the sentence described an intention the tree did not carry out.
     context: >-
       .runwai/ held two decision records as Markdown files named like ADRs, with a Status
       line, a Date line and an index README, because ADR-0001 was written when it still
@@ -1374,3 +1379,58 @@ decisions:
         Replace keyhog with another history-walking scanner (gitleaks, trufflehog). Rejected
         as scope: the maintainer asked to remove keyhog, not to re-litigate which second
         scanner to carry. Adding one back is a deliberate future decision, not this one.
+
+  - id: 20
+    title: The adopter chooses how decisions are recorded, with help
+    status: accepted
+    date: "2026-10-25"
+    context: >-
+      Decision 3 said the adopter's decision log is docs/adr/, empty, numbered from 0001. It
+      was never created, and nothing in the first session mentioned it, so an adopter's
+      agent had no instruction to start a log at all and an adopter who preferred a single
+      structured file, as this repository itself uses, had no sanctioned way to say so.
+
+
+      The two shapes suit different projects. A file of structured records is cheap for one
+      person or a small team working through an agent; ADRs earn their overhead when several
+      people review each other's changes or readers outside the team expect them. An adopter
+      cannot be expected to know that, which is the "you shouldn't need to know what to ask
+      for" failure again.
+    decision:
+      the_agent_helps_pick: >-
+        A first-session step, after the reuse-layer question, that frames the choice as three
+        questions about the project (how many reviewers, who outside the team reads it, how
+        many decisions) rather than as a format preference, and carries a stated default:
+        the decisions file when they are unsure, because it is cheaper to keep and converts to
+        ADRs mechanically later.
+      one_log_created_at_setup_not_shipped: >-
+        Neither shape ships in the tree. Decision 2 forbids starter files an adopter must
+        discover and copy, and a shipped log would describe our debate. The agent creates the
+        chosen one, empty, from templates held in agents/knowledge/recording-decisions.md,
+        which is live and is what the setup step points at.
+      exactly_one: >-
+        Two logs are two sources of truth for the same question, so the guide says to keep
+        one and to record the choice in docs/setup.md.
+    consequences:
+      easier: >-
+        An adopter's decisions have somewhere to live from the first commit, in the shape
+        that fits who will read them, and a future session can answer "why is it like this?"
+      harder: >-
+        The first session is one more question long, against the one-step onboarding
+        obligation. It has a plain-language framing and a stated default, the form decision 17
+        accepted for the reuse layer.
+      accepted_cost: >-
+        No check enforces that a chosen log is kept up. Whether a decision was worth a record
+        is a judgement, and a self-check that required one would be the gate-shaped workflow
+        MAINTAINERS.md warns against.
+    alternatives_considered:
+      - >-
+        Ship docs/adr/ empty, as decision 3 intended. Rejected: it picks for the adopter, and
+        an empty directory is not a file git tracks, so it would not have survived a clone.
+      - >-
+        Ship docs/decisions.yaml instead, since the template itself uses one. Rejected for the
+        same reason, and because the template's own log is argued for its two readers, not
+        for every adopter's.
+      - >-
+        Leave it unmentioned and let adopters find a log when they need one. Rejected: the
+        need arrives months after the decision was made, when the reason is already lost.

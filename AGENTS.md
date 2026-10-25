@@ -216,11 +216,26 @@ to be able to reuse pieces of this?"*:
 The failure to avoid is deleting it silently because it looks like template furniture. It
 is the one part of this repository whose value is a fact about *their* intentions.
 
-**6. Write down what you did** in [`docs/setup.md`](docs/setup.md). It is the *adopting
+**6. Help them pick how this project records its decisions.** A year from now someone —
+most likely a future session of you — will ask why a library, a data store or a deleted
+config is the way it is. A decision log answers that, and there are two shapes: one
+`docs/decisions.yaml` file, or a folder of numbered ADRs at `docs/adr/`. Neither ships
+here, because a log inherited from someone else's repository describes a debate they were
+never part of; you create the one they choose, empty, as part of setup.
+
+Do not ask "ADR or YAML?" — they will not know. Load
+[`agents/knowledge/recording-decisions.md`](agents/knowledge/recording-decisions.md), put its
+three questions to them in their own terms (how many people review changes, who outside the
+team will read why, how many decisions to expect), and give your recommendation. If they
+are unsure, recommend the decisions file; it costs less to keep and converts to ADRs later.
+Create exactly one. From then on, write a record when a choice between real alternatives is
+made, and never edit an old record to match the present.
+
+**7. Write down what you did** in [`docs/setup.md`](docs/setup.md). It is the *adopting
 project's* record and it is as-built: what is configured right now, not what someone decided
 once. Keep it true in the same commit that changes the setup.
 
-**7. Make this file theirs.** `AGENTS.md` arrives describing runwAI — a template, and how
+**8. Make this file theirs.** `AGENTS.md` arrives describing runwAI — a template, and how
 to set it up. The moment it is their repository that framing is wrong, and an agent opening
 it next session will act on the wrong one. **Rewrite it in the same commit as the rest of
 setup:**
@@ -244,7 +259,7 @@ Then tell them you have done it, in one line. They will not know this file gover
 later session, and it is the file most likely to rot silently — the cost of leaving it
 describing a template lands on a future session, not this one.
 
-**8. Tell them these things unprompted**, because each is something they would otherwise
+**9. Tell them these things unprompted**, because each is something they would otherwise
 discover at the worst moment:
 
 - **Nothing here can prevent a merge.** The commit hook is the only thing that stops an
@@ -331,6 +346,8 @@ out of the way. What still holds:
 - Add a `STEAL:` marker's row to `.steal/manifest.md` in the same commit — the protocol is
   [`.steal/curation.md`](.steal/curation.md), and a self-check fails on a blessed file with
   no row. Skip this if the reuse layer was removed in step 5.
+- Record a decision in the project's log (step 6) when a choice between real alternatives is
+  made, in the same commit as the change. Skip this only if they declined a log.
 - Use `rg` (ripgrep) for searching in preference to `grep`, and write comments that explain
   **why**, not **what**.
 - Prefer stating "I could not verify this" over producing a confident guess.
