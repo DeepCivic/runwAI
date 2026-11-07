@@ -141,6 +141,44 @@ disagree — the same idea as `validate_helpers.py`.
 commit hook stays the only thing that stops anything. MCP blocks nothing and the server
 never claims to.
 
+## Prior art: other ISM and IRAP MCP servers
+
+Surveyed 2026-11-07 by reading each repository at its default branch. None is endorsed by
+ASD, none does an IRAP assessment, and none links an ISM control to a deterministic check
+on code. Every one is a reference layer or a self-declared tracker, so runwAI's niche is
+open.
+
+| Server | What it is | Take | Avoid |
+| :--- | :--- | :--- | :--- |
+| `AustralianCyberSecurityCentre/ism-oscal` | ASD's own OSCAL release of the ISM, CC BY 4.0. Catalog, plus profiles for NC/OS/P/S/TS and Essential Eight ML1–3. One git tag per release | **Use it as the source** instead of the SSP annex spreadsheet. It carries classification applicability, Essential Eight levels and revisions, and the tag plus a hash pins the input | — |
+| `SamuelDudley/ism-mcp` (Python, MIT) | Local SQLite over every tagged ISM release; `.ism-coverage.toml` project manifest; `install` command | **The coverage manifest**: per-control status, `how_met`, files, commits, attachments, `reviewed_against` release. **`ism_coverage_impact`**: after an ISM release, flag covered controls to re-review, removed ones and newly in-scope ones. **Scope by classification** as the denominator. **`install`** writes `.mcp.json`, a managed block in `CLAUDE.md` and the manifest, pinned to a revision: one-step onboarding | Status is self-declared and nothing checks it, so in runwAI it is evidenced, never checked. Embedding-ranked discovery is a model in the ranking path: fine for finding controls, never for scope or verdicts. Its own warning applies: filtering by maturity collapses scope to the Essential Eight subset |
+| `RusticEagle/ism-mcp` (TypeScript) | Live fetch of every tag via the GitHub API; `compare_versions`; `get_profile_controls`; `ism_change_brief` prompt; hosted endpoint | Version comparison and the change-brief prompt; profile resolution per baseline | Discovering "latest" live with a six-hour cache means the same call can change answer. An unauthenticated hosted endpoint is not a model for a tool that reads source code |
+| `jusso-dev/hermes-cyber-au`, connectors `asd-ism`, `irap`, `asd-essentials` | Read-only stdio connectors with a shared library | **A provenance envelope on every result**: source, retrieval time, data as-of, `cache` as live / cached / stale / snapshot, warnings; release tag and SHA-256 with every answer. **"Not covered"** instead of a guess. **Untrusted-text wrapping** of quoted material, with look-alike characters folded. A shipped snapshot refused as "latest" past 180 days, but usable when a release is named. The IRAP consumer guide's preparation checklist as a tool | Defaulting to live fetches. Its claim that ASD launched "ASD Essentials" alongside the Essential Eight on 15 October 2026 is unverified here and needs checking before runwAI relies on it |
+| `awslabs/mcp-server-for-oscal` | OSCAL schemas and reference content, bundled | **Integrity check at start-up**: SHA-256 manifest of bundled content, generated at build, verified on every start; mismatch refuses to run. **No HTTP transport** until transport security and auth exist | — |
+| `oscal-compass/compliance-trestle-mcp` | Wraps compliance-trestle: workspace, import, profile resolve, authoring | **Emit OSCAL.** runwAI's checks as an OSCAL component definition and each review as OSCAL assessment results, so the output loads into the GRC tools assessors already use, beside the Markdown report | — |
+| `tnicholson/nist-mcp-server` | NIST 800-53, CMMC and FedRAMP "readiness" | — | `overall_risk_score: 7.3` from a list of controls the caller says are implemented. A score from self-declared input is the coverage inflation MAINTAINERS.md refuses |
+
+What this changes in the proposal:
+
+1. **The knowledge base is built from ISM OSCAL.** runwAI's snapshot is June 2026: 1101
+   controls, which matches OSCAL tag `v2026.06.18` once its 49 principles are left out. The
+   current tag is `v2026.09.4`, with 1143 controls and 49 principles, so runwAI is one release
+   behind. The tag and catalog hash go in every receipt.
+2. **Scope is a classification baseline.** IRAP assesses against a baseline, so "36 of
+   1101" becomes "N of M in scope at PROTECTED", with Essential Eight as a separate,
+   explicitly narrower view.
+3. **Observations gain a per-control form.** A committed coverage manifest in the shape of
+   `.ism-coverage.toml`, with evidence fields and `reviewed_against`, feeding the evidenced
+   tier. Free-form observations remain for facts that are not yet tied to a control.
+4. **Release impact is a tool.** `ism_impact(from, to)` compares two tags against the
+   manifest and the registry: reworded controls behind a check, withdrawn ones, newly in
+   scope.
+5. **Every result carries a provenance envelope**, and quoted ISM text is wrapped as
+   untrusted.
+6. **The compiled knowledge base is hash-verified at start-up.**
+7. **Outputs include OSCAL** component definitions and assessment results, alongside
+   Markdown.
+
 ## What not to copy
 
 - **The clock.** The privacy server defaults `as_at` to `date.today()` to decide whether a
@@ -190,10 +228,8 @@ generated `docs/security-report.md`. No template, no prune, no `.runwai/`.
 
 ## Open questions
 
-1. **Where it lives.** `civic-lab/mcp-servers/` gets cross-platform CI, the image and the
-   Registry entry for free. runwAI keeps the history and the decisions. Recommendation:
-   server in `civic-lab`, this repository as its design record and fixtures source until the
-   template's future is decided.
+1. **Where it lives. Decided 2026-11-07: `civic-lab/mcp-servers/`.** Still open: whether
+   this proposal and runwAI's decisions log move with it.
 2. **Observations and the invariant.** Accept the evidenced tier as model-authored input
    adjudicated by pinned code, with a decision record that says so — or keep runwAI to
    checked controls only and lose the route out of unassessed.
